@@ -1,0 +1,18 @@
+# GraphQLスキーマ定義 - graph/schema.graphqls
+
+type Query {
+  # ユーザー情報をIDに基づいて取得するクエリ
+  user(id: ID!): User
+}
+
+type Mutation {
+  # 新しいユーザーを作成するミューテーション
+  createUser(name: String!, email: String!): User
+}
+
+# ユーザー情報を表す型
+type User {
+  id: ID!
+  name: String!
+  email: String!
+}
