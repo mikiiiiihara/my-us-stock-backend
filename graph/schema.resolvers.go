@@ -20,7 +20,10 @@ func NewResolver(db *gorm.DB) *Resolver {
     }
 }
 
-// Mutation メソッドを追加
+func (r *Resolver) Query() generated.QueryResolver {
+    return r.userResolver
+}
+
 func (r *Resolver) Mutation() generated.MutationResolver {
     return r.userResolver
 }

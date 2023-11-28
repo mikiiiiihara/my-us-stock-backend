@@ -19,7 +19,7 @@ func Migrate(db *gorm.DB) {
 
 func main() {
     // PostgreSQLデータベースに接続
-    dsn := "host=localhost user=myuser password=mypassword dbname=mydb port=5432 sslmode=disable TimeZone=Asia/Tokyo"
+    dsn := "host=localhost user=myuser password=mypassword dbname=mydbname port=5432 sslmode=disable TimeZone=Asia/Tokyo"
     db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
     if err != nil {
         log.Fatalf("Failed to connect to database: %v", err)

@@ -4,7 +4,8 @@ package user
 
 import (
     "context"
-    "my-us-stock-backend/graph/user/model"
+    "my-us-stock-backend/graph/generated"
+    "strconv"
 )
 
 type Resolver struct {
@@ -15,11 +16,38 @@ func NewResolver(userService *UserService) *Resolver {
     return &Resolver{UserService: userService}
 }
 
-func (r *Resolver) User(ctx context.Context, id uint) (*model.User, error) {
-    return r.UserService.GetUserByID(ctx, id)
+func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, error) {
+    // string型のIDをuint型に変換
+    id, err := strconv.ParseUint(idStr, 10, 64)
+    if err != nil {
+        return nil, err
+    }
+
+    userModel, err := r.UserService.GetUserByID(ctx, uint(id))
+    if err != nil {
+        return nil, err
+    }
+
+    return &generated.User{
+        ID:    idStr,
+        Name:  userModel.Name,
+        Email: userModel.Email,
+    }, nil
 }
 
 // MutationのCreateUserフィールドのResolverです。
-func (r *Resolver) CreateUser(ctx context.Context, name string, email string) (*model.User, error) {
-    return r.UserService.CreateUser(ctx, name, email)
+func (r *Resolver) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
+    userModel, err := r.UserService.CreateUser(ctx, name, email)
+    if err != nil {
+        return nil, err
+    }
+
+    // uint型のIDをstring型に変換
+    idStr := strconv.FormatUint(uint64(userModel.ID), 10)
+
+    return &generated.User{
+        ID:    idStr,  // string型に変換したIDを使用
+        Name:  userModel.Name,
+        Email: userModel.Email,
+    }, nil
 }
