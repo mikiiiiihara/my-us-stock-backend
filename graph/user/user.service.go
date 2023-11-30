@@ -4,23 +4,49 @@ package user
 
 import (
     "context"
+    "my-us-stock-backend/graph/generated"
     "my-us-stock-backend/graph/user/model"
+    "strconv"
 )
 
-type UserService struct {
+// UserService インターフェースの定義
+type UserService interface {
+    GetUserByID(ctx context.Context, id uint) (*generated.User, error)
+    CreateUser(ctx context.Context, name string, email string) (*generated.User, error)
+}
+
+type DefaultUserService struct {
     Repo *UserRepository
 }
 
-func NewUserService(repo *UserRepository) *UserService {
-    return &UserService{Repo: repo}
+func NewUserService(repo *UserRepository) UserService {
+    return &DefaultUserService{Repo: repo}
 }
 
-// 指定されたIDのユーザーを取得します。
-func (s *UserService) GetUserByID(ctx context.Context, id uint) (*model.User, error) {
-    return s.Repo.FindUserByID(ctx, id)
+func (s *DefaultUserService) GetUserByID(ctx context.Context, id uint) (*generated.User, error) {
+    modelUser, err := s.Repo.FindUserByID(ctx, id)
+    if err != nil {
+        return nil, err
+    }
+    return convertModelUserToGeneratedUser(modelUser), nil
 }
 
-// 新規ユーザーを作成します。
-func (s *UserService) CreateUser(ctx context.Context, name string, email string) (*model.User, error) {
-    return s.Repo.CreateUser(ctx, name, email)
+func (s *DefaultUserService) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
+    modelUser, err := s.Repo.CreateUser(ctx, name, email)
+    if err != nil {
+        return nil, err
+    }
+    return convertModelUserToGeneratedUser(modelUser), nil
+}
+
+// convertModelUserToGeneratedUser は model.User を generated.User に変換します。
+func convertModelUserToGeneratedUser(modelUser *model.User) *generated.User {
+    if modelUser == nil {
+        return nil
+    }
+    return &generated.User{
+        ID:    strconv.FormatUint(uint64(modelUser.ID), 10),
+        Name:  modelUser.Name,
+        Email: modelUser.Email,
+    }
 }

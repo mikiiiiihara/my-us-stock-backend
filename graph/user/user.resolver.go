@@ -9,10 +9,10 @@ import (
 )
 
 type Resolver struct {
-    UserService *UserService
+    UserService UserService
 }
 
-func NewResolver(userService *UserService) *Resolver {
+func NewResolver(userService UserService) *Resolver {
     return &Resolver{UserService: userService}
 }
 
@@ -20,16 +20,18 @@ func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, err
     // string型のIDをuint型に変換
     id, err := strconv.ParseUint(idStr, 10, 64)
     if err != nil {
+        // ID変換エラーのハンドリング
         return nil, err
     }
 
+    // GetUserByID に uint 型の ID を渡す
     userModel, err := r.UserService.GetUserByID(ctx, uint(id))
     if err != nil {
         return nil, err
     }
 
     return &generated.User{
-        ID:    idStr,
+        ID:    userModel.ID,
         Name:  userModel.Name,
         Email: userModel.Email,
     }, nil
@@ -42,11 +44,8 @@ func (r *Resolver) CreateUser(ctx context.Context, name string, email string) (*
         return nil, err
     }
 
-    // uint型のIDをstring型に変換
-    idStr := strconv.FormatUint(uint64(userModel.ID), 10)
-
     return &generated.User{
-        ID:    idStr,  // string型に変換したIDを使用
+        ID:    userModel.ID,  // string型に変換したIDを使用
         Name:  userModel.Name,
         Email: userModel.Email,
     }, nil
