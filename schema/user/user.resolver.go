@@ -1,10 +1,8 @@
-// graph/user/user.resolver.go
-
 package user
 
 import (
     "context"
-    "my-us-stock-backend/graph/generated"
+    "my-us-stock-backend/schema/generated"
     "strconv"
 )
 

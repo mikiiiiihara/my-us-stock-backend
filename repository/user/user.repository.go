@@ -1,11 +1,9 @@
-// graph/user/user.repository.go
-
 package user
 
 import (
     "context"
     "gorm.io/gorm"
-    "my-us-stock-backend/graph/user/model"
+    "my-us-stock-backend/repository/user/model"
 )
 
 type UserRepository struct {

@@ -1,4 +1,4 @@
-# GraphQLスキーマ定義 - graph/schema.graphqls
+# GraphQLスキーマ定義 - schema/schema.graphqls
 
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ

@@ -3,10 +3,9 @@ package user
 import (
     "context"
     "testing"
-    // "my-us-stock-backend/graph/user/model"
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/mock"
-    "my-us-stock-backend/graph/generated"
+    "my-us-stock-backend/schema/generated"
     "strconv"
 )
 

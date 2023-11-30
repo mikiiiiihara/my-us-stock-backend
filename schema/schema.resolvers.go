@@ -1,9 +1,10 @@
-package graph
+package schema
 
 import (
     "gorm.io/gorm"
-    "my-us-stock-backend/graph/generated"
-    "my-us-stock-backend/graph/user"
+    "my-us-stock-backend/schema/generated"
+    "my-us-stock-backend/schema/user"
+    repoUser "my-us-stock-backend/repository/user"
 )
 
 type Resolver struct {
@@ -11,7 +12,7 @@ type Resolver struct {
 }
 
 func NewResolver(db *gorm.DB) *Resolver {
-    userRepository := user.NewUserRepository(db)
+    userRepository := repoUser.NewUserRepository(db)
     userService := user.NewUserService(userRepository)
     userResolver := user.NewResolver(userService)
 

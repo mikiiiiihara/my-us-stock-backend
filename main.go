@@ -7,9 +7,9 @@ import (
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
     "log"
-    "my-us-stock-backend/graph/generated"
-	"my-us-stock-backend/graph"
-	"my-us-stock-backend/graph/user/model"
+    "my-us-stock-backend/schema/generated"
+	"my-us-stock-backend/schema"
+    "my-us-stock-backend/repository/user/model"
 )
 
 func Migrate(db *gorm.DB) {
@@ -44,7 +44,7 @@ func main() {
 
 // GraphQLハンドラ関数
 func graphqlHandler(db *gorm.DB) gin.HandlerFunc {
-	resolver := graph.NewResolver(db)
+	resolver := schema.NewResolver(db)
     h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
     return func(c *gin.Context) {

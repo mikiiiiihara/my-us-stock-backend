@@ -1,11 +1,10 @@
-// graph/user/user.service.go
-
 package user
 
 import (
     "context"
-    "my-us-stock-backend/graph/generated"
-    "my-us-stock-backend/graph/user/model"
+    "my-us-stock-backend/schema/generated"
+    "my-us-stock-backend/repository/user"
+    "my-us-stock-backend/repository/user/model"
     "strconv"
 )
 
@@ -16,10 +15,10 @@ type UserService interface {
 }
 
 type DefaultUserService struct {
-    Repo *UserRepository
+    Repo *user.UserRepository
 }
 
-func NewUserService(repo *UserRepository) UserService {
+func NewUserService(repo *user.UserRepository) UserService {
     return &DefaultUserService{Repo: repo}
 }
 
