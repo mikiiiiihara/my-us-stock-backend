@@ -1,15 +1,16 @@
 package main
 
 import (
-    "github.com/99designs/gqlgen/graphql/handler"
-    "github.com/99designs/gqlgen/graphql/playground"
-    "github.com/gin-gonic/gin"
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
-    "log"
-    "my-us-stock-backend/schema/generated"
+	"log"
+	"my-us-stock-backend/repository/user/model"
 	"my-us-stock-backend/schema"
-    "my-us-stock-backend/repository/user/model"
+	"my-us-stock-backend/schema/generated"
+
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func Migrate(db *gorm.DB) {
@@ -33,7 +34,7 @@ func main() {
 
     // GraphQLのエンドポイントのセットアップ
     r.POST("/graphql", graphqlHandler(db))
-    r.GET("/", playgroundHandler())
+    r.GET("/graphql", playgroundHandler())
 
     // サーバーを起動
     err = r.Run() // デフォルトでは ":8080" でサーバーを起動

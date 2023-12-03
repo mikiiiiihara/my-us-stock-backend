@@ -1,20 +1,30 @@
 package user
 
 import (
-    "context"
-    "gorm.io/gorm"
-    "my-us-stock-backend/repository/user/model"
+	"context"
+	"my-us-stock-backend/repository/user/model"
+
+	"gorm.io/gorm"
 )
 
-type UserRepository struct {
+// UserRepository インターフェースの定義
+type UserRepository interface {
+    FindUserByID(ctx context.Context, id uint) (*model.User, error)
+    CreateUser(ctx context.Context, name string, email string) (*model.User, error)
+}
+
+// DefaultUserRepository 構造体の定義
+type DefaultUserRepository struct {
     DB *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
-    return &UserRepository{DB: db}
+// NewUserRepository は DefaultUserRepository の新しいインスタンスを作成します
+func NewUserRepository(db *gorm.DB) UserRepository {
+    return &DefaultUserRepository{DB: db}
 }
 
-func (r *UserRepository) FindUserByID(ctx context.Context, id uint) (*model.User, error) {
+// FindUserByID はユーザーをIDによって検索します
+func (r *DefaultUserRepository) FindUserByID(ctx context.Context, id uint) (*model.User, error) {
     var user model.User
     result := r.DB.First(&user, id)
     if result.Error != nil {
@@ -23,8 +33,8 @@ func (r *UserRepository) FindUserByID(ctx context.Context, id uint) (*model.User
     return &user, nil
 }
 
-// Create は新しいユーザーをデータベースに保存します。
-func (r *UserRepository) CreateUser(ctx context.Context, name string, email string) (*model.User, error) {
+// CreateUser は新しいユーザーをデータベースに保存します
+func (r *DefaultUserRepository) CreateUser(ctx context.Context, name string, email string) (*model.User, error) {
     user := &model.User{Name: name, Email: email}
     if err := r.DB.Create(user).Error; err != nil {
         return nil, err
