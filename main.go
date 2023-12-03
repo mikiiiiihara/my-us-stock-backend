@@ -6,6 +6,8 @@ import (
 	"my-us-stock-backend/schema"
 	"my-us-stock-backend/schema/generated"
 
+	"my-us-stock-backend/controller"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
@@ -29,8 +31,14 @@ func main() {
 	// マイグレーションの実行
     Migrate(db)
 
+    // コントローラレジストリの作成
+    controllerRegistry := controller.NewControllerRegistry(db)
+
     // Gin HTTPサーバーの初期化
     r := gin.Default()
+
+    // コントローラレジストリを使用してREST APIルートを登録
+    controllerRegistry.RegisterRoutes(r)
 
     // GraphQLのエンドポイントのセットアップ
     r.POST("/graphql", graphqlHandler(db))
