@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// テスト用のデータベース設定
 func setupTestDB() *gorm.DB {
     db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
     if err != nil {
