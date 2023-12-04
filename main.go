@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
-	"my-us-stock-backend/repository/user/model"
-	"my-us-stock-backend/schema"
-	"my-us-stock-backend/schema/generated"
+	"my-us-stock-backend/src/repository/user/model"
+	"my-us-stock-backend/src/schema"
+	"my-us-stock-backend/src/schema/generated"
 
-	"my-us-stock-backend/controller"
+	"my-us-stock-backend/src/controller"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"

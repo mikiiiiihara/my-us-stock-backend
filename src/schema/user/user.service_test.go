@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
-	repoUser "my-us-stock-backend/repository/user"
-	userModel "my-us-stock-backend/repository/user/model"
+	repoUser "my-us-stock-backend/src/repository/user"
+	userModel "my-us-stock-backend/src/repository/user/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

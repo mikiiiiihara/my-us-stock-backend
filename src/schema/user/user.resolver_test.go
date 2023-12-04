@@ -1,12 +1,13 @@
 package user
 
 import (
-    "context"
-    "testing"
-    "github.com/stretchr/testify/assert"
-    "github.com/stretchr/testify/mock"
-    "my-us-stock-backend/schema/generated"
-    "strconv"
+	"context"
+	"my-us-stock-backend/src/schema/generated"
+	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 // MockUserService の定義

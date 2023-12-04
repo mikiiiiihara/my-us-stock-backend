@@ -5,7 +5,6 @@ go 1.21.4
 require (
 	github.com/99designs/gqlgen v0.17.40
 	github.com/gin-gonic/gin v1.9.1
-	github.com/go-playground/assert/v2 v2.2.0
 	github.com/stretchr/testify v1.8.4
 	github.com/vektah/gqlparser/v2 v2.5.10
 	gorm.io/driver/postgres v1.5.4

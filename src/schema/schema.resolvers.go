@@ -1,10 +1,11 @@
 package schema
 
 import (
-    "gorm.io/gorm"
-    "my-us-stock-backend/schema/generated"
-    "my-us-stock-backend/schema/user"
-    repoUser "my-us-stock-backend/repository/user"
+	repoUser "my-us-stock-backend/src/repository/user"
+	"my-us-stock-backend/src/schema/generated"
+	"my-us-stock-backend/src/schema/user"
+
+	"gorm.io/gorm"
 )
 
 type Resolver struct {

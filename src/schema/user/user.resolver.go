@@ -1,9 +1,9 @@
 package user
 
 import (
-    "context"
-    "my-us-stock-backend/schema/generated"
-    "strconv"
+	"context"
+	"my-us-stock-backend/src/schema/generated"
+	"strconv"
 )
 
 type Resolver struct {
