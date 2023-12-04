@@ -3,9 +3,9 @@ package user_test
 import (
 	"bytes"
 	"encoding/json"
-	"my-us-stock-backend/repository/user/model"
-	"my-us-stock-backend/schema"
-	"my-us-stock-backend/schema/generated"
+	"my-us-stock-backend/src/repository/user/model"
+	"my-us-stock-backend/src/schema"
+	"my-us-stock-backend/src/schema/generated"
 	"net/http"
 	"net/http/httptest"
 	"testing"
