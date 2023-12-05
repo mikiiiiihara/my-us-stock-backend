@@ -32,13 +32,13 @@ func main() {
     Migrate(db)
 
     // コントローラレジストリの作成
-    controllerRegistry := controller.NewControllerRegistry(db)
+    controllerModule := controller.NewControllerModule(db)
 
     // Gin HTTPサーバーの初期化
     r := gin.Default()
 
     // コントローラレジストリを使用してREST APIルートを登録
-    controllerRegistry.RegisterRoutes(r)
+    controllerModule.RegisterRoutes(r)
 
     // GraphQLのエンドポイントのセットアップ
     r.POST("/graphql", graphqlHandler(db))
