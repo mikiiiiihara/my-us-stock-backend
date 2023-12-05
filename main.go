@@ -45,7 +45,7 @@ func main() {
     r.GET("/graphql", playgroundHandler())
 
     // サーバーを起動
-    err = r.Run() // デフォルトでは ":8080" でサーバーを起動
+    err = r.Run(":4000")
     if err != nil {
         log.Fatalf("Failed to run server: %v", err)
     }

@@ -6,15 +6,15 @@ import (
 	"strconv"
 )
 
-type Resolver struct {
+type UserResolver struct {
     UserService UserService
 }
 
-func NewResolver(userService UserService) *Resolver {
-    return &Resolver{UserService: userService}
+func NewResolver(userService UserService) *UserResolver {
+    return &UserResolver{UserService: userService}
 }
 
-func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, error) {
+func (r *UserResolver) User(ctx context.Context, idStr string) (*generated.User, error) {
     // string型のIDをuint型に変換
     id, err := strconv.ParseUint(idStr, 10, 64)
     if err != nil {
@@ -36,7 +36,7 @@ func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, err
 }
 
 // MutationのCreateUserフィールドのResolverです。
-func (r *Resolver) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
+func (r *UserResolver) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
     userModel, err := r.UserService.CreateUser(ctx, name, email)
     if err != nil {
         return nil, err

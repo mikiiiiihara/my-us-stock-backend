@@ -21,10 +21,10 @@ func NewSchemaModule(db *gorm.DB) *SchemaModule {
 	}
 }
 
-func (r *SchemaModule) Query() generated.QueryResolver {
-	return r.userModule.Query()
+func (sm *SchemaModule) Query() generated.QueryResolver {
+	return sm.userModule.Query()
 }
 
-func (r *SchemaModule) Mutation() generated.MutationResolver {
-	return r.userModule.Mutation()
+func (sm *SchemaModule) Mutation() generated.MutationResolver {
+	return sm.userModule.Mutation()
 }

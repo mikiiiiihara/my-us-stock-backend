@@ -12,8 +12,8 @@ type UserModule struct {
 }
 
 func NewUserModule(db *gorm.DB) *UserModule {
-    userRepository := repoUser.NewUserRepository(db)
-    userService := NewUserService(userRepository)
+	userRepoModule := repoUser.NewUserRepositoryModule(db)
+	userService := NewUserService(userRepoModule.Repository)
     userController := NewUserController(userService)
 
     return &UserModule{
