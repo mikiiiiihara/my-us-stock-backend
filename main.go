@@ -53,7 +53,7 @@ func main() {
 
 // GraphQLハンドラ関数
 func graphqlHandler(db *gorm.DB) gin.HandlerFunc {
-	resolver := schema.NewResolver(db)
+	resolver := schema.NewSchemaModule(db)
     h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
     return func(c *gin.Context) {
