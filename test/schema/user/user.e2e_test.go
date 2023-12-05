@@ -28,7 +28,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 // setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
 func setupGraphQLServer(db *gorm.DB) *handler.Server {
-    resolver := schema.NewResolver(db)
+    resolver := schema.NewSchemaModule(db)
     return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 }
 

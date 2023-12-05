@@ -32,20 +32,20 @@ func main() {
     Migrate(db)
 
     // コントローラレジストリの作成
-    controllerRegistry := controller.NewControllerRegistry(db)
+    controllerModule := controller.NewControllerModule(db)
 
     // Gin HTTPサーバーの初期化
     r := gin.Default()
 
     // コントローラレジストリを使用してREST APIルートを登録
-    controllerRegistry.RegisterRoutes(r)
+    controllerModule.RegisterRoutes(r)
 
     // GraphQLのエンドポイントのセットアップ
     r.POST("/graphql", graphqlHandler(db))
     r.GET("/graphql", playgroundHandler())
 
     // サーバーを起動
-    err = r.Run() // デフォルトでは ":8080" でサーバーを起動
+    err = r.Run(":4000")
     if err != nil {
         log.Fatalf("Failed to run server: %v", err)
     }
@@ -53,7 +53,7 @@ func main() {
 
 // GraphQLハンドラ関数
 func graphqlHandler(db *gorm.DB) gin.HandlerFunc {
-	resolver := schema.NewResolver(db)
+	resolver := schema.NewSchemaModule(db)
     h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
     return func(c *gin.Context) {
