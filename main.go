@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"my-us-stock-backend/src/repository/user/model"
-	"my-us-stock-backend/src/schema"
+	"my-us-stock-backend/src/schema/currency"
 	"my-us-stock-backend/src/schema/generated"
+	"my-us-stock-backend/src/schema/user"
 
 	"my-us-stock-backend/src/controller"
 
@@ -33,6 +35,9 @@ func main() {
 
     // コントローラレジストリの作成
     controllerModule := controller.NewControllerModule(db)
+    // Schema用モジュールのインスタンス化
+    userModule := user.NewUserModule(db)
+    currencyModule := currency.NewCurrencyModule()
 
     // Gin HTTPサーバーの初期化
     r := gin.Default()
@@ -41,7 +46,7 @@ func main() {
     controllerModule.RegisterRoutes(r)
 
     // GraphQLのエンドポイントのセットアップ
-    r.POST("/graphql", graphqlHandler(db))
+    r.POST("/graphql", graphqlHandler(userModule, currencyModule))
     r.GET("/graphql", playgroundHandler())
 
     // サーバーを起動
@@ -51,15 +56,45 @@ func main() {
     }
 }
 
+// CustomQueryResolver は QueryResolver と MutationResolver インターフェースを実装します
+type CustomQueryResolver struct {
+    userResolver     *user.Resolver
+    currencyResolver *currency.Resolver
+}
+
+// Queryメソッドの実装
+func (r *CustomQueryResolver) Query() generated.QueryResolver {
+    return r
+}
+
+// Userメソッドの実装
+func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
+    return r.userResolver.User(ctx, id)
+}
+
+// GetCurrentUsdJpyメソッドの実装
+func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
+    return r.currencyResolver.GetCurrentUsdJpy(ctx)
+}
+
+// Mutationメソッドの実装
+func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
+    return r.userResolver
+}
+
 // GraphQLハンドラ関数
-func graphqlHandler(db *gorm.DB) gin.HandlerFunc {
-	resolver := schema.NewSchemaModule(db)
-    h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
+func graphqlHandler(userModule *user.UserModule, currencyModule *currency.CurrencyModule) gin.HandlerFunc {
+    resolver := &CustomQueryResolver{
+        userResolver:     userModule.UserResolver,
+        currencyResolver: currencyModule.CurrencyResolver,
+    }
+    srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
     return func(c *gin.Context) {
-        h.ServeHTTP(c.Writer, c.Request)
+        srv.ServeHTTP(c.Writer, c.Request)
     }
 }
+
 
 // Playgroundハンドラ関数
 func playgroundHandler() gin.HandlerFunc {

@@ -1,10 +1,10 @@
 schema:
-  - "schema/schema.graphqls"
+  - "src/schema/schema.graphqls"
 
 exec:
-  filename: schema/generated/generated.go
+  filename: src/schema/generated/generated.go
   package: generated
 
 model:
-  filename: schema/generated/models_gen.go
+  filename: src/schema/generated/models_gen.go
   package: generated

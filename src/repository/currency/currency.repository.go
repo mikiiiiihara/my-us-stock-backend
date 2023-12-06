@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"my-us-stock-backend/src/repository/currency/dto"
 	"net/http"
 	"os"
@@ -11,43 +12,53 @@ import (
 )
 
 type CurrencyRepository struct {
-	httpClient *http.Client
+    httpClient *http.Client
 }
 
 func NewCurrencyRepository(client *http.Client) *CurrencyRepository {
-	return &CurrencyRepository{
-		httpClient: client,
-	}
+    return &CurrencyRepository{
+        httpClient: client,
+    }
 }
 
 func (repo *CurrencyRepository) FetchCurrentUsdJpy() (float64, error) {
-	currencyURL := os.Getenv("CURRENCY_URL")
-	resp, err := repo.httpClient.Get(currencyURL)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
+    currencyURL := os.Getenv("CURRENCY_URL")
+    if currencyURL == "" {
+        log.Println("CURRENCY_URL is not set")
+        return 0, fmt.Errorf("CURRENCY_URL is not set")
+    }
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, err
-	}
+    resp, err := repo.httpClient.Get(currencyURL)
+    if err != nil {
+        log.Printf("Error fetching currency data: %v\n", err)
+        return 0, err
+    }
+    defer resp.Body.Close()
 
-	var fx dto.Fx
-	err = json.Unmarshal(body, &fx)
-	if err != nil {
-		return 0, err
-	}
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        log.Printf("Error reading response body: %v\n", err)
+        return 0, err
+    }
 
-	for _, quote := range fx.Quotes {
-		if quote.CurrencyPairCode == "USDJPY" {
-			currentUsdJpy, err := strconv.ParseFloat(quote.Bid, 64)
-			if err != nil {
-				return 0, err
-			}
-			return currentUsdJpy, nil
-		}
-	}
+    var fx dto.Fx
+    err = json.Unmarshal(body, &fx)
+    if err != nil {
+        log.Printf("Error unmarshalling JSON: %v\n", err)
+        return 0, err
+    }
 
-	return 0, fmt.Errorf("USDJPY not found")
+    for _, quote := range fx.Quotes {
+        if quote.CurrencyPairCode == "USDJPY" {
+            currentUsdJpy, err := strconv.ParseFloat(quote.Bid, 64)
+            if err != nil {
+                log.Printf("Error parsing float value: %v\n", err)
+                return 0, err
+            }
+            return currentUsdJpy, nil
+        }
+    }
+
+    log.Println("USDJPY not found in quotes")
+    return 0, fmt.Errorf("USDJPY not found")
 }
