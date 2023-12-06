@@ -3,6 +3,7 @@
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
   user(id: ID!): User
+  getCurrentUsdJpy: Float!
 }
 
 type Mutation {

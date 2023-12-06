@@ -7,7 +7,7 @@ import (
 )
 
 type UserModule struct {
-	UserResolver *UserResolver
+	UserResolver *Resolver
 }
 
 func NewUserModule(db *gorm.DB) *UserModule {
@@ -20,10 +20,10 @@ func NewUserModule(db *gorm.DB) *UserModule {
 	}
 }
 
-func (um *UserModule) Query() *UserResolver {
+func (um *UserModule) Query() *Resolver {
 	return um.UserResolver
 }
 
-func (um *UserModule) Mutation() *UserResolver {
+func (um *UserModule) Mutation() *Resolver {
 	return um.UserResolver
 }
