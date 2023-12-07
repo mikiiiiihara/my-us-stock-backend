@@ -16,10 +16,14 @@ type CurrencyRepository struct {
 }
 
 func NewCurrencyRepository(client *http.Client) *CurrencyRepository {
+    if client == nil {
+        client = http.DefaultClient
+    }
     return &CurrencyRepository{
         httpClient: client,
     }
 }
+
 
 func (repo *CurrencyRepository) FetchCurrentUsdJpy() (float64, error) {
     currencyURL := os.Getenv("CURRENCY_URL")
