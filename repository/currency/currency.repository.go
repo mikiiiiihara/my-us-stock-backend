@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"my-us-stock-backend/src/repository/currency/dto"
+	"my-us-stock-backend/repository/currency/dto"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -15,9 +16,14 @@ type CurrencyRepository struct {
     currencyURL string
 }
 
-func NewCurrencyRepository(client *http.Client, currencyURL string) *CurrencyRepository {
+func NewCurrencyRepository(client *http.Client) *CurrencyRepository {
     if client == nil {
         client = http.DefaultClient
+    }
+    currencyURL := os.Getenv("CURRENCY_URL")
+    if currencyURL == "" {
+        // ここでデフォルトのURLを設定します
+        currencyURL = "http://default-url.com"
     }
     return &CurrencyRepository{
         httpClient: client,
@@ -25,10 +31,7 @@ func NewCurrencyRepository(client *http.Client, currencyURL string) *CurrencyRep
     }
 }
 
-
 func (repo *CurrencyRepository) FetchCurrentUsdJpy() (float64, error) {
-    // 以前は環境変数からURLを読み込んでいましたが、
-    // ここではコンストラクタで設定された URL を使用します
     resp, err := repo.httpClient.Get(repo.currencyURL)
     if err != nil {
         log.Printf("Error fetching currency data: %v\n", err)

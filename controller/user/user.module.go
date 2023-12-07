@@ -1,7 +1,7 @@
 package user
 
 import (
-	repoUser "my-us-stock-backend/src/repository/user"
+	repoUser "my-us-stock-backend/repository/user"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"my-us-stock-backend/src/repository/user/model"
-	"my-us-stock-backend/src/schema/currency"
-	"my-us-stock-backend/src/schema/generated"
-	"my-us-stock-backend/src/schema/user"
+	repoCurrency "my-us-stock-backend/repository/currency"
+	repoUser "my-us-stock-backend/repository/user"
+	"my-us-stock-backend/repository/user/model"
+	"my-us-stock-backend/schema/currency"
+	serviceCurrency "my-us-stock-backend/schema/currency"
+	"my-us-stock-backend/schema/generated"
+	"my-us-stock-backend/schema/user"
+	serviceUser "my-us-stock-backend/schema/user"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -20,15 +23,8 @@ import (
 )
 
 type CustomQueryResolver struct {
-    UserModule     *user.UserModule
-    CurrencyModule *currency.CurrencyModule
-}
-
-func NewCustomQueryResolver(userModule *user.UserModule, currencyModule *currency.CurrencyModule) *CustomQueryResolver {
-    return &CustomQueryResolver{
-        UserModule:     userModule,
-        CurrencyModule: currencyModule,
-    }
+    userResolver     *user.Resolver
+    currencyResolver *currency.Resolver
 }
 
 func (r *CustomQueryResolver) Query() generated.QueryResolver {
@@ -36,19 +32,24 @@ func (r *CustomQueryResolver) Query() generated.QueryResolver {
 }
 
 func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
-    return r.UserModule.Mutation()
+    // ここでuserResolverを使用してMutationを実装する
+    return r.userResolver
 }
 
-// Userメソッドの実装
 func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
-    return r.UserModule.Query().User(ctx, id)
+    return r.userResolver.User(ctx, id)
 }
 
-// GetCurrentUsdJpyメソッドの実装
 func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
-    return r.CurrencyModule.Query().GetCurrentUsdJpy(ctx)
+    return r.currencyResolver.GetCurrentUsdJpy(ctx)
 }
 
+func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver) *CustomQueryResolver {
+    return &CustomQueryResolver{
+        userResolver:     userResolver,
+        currencyResolver: currencyResolver,
+    }
+}
 
 // setupTestDB はテスト用のデータベースをセットアップします
 func setupTestDB(t *testing.T) *gorm.DB {
@@ -62,16 +63,21 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 // setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
 func setupGraphQLServer(db *gorm.DB) *handler.Server {
-	// テスト用の環境変数を設定
-	os.Setenv("CURRENCY_URL", "http://test.url")
-		
-    userModule := user.NewUserModule(db)
-    currencyModule := currency.NewCurrencyModule()
+    // リポジトリ、サービス、リゾルバの初期化
+    currencyRepo := &repoCurrency.CurrencyRepository{}
+    currencyService := serviceCurrency.NewCurrencyService(currencyRepo)
+	currencyResolver := serviceCurrency.NewResolver(currencyService)
 
-    customResolver := NewCustomQueryResolver(userModule, currencyModule)
+    userRepo := repoUser.NewUserRepository(db)
+    userService := serviceUser.NewUserService(userRepo)
+    userResolver := serviceUser.NewResolver(userService)
 
-    return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: customResolver}))
+// CustomQueryResolverの初期化
+resolver := NewCustomQueryResolver(userResolver, currencyResolver)
+
+return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 }
+
 
 // executeGraphQLRequest はGraphQLリクエストを実行し、レスポンスを返します
 func executeGraphQLRequest(h http.Handler, query string) *httptest.ResponseRecorder {

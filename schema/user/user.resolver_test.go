@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"my-us-stock-backend/src/schema/generated"
+	"my-us-stock-backend/schema/generated"
 	"strconv"
 	"testing"
 
