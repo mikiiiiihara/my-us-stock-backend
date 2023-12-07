@@ -10,6 +10,7 @@ import (
 	"my-us-stock-backend/src/schema/user"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -19,23 +20,33 @@ import (
 )
 
 type CustomQueryResolver struct {
-    userModule     *user.UserModule
-    currencyModule *currency.CurrencyModule
+    UserModule     *user.UserModule
+    CurrencyModule *currency.CurrencyModule
 }
 
 func NewCustomQueryResolver(userModule *user.UserModule, currencyModule *currency.CurrencyModule) *CustomQueryResolver {
     return &CustomQueryResolver{
-        userModule:     userModule,
-        currencyModule: currencyModule,
+        UserModule:     userModule,
+        CurrencyModule: currencyModule,
     }
 }
 
-func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
-    return r.userModule.Query().User(ctx, id)
+func (r *CustomQueryResolver) Query() generated.QueryResolver {
+    return r
 }
 
+func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
+    return r.UserModule.Mutation()
+}
+
+// Userメソッドの実装
+func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
+    return r.UserModule.Query().User(ctx, id)
+}
+
+// GetCurrentUsdJpyメソッドの実装
 func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
-    return r.currencyModule.Query().GetCurrentUsdJpy(ctx)
+    return r.CurrencyModule.Query().GetCurrentUsdJpy(ctx)
 }
 
 
@@ -51,15 +62,14 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 // setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
 func setupGraphQLServer(db *gorm.DB) *handler.Server {
-    // UserとCurrencyのモジュールを初期化
+	// テスト用の環境変数を設定
+	os.Setenv("CURRENCY_URL", "http://test.url")
+		
     userModule := user.NewUserModule(db)
     currencyModule := currency.NewCurrencyModule()
 
-    // カスタムリゾルバーを作成
-// カスタムリゾルバーの作成
-customResolver := NewCustomQueryResolver(userModule, currencyModule)
+    customResolver := NewCustomQueryResolver(userModule, currencyModule)
 
-    // GraphQLサーバーをセットアップ
     return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: customResolver}))
 }
 
