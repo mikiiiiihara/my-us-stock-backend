@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
-	"my-us-stock-backend/src/repository/user"
-	"my-us-stock-backend/src/repository/user/model"
-	"my-us-stock-backend/src/schema/generated"
+	"my-us-stock-backend/repository/user"
+	"my-us-stock-backend/repository/user/model"
+	"my-us-stock-backend/schema/generated"
 	"strconv"
 )
 

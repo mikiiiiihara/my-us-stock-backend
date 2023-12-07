@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"log"
-	"my-us-stock-backend/src/repository/user/model"
-	"my-us-stock-backend/src/schema/currency"
-	"my-us-stock-backend/src/schema/generated"
-	"my-us-stock-backend/src/schema/user"
-
-	"my-us-stock-backend/src/controller"
+	"my-us-stock-backend/controller"
+	repoCurrency "my-us-stock-backend/repository/currency"
+	repoUser "my-us-stock-backend/repository/user"
+	"my-us-stock-backend/repository/user/model"
+	"my-us-stock-backend/schema/currency"
+	"my-us-stock-backend/schema/generated"
+	"my-us-stock-backend/schema/user"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -41,18 +42,24 @@ func main() {
 
     // コントローラレジストリの作成
     controllerModule := controller.NewControllerModule(db)
-    // Schema用モジュールのインスタンス化
-    userModule := user.NewUserModule(db)
-    currencyModule := currency.NewCurrencyModule()
+
+    // リポジトリとサービス、リゾルバの初期化
+    currencyRepo := repoCurrency.NewCurrencyRepository(nil)
+    currencyService := currency.NewCurrencyService(currencyRepo)
+    currencyResolver := currency.NewResolver(currencyService)
+
+    userRepo := repoUser.NewUserRepository(db)
+    userService := user.NewUserService(userRepo)
+    userResolver := user.NewResolver(userService)
 
     // Gin HTTPサーバーの初期化
-    r := gin.Default()
+    r := gin.Default() // gin.Engineのインスタンスを初期化
+
 
     // コントローラレジストリを使用してREST APIルートを登録
     controllerModule.RegisterRoutes(r)
-
-    // GraphQLのエンドポイントのセットアップ
-    r.POST("/graphql", graphqlHandler(userModule, currencyModule))
+    // GraphQL ハンドラ関数の設定
+    r.POST("/graphql", graphqlHandler(userResolver, currencyResolver))
     r.GET("/graphql", playgroundHandler())
 
     // サーバーを起動
@@ -89,10 +96,10 @@ func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
 }
 
 // GraphQLハンドラ関数
-func graphqlHandler(userModule *user.UserModule, currencyModule *currency.CurrencyModule) gin.HandlerFunc {
+func graphqlHandler(userResolver *user.Resolver, currencyResolver *currency.Resolver) gin.HandlerFunc {
     resolver := &CustomQueryResolver{
-        userResolver:     userModule.UserResolver,
-        currencyResolver: currencyModule.CurrencyResolver,
+        userResolver:     userResolver,
+        currencyResolver: currencyResolver,
     }
     srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
@@ -100,6 +107,7 @@ func graphqlHandler(userModule *user.UserModule, currencyModule *currency.Curren
         srv.ServeHTTP(c.Writer, c.Request)
     }
 }
+
 
 
 // Playgroundハンドラ関数

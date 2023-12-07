@@ -2,7 +2,7 @@ package currency
 
 import (
 	"bytes"
-	"io" // ioutil の代わりに io をインポート
+	"io"
 	"net/http"
 	"testing"
 
@@ -36,11 +36,8 @@ func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
 	}
 	mockHTTPClient := &http.Client{Transport: mockTransport}
 
-	// テスト用の通貨URL
-	testCurrencyURL := "http://test.url"
-
 	// モックの HTTP クライアントとテスト用の URL を使用してリポジトリを初期化
-	repo := NewCurrencyRepository(mockHTTPClient, testCurrencyURL)
+	repo := NewCurrencyRepository(mockHTTPClient)
 	got, err := repo.FetchCurrentUsdJpy()
 
 	// アサーション

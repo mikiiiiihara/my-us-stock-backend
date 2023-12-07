@@ -1,8 +1,9 @@
+// currency/service/currency.service.go
 package currency
 
 import (
 	"context"
-	"my-us-stock-backend/src/repository/currency"
+	"my-us-stock-backend/repository/currency"
 )
 
 type CurrencyService interface {
@@ -10,10 +11,10 @@ type CurrencyService interface {
 }
 
 type DefaultCurrencyService struct {
-    CurrencyRepo currency.CurrencyRepository
+    CurrencyRepo *currency.CurrencyRepository // ポインタ型に変更
 }
 
-func NewCurrencyService(currencyRepo currency.CurrencyRepository) CurrencyService {
+func NewCurrencyService(currencyRepo *currency.CurrencyRepository) CurrencyService { // ポインタ型に変更
     return &DefaultCurrencyService{CurrencyRepo: currencyRepo}
 }
 

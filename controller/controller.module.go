@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"my-us-stock-backend/src/controller/user"
+	"my-us-stock-backend/controller/user"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
