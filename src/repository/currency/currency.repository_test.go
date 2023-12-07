@@ -2,7 +2,7 @@ package currency
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io" // ioutil の代わりに io をインポート
 	"net/http"
 	"testing"
 
@@ -11,12 +11,12 @@ import (
 
 // MockHTTPTransport は http.RoundTripper のインターフェースを満たすモック実装です。
 type MockHTTPTransport struct {
-    RoundTripFunc func(req *http.Request) (*http.Response, error)
+	RoundTripFunc func(req *http.Request) (*http.Response, error)
 }
 
 // RoundTrip は http.RoundTripper の RoundTrip メソッドを模倣します。
 func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-    return m.RoundTripFunc(req)
+	return m.RoundTripFunc(req)
 }
 
 func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
@@ -26,7 +26,8 @@ func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
 	// モックのトランスポートを使用して HTTP クライアントを初期化
 	mockTransport := &MockHTTPTransport{
 		RoundTripFunc: func(req *http.Request) (*http.Response, error) {
-			r := ioutil.NopCloser(bytes.NewReader([]byte(mockResponseBody)))
+			// ioutil.NopCloser の代わりに io.NopCloser を使用
+			r := io.NopCloser(bytes.NewReader([]byte(mockResponseBody)))
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Body:       r,
@@ -35,8 +36,11 @@ func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
 	}
 	mockHTTPClient := &http.Client{Transport: mockTransport}
 
-	// モックの HTTP クライアントを使用してリポジトリを初期化
-	repo := NewCurrencyRepository(mockHTTPClient)
+	// テスト用の通貨URL
+	testCurrencyURL := "http://test.url"
+
+	// モックの HTTP クライアントとテスト用の URL を使用してリポジトリを初期化
+	repo := NewCurrencyRepository(mockHTTPClient, testCurrencyURL)
 	got, err := repo.FetchCurrentUsdJpy()
 
 	// アサーション
