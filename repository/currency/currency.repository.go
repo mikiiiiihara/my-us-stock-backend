@@ -21,10 +21,6 @@ func NewCurrencyRepository(client *http.Client) *CurrencyRepository {
         client = http.DefaultClient
     }
     currencyURL := os.Getenv("CURRENCY_URL")
-    if currencyURL == "" {
-        // ここでデフォルトのURLを設定します
-        currencyURL = "http://default-url.com"
-    }
     return &CurrencyRepository{
         httpClient: client,
         currencyURL: currencyURL,
