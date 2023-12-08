@@ -1,7 +1,7 @@
 resource "google_artifact_registry_repository" "my_repository" {
   provider = google
   location = var.default_region
-  repository_id = "my-use-stock-backend"
+  repository_id = var.project_id
   description = "Docker repository"
   format = "DOCKER"
 }
