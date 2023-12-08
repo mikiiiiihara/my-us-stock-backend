@@ -1,14 +1,15 @@
-FROM golang:1.21.4-alpine3.18
+# ビルドステージ
+FROM golang:1.18-alpine as builder
 
 WORKDIR /app
-
 COPY ./ ./
 RUN go mod download
-
-# バイナリファイルにビルド
 RUN GOOS=linux GOARCH=amd64 go build -mod=readonly -v -o server
 
-EXPOSE 8080
+# 実行ステージ
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/server .
 
-# バイナリファイルを実行
-CMD ./server
+EXPOSE 8080
+CMD ["./server"]
