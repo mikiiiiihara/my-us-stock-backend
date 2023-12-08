@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
+	"my-us-stock-backend/graphql/generated"
 	"my-us-stock-backend/repository/user"
 	"my-us-stock-backend/repository/user/model"
-	"my-us-stock-backend/schema/generated"
 	"strconv"
 )
 

@@ -3,9 +3,9 @@ package user_test
 import (
 	"bytes"
 	"encoding/json"
-	"my-us-stock-backend/controller/user"
 	RepoUser "my-us-stock-backend/repository/user"
 	"my-us-stock-backend/repository/user/model"
+	"my-us-stock-backend/rest/user"
 	"net/http"
 	"net/http/httptest"
 	"testing"

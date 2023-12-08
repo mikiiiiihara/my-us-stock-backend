@@ -244,7 +244,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `# GraphQLスキーマ定義 - schema/schema.graphqls
+	{Name: "../schema.graphqls", Input: `# GraphQLスキーマ定義 - graphql/schema.graphqls
 
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
@@ -388,7 +388,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}
 	res := resTmp.(*User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋsrcᚋschemaᚋgeneratedᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -448,7 +448,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋsrcᚋschemaᚋgeneratedᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3436,7 +3436,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋsrcᚋschemaᚋgeneratedᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
