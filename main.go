@@ -15,8 +15,8 @@ import (
 func main() {
     // .env ファイルから環境変数を読み込む
     err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
+    if err == nil {
+        log.Println("Development environment starting...")
     }
     port := os.Getenv("PORT")
     if port == "" {
