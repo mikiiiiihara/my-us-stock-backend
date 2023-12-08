@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"my-us-stock-backend/schema/generated"
+	"my-us-stock-backend/graphql/generated"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"log"
-	"my-us-stock-backend/controller"
+	"my-us-stock-backend/graphql/currency"
+	"my-us-stock-backend/graphql/generated"
+	"my-us-stock-backend/graphql/user"
 	repoCurrency "my-us-stock-backend/repository/currency"
 	repoUser "my-us-stock-backend/repository/user"
 	"my-us-stock-backend/repository/user/model"
-	"my-us-stock-backend/schema/currency"
-	"my-us-stock-backend/schema/generated"
-	"my-us-stock-backend/schema/user"
+	restUser "my-us-stock-backend/rest/user"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -39,25 +39,26 @@ func main() {
 
 	// マイグレーションの実行
     Migrate(db)
-
-    // コントローラレジストリの作成
-    controllerModule := controller.NewControllerModule(db)
-
-    // リポジトリとサービス、リゾルバの初期化
+    // リポジトリの初期化
+    userRepo := repoUser.NewUserRepository(db)
     currencyRepo := repoCurrency.NewCurrencyRepository(nil)
+    // GraphQLサービス、リゾルバの初期化
     currencyService := currency.NewCurrencyService(currencyRepo)
     currencyResolver := currency.NewResolver(currencyService)
 
-    userRepo := repoUser.NewUserRepository(db)
     userService := user.NewUserService(userRepo)
     userResolver := user.NewResolver(userService)
 
+    // RESTサービス、リゾルバの初期化
+    userRestService := restUser.NewUserService(userRepo)
+    userController := restUser.NewUserController(userRestService)
     // Gin HTTPサーバーの初期化
     r := gin.Default() // gin.Engineのインスタンスを初期化
 
 
-    // コントローラレジストリを使用してREST APIルートを登録
-    controllerModule.RegisterRoutes(r)
+    // RESTコントローラのルートを設定
+    r.GET("/api/users/:id", userController.GetUser)
+    r.POST("/api/users", userController.CreateUser)
     // GraphQL ハンドラ関数の設定
     r.POST("/graphql", graphqlHandler(userResolver, currencyResolver))
     r.GET("/graphql", playgroundHandler())

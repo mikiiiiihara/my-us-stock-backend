@@ -5,16 +5,14 @@ go 1.21.4
 require (
 	github.com/99designs/gqlgen v0.17.41
 	github.com/gin-gonic/gin v1.9.1
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.4
 	github.com/vektah/gqlparser/v2 v2.5.10
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5
 )
 
-require (
-	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
-)
+require github.com/mattn/go-sqlite3 v1.14.17 // indirect
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
