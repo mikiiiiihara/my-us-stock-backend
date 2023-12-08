@@ -25,3 +25,7 @@ go.work
 # Terraform
 *.tfvars
 .terraform
+
+# # .tfstate files
+# *.tfstate
+# *.tfstate.*
