@@ -1,0 +1,40 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.PROJECT_ID }}
+  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  SERVICE_REGION: ${{ secrets.SERVICE_REGION }}
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          service_account_key: ${{ env.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Build and Push Docker image
+        run: |
+          gcloud builds submit --tag asia.gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }} .
+
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud run deploy ${{ env.IMAGE_NAME }} \
+            --image asia.gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }} \
+            --region ${{ env.SERVICE_REGION }} \
+            --platform managed \
+            --allow-unauthenticated

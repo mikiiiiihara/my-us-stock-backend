@@ -4,6 +4,7 @@ import (
 	"log"
 	"my-us-stock-backend/graphql"
 	"my-us-stock-backend/rest"
+	"os"
 
 	"my-us-stock-backend/database"
 
@@ -17,6 +18,11 @@ func main() {
     if err != nil {
         log.Fatal("Error loading .env file")
     }
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "4000" // デフォルトポート
+    }
+    
     // PostgreSQLデータベースに接続
 	db := database.Connect()
     
@@ -33,7 +39,7 @@ func main() {
     graphql.SetupGraphQL(r, db)
 
     // サーバーを起動
-    err = r.Run(":4000")
+    err = r.Run(":" + port)
     if err != nil {
         log.Fatalf("Failed to run server: %v", err)
     }
