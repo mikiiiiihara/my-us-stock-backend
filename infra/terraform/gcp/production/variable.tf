@@ -1,3 +1,8 @@
+variable "credentials_key_path" {
+    description = "credentials key path"
+    type        = string
+}
+
 variable "project_id" {
   description = "project id"
   type        = string

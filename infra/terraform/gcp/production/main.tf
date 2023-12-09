@@ -1,3 +1,9 @@
+provider "google" {
+  project     = var.project_id
+  region      = var.default_region
+  credentials = file(var.credentials_key_path)
+}
+
 resource "google_artifact_registry_repository" "my_repository" {
   provider = google
   location = var.default_region
