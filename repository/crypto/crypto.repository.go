@@ -10,24 +10,31 @@ import (
 	"strconv"
 )
 
-type CryptoRepository struct {
+// CryptoRepository は仮想通貨の価格を取得するためのインターフェースです。
+type CryptoRepository interface {
+    FetchCryptoPrice(ticker CryptoTicker) (*dto.Crypto, error)
+}
+
+// DefaultCryptoRepository は CryptoRepository のデフォルト実装です。
+type DefaultCryptoRepository struct {
     httpClient *http.Client
     cryptoURL string
 }
 
-func NewCryptoRepository(client *http.Client) *CryptoRepository {
+// NewCryptoRepository は新しい DefaultCryptoRepository インスタンスを作成します。
+func NewCryptoRepository(client *http.Client) *DefaultCryptoRepository {
     if client == nil {
         client = http.DefaultClient
     }
-    cryptoURL := os.Getenv("CRYPTO_URL")
-    return &CryptoRepository{
+	cryptoURL := os.Getenv("CRYPTO_URL")
+    return &DefaultCryptoRepository{
         httpClient: client,
         cryptoURL: cryptoURL,
     }
 }
 
-// FetchCryptoPrice fetches the price of the given cryptocurrency
-func (repo *CryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*dto.Crypto, error) {
+// FetchCryptoPrice は指定された仮想通貨の価格を取得します。
+func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*dto.Crypto, error) {
     url := fmt.Sprintf("%s/%s_jpy/ticker", repo.cryptoURL, ticker)
     resp, err := repo.httpClient.Get(url)
     if err != nil {

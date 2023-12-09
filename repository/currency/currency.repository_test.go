@@ -2,6 +2,7 @@ package currency
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"testing"
@@ -65,7 +66,7 @@ func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
 
 	// モックの HTTP クライアントとテスト用の URL を使用してリポジトリを初期化
 	repo := NewCurrencyRepository(mockHTTPClient)
-	got, err := repo.FetchCurrentUsdJpy()
+	got, err := repo.FetchCurrentUsdJpy(context.Background())
 
 	// アサーション
 	assert.NoError(t, err)

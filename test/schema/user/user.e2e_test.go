@@ -64,7 +64,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 // setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
 func setupGraphQLServer(db *gorm.DB) *handler.Server {
     // リポジトリ、サービス、リゾルバの初期化
-    currencyRepo := &repoCurrency.CurrencyRepository{}
+	currencyRepo := repoCurrency.NewCurrencyRepository(nil)
     currencyService := serviceCurrency.NewCurrencyService(currencyRepo)
 	currencyResolver := serviceCurrency.NewResolver(currencyService)
 
