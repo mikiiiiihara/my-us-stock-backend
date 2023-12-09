@@ -11,13 +11,13 @@ type CurrencyService interface {
 }
 
 type DefaultCurrencyService struct {
-    CurrencyRepo *currency.CurrencyRepository // ポインタ型に変更
+    CurrencyRepo currency.CurrencyRepository // ポインタ型に変更
 }
 
-func NewCurrencyService(currencyRepo *currency.CurrencyRepository) CurrencyService { // ポインタ型に変更
+func NewCurrencyService(currencyRepo currency.CurrencyRepository) CurrencyService { // ポインタ型に変更
     return &DefaultCurrencyService{CurrencyRepo: currencyRepo}
 }
 
 func (s *DefaultCurrencyService) FetchCurrentUsdJpy(ctx context.Context) (float64, error) {
-    return s.CurrencyRepo.FetchCurrentUsdJpy()
+    return s.CurrencyRepo.FetchCurrentUsdJpy(ctx)
 }

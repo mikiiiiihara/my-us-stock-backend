@@ -1,9 +1,9 @@
-package currency
+package crypto
 
 import (
 	"bytes"
-	"context"
 	"io"
+	"my-us-stock-backend/repository/crypto/dto"
 	"net/http"
 	"testing"
 
@@ -20,36 +20,21 @@ func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	return m.RoundTripFunc(req)
 }
 
-func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
+func TestCryptoRepository_FetchCryptoPrice(t *testing.T) {
 	// モックレスポンスの準備
 	mockResponseBody := `{
-		"quotes": [
-		  {
-			"high": "1.2108",
-			"open": "1.2093",
-			"bid": "1.2105",
-			"currencyPairCode": "GBPUSD",
-			"ask": "1.2115",
-			"low": "1.2091"
-		  },
-		  {
-			"high": "133.74",
-			"open": "133.73",
-			"bid": "133.69",
-			"currencyPairCode": "USDJPY",
-			"ask": "133.72",
-			"low": "133.69"
-		  },
-		  {
-			"high": "1.5938",
-			"open": "1.5936",
-			"bid": "1.5936",
-			"currencyPairCode": "EURAUD",
-			"ask": "1.5949",
-			"low": "1.5923"
-		  }
-		]
-	  }`
+		"success": 1,
+		"data": {
+			"sell": "50.750",
+			"buy": "50.749",
+			"open": "50.706",
+			"high": "50.917",
+			"low": "49.333",
+			"last": "50.749",
+			"vol": "13346627.3932",
+			"timestamp": 1679376127932
+		}
+	}`
 
 	// モックのトランスポートを使用して HTTP クライアントを初期化
 	mockTransport := &MockHTTPTransport{
@@ -64,11 +49,18 @@ func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
 	}
 	mockHTTPClient := &http.Client{Transport: mockTransport}
 
-	// モックの HTTP クライアントとテスト用の URL を使用してリポジトリを初期化
-	repo := NewCurrencyRepository(mockHTTPClient)
-	got, err := repo.FetchCurrentUsdJpy(context.Background())
+	// リポジトリのインスタンスを作成
+	repo := NewCryptoRepository(mockHTTPClient)
 
-	// アサーション
-	assert.NoError(t, err)
-	assert.Equal(t, 133.69, got)
+	// テストの実行
+	t.Run("正常に仮想通貨の価格を取得", func(t *testing.T) {
+		expected := &dto.Crypto{
+			Name:  "btc",
+			Price: 50.749,
+		}
+
+		result, err := repo.FetchCryptoPrice("btc")
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
 }
