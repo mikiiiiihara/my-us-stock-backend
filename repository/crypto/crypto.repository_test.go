@@ -22,7 +22,19 @@ func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error)
 
 func TestCryptoRepository_FetchCryptoPrice(t *testing.T) {
 	// モックレスポンスの準備
-	mockResponseBody := `{"success": 1, "data": {"last": "50.749"}}`
+	mockResponseBody := `{
+		"success": 1,
+		"data": {
+			"sell": "50.750",
+			"buy": "50.749",
+			"open": "50.706",
+			"high": "50.917",
+			"low": "49.333",
+			"last": "50.749",
+			"vol": "13346627.3932",
+			"timestamp": 1679376127932
+		}
+	}`
 
 	// モックのトランスポートを使用して HTTP クライアントを初期化
 	mockTransport := &MockHTTPTransport{

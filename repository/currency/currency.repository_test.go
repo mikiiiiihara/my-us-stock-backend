@@ -21,7 +21,34 @@ func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error)
 
 func TestCurrencyRepository_FetchCurrentUsdJpy(t *testing.T) {
 	// モックレスポンスの準備
-	mockResponseBody := `{"quotes":[{"currencyPairCode":"USDJPY","bid":"133.69"}]}`
+	mockResponseBody := `{
+		"quotes": [
+		  {
+			"high": "1.2108",
+			"open": "1.2093",
+			"bid": "1.2105",
+			"currencyPairCode": "GBPUSD",
+			"ask": "1.2115",
+			"low": "1.2091"
+		  },
+		  {
+			"high": "133.74",
+			"open": "133.73",
+			"bid": "133.69",
+			"currencyPairCode": "USDJPY",
+			"ask": "133.72",
+			"low": "133.69"
+		  },
+		  {
+			"high": "1.5938",
+			"open": "1.5936",
+			"bid": "1.5936",
+			"currencyPairCode": "EURAUD",
+			"ask": "1.5949",
+			"low": "1.5923"
+		  }
+		]
+	  }`
 
 	// モックのトランスポートを使用して HTTP クライアントを初期化
 	mockTransport := &MockHTTPTransport{
