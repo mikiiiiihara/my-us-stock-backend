@@ -4,6 +4,7 @@ type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
   user(id: ID!): User
   getCurrentUsdJpy: Float!
+  getMarketPrices(tickerList: [String]!): [MarketPrice!]!
 }
 
 type Mutation {
@@ -16,4 +17,27 @@ type User {
   id: ID!
   name: String!
   email: String!
+}
+
+# マーケットの価格情報を表す型
+type MarketPrice {
+  """
+  ティッカーシンボル
+  """
+  ticker: String!
+
+  """
+  現在価格
+  """
+  currentPrice: Float!
+
+  """
+  変化額
+  """
+  priceGets: Float!
+
+  """
+  変化率
+  """
+  currentRate: Float!
 }

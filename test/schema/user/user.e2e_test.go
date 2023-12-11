@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"my-us-stock-backend/graphql/currency"
 	serviceCurrency "my-us-stock-backend/graphql/currency"
 	"my-us-stock-backend/graphql/generated"
-	"my-us-stock-backend/graphql/user"
+	serviceMarketPrice "my-us-stock-backend/graphql/market-price"
 	serviceUser "my-us-stock-backend/graphql/user"
 	repoCurrency "my-us-stock-backend/repository/currency"
+	repoMarketPrice "my-us-stock-backend/repository/market-price"
 	repoUser "my-us-stock-backend/repository/user"
 	"my-us-stock-backend/repository/user/model"
 	"net/http"
@@ -23,8 +23,9 @@ import (
 )
 
 type CustomQueryResolver struct {
-    userResolver     *user.Resolver
-    currencyResolver *currency.Resolver
+	UserResolver     *serviceUser.Resolver
+	CurrencyResolver *serviceCurrency.Resolver
+	MarketPriceResolver *serviceMarketPrice.Resolver
 }
 
 func (r *CustomQueryResolver) Query() generated.QueryResolver {
@@ -33,21 +34,34 @@ func (r *CustomQueryResolver) Query() generated.QueryResolver {
 
 func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
     // ここでuserResolverを使用してMutationを実装する
-    return r.userResolver
+    return r.UserResolver
 }
 
 func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
-    return r.userResolver.User(ctx, id)
+    return r.UserResolver.User(ctx, id)
 }
 
 func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
-    return r.currencyResolver.GetCurrentUsdJpy(ctx)
+    return r.CurrencyResolver.GetCurrentUsdJpy(ctx)
 }
 
-func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver) *CustomQueryResolver {
+// GetMarketPricesメソッドの実装
+func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*string) ([]*generated.MarketPrice, error) {
+    // 文字列スライスに変換
+    tickerStrs := make([]string, len(tickers))
+    for i, t := range tickers {
+        tickerStrs[i] = *t
+    }
+
+    // サービスを呼び出して結果を取得
+    return r.MarketPriceResolver.GetMarketPrices(ctx, tickerStrs)
+}
+
+func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver, marketPriceResolver *serviceMarketPrice.Resolver) *CustomQueryResolver {
     return &CustomQueryResolver{
-        userResolver:     userResolver,
-        currencyResolver: currencyResolver,
+        UserResolver:     userResolver,
+        CurrencyResolver: currencyResolver,
+		MarketPriceResolver: marketPriceResolver,
     }
 }
 
@@ -72,8 +86,12 @@ func setupGraphQLServer(db *gorm.DB) *handler.Server {
     userService := serviceUser.NewUserService(userRepo)
     userResolver := serviceUser.NewResolver(userService)
 
+	marketPriceRepo := repoMarketPrice.NewMarketPriceRepository(nil)
+	marketPriceService := serviceMarketPrice.NewMarketPriceService(marketPriceRepo)
+    marketPriceResolver := serviceMarketPrice.NewResolver(marketPriceService)
+
 // CustomQueryResolverの初期化
-resolver := NewCustomQueryResolver(userResolver, currencyResolver)
+resolver := NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver)
 
 return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 }
