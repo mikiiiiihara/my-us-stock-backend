@@ -2,7 +2,6 @@ package user
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	serviceCurrency "my-us-stock-backend/app/graphql/currency"
 	"my-us-stock-backend/app/graphql/generated"
@@ -12,68 +11,16 @@ import (
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/model"
+	"my-us-stock-backend/test"
+	"my-us-stock-backend/test/graphql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
-
-type CustomQueryResolver struct {
-	UserResolver     *serviceUser.Resolver
-	CurrencyResolver *serviceCurrency.Resolver
-	MarketPriceResolver *serviceMarketPrice.Resolver
-}
-
-func (r *CustomQueryResolver) Query() generated.QueryResolver {
-    return r
-}
-
-func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
-    // ここでuserResolverを使用してMutationを実装する
-    return r.UserResolver
-}
-
-func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
-    return r.UserResolver.User(ctx, id)
-}
-
-func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
-    return r.CurrencyResolver.GetCurrentUsdJpy(ctx)
-}
-
-// GetMarketPricesメソッドの実装
-func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*string) ([]*generated.MarketPrice, error) {
-    // 文字列スライスに変換
-    tickerStrs := make([]string, len(tickers))
-    for i, t := range tickers {
-        tickerStrs[i] = *t
-    }
-
-    // サービスを呼び出して結果を取得
-    return r.MarketPriceResolver.GetMarketPrices(ctx, tickerStrs)
-}
-
-func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver, marketPriceResolver *serviceMarketPrice.Resolver) *CustomQueryResolver {
-    return &CustomQueryResolver{
-        UserResolver:     userResolver,
-        CurrencyResolver: currencyResolver,
-		MarketPriceResolver: marketPriceResolver,
-    }
-}
-
-// setupTestDB はテスト用のデータベースをセットアップします
-func setupTestDB(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("failed to connect database: %v", err)
-	}
-	db.AutoMigrate(&model.User{})
-	return db
-}
 
 // setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
 func setupGraphQLServer(db *gorm.DB) *handler.Server {
@@ -91,7 +38,7 @@ func setupGraphQLServer(db *gorm.DB) *handler.Server {
     marketPriceResolver := serviceMarketPrice.NewResolver(marketPriceService)
 
 // CustomQueryResolverの初期化
-resolver := NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver)
+resolver := graphql.NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver)
 
 return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 }
@@ -111,7 +58,7 @@ func executeGraphQLRequest(h http.Handler, query string) *httptest.ResponseRecor
 }
 
 func TestUserE2E(t *testing.T) {
-	db := setupTestDB(t)
+	db := test.SetupTestDB(t)
 	graphqlServer := setupGraphQLServer(db)
 
 	// テスト用のユーザーを作成
@@ -146,7 +93,7 @@ func TestUserE2E(t *testing.T) {
 }
 
 func TestCreateUserE2E(t *testing.T) {
-	db := setupTestDB(t)
+	db := test.SetupTestDB(t)
 	graphqlServer := setupGraphQLServer(db)
 
 	// GraphQLミューテーションの実行

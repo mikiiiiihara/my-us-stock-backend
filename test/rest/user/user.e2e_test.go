@@ -10,24 +10,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"my-us-stock-backend/test"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
-
-// テスト用のデータベース設定
-func setupTestDB() *gorm.DB {
-    db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-    if err != nil {
-        panic("failed to connect database")
-    }
-
-    // テスト用のテーブルを準備
-    db.AutoMigrate(&model.User{})
-
-    return db
-}
 
 // テスト用のユーザーコントローラをセットアップ
 func setupUserController(db *gorm.DB) *user.UserController {
@@ -38,7 +26,7 @@ func setupUserController(db *gorm.DB) *user.UserController {
 
 // GetUserのe2eテスト
 func TestGetUserE2E(t *testing.T) {
-    db := setupTestDB()
+    db := test.SetupTestDB(t)
     controller := setupUserController(db)
 
     // テスト用のユーザーを作成
@@ -77,7 +65,7 @@ func TestGetUserE2E(t *testing.T) {
 
 // CreateUserのe2eテスト
 func TestCreateUserE2E(t *testing.T) {
-    db := setupTestDB()
+    db := test.SetupTestDB(t)
     controller := setupUserController(db)
 
     // テスト用のユーザーを作成
