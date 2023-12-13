@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
-	"my-us-stock-backend/graphql"
-	"my-us-stock-backend/rest"
+	"my-us-stock-backend/app/graphql"
+	"my-us-stock-backend/app/rest"
 	"os"
 
-	"my-us-stock-backend/database"
+	"my-us-stock-backend/app/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

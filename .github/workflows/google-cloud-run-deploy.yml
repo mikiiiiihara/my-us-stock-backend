@@ -27,7 +27,7 @@ jobs:
           service_account_key: ${{ env.GCP_SA_KEY }}
           export_default_credentials: true
 
-      - name: Run Go tests
+      - name: Run Go Unit Tests
         run: go test ./...
 
       - name: Build and Push Docker image
