@@ -3,13 +3,6 @@ package user
 import (
 	"bytes"
 	"encoding/json"
-	serviceCurrency "my-us-stock-backend/app/graphql/currency"
-	"my-us-stock-backend/app/graphql/generated"
-	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
-	serviceUser "my-us-stock-backend/app/graphql/user"
-	repoCurrency "my-us-stock-backend/app/repository/currency"
-	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
-	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/model"
 	"my-us-stock-backend/test"
 	"my-us-stock-backend/test/graphql"
@@ -17,32 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
-
-// setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
-func setupGraphQLServer(db *gorm.DB) *handler.Server {
-    // リポジトリ、サービス、リゾルバの初期化
-	currencyRepo := repoCurrency.NewCurrencyRepository(nil)
-    currencyService := serviceCurrency.NewCurrencyService(currencyRepo)
-	currencyResolver := serviceCurrency.NewResolver(currencyService)
-
-    userRepo := repoUser.NewUserRepository(db)
-    userService := serviceUser.NewUserService(userRepo)
-    userResolver := serviceUser.NewResolver(userService)
-
-	marketPriceRepo := repoMarketPrice.NewMarketPriceRepository(nil)
-	marketPriceService := serviceMarketPrice.NewMarketPriceService(marketPriceRepo)
-    marketPriceResolver := serviceMarketPrice.NewResolver(marketPriceService)
-
-// CustomQueryResolverの初期化
-resolver := graphql.NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver)
-
-return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
-}
-
 
 // executeGraphQLRequest はGraphQLリクエストを実行し、レスポンスを返します
 func executeGraphQLRequest(h http.Handler, query string) *httptest.ResponseRecorder {
@@ -59,7 +28,7 @@ func executeGraphQLRequest(h http.Handler, query string) *httptest.ResponseRecor
 
 func TestUserE2E(t *testing.T) {
 	db := test.SetupTestDB(t)
-	graphqlServer := setupGraphQLServer(db)
+    graphqlServer := graphql.SetupGraphQLServer(db,nil)
 
 	// テスト用のユーザーを作成
 	db.Create(&model.User{Name: "Test User", Email: "test@example.com"})
@@ -94,7 +63,7 @@ func TestUserE2E(t *testing.T) {
 
 func TestCreateUserE2E(t *testing.T) {
 	db := test.SetupTestDB(t)
-	graphqlServer := setupGraphQLServer(db)
+    graphqlServer := graphql.SetupGraphQLServer(db,nil)
 
 	// GraphQLミューテーションの実行
 	mutation := `

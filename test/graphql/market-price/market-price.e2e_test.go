@@ -5,19 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	serviceCurrency "my-us-stock-backend/app/graphql/currency"
-	"my-us-stock-backend/app/graphql/generated"
-	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
-	serviceUser "my-us-stock-backend/app/graphql/user"
-	repoCurrency "my-us-stock-backend/app/repository/currency"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
-	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/test/graphql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,28 +23,6 @@ type MockHTTPTransport struct {
 func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
     return m.RoundTripFunc(req)
 }
-
-// setupGraphQLServer はテスト用のGraphQLサーバーをセットアップします
-func setupGraphQLServer(mockHTTPClient *http.Client) *handler.Server {
-    // リポジトリ、サービス、リゾルバの初期化
-	currencyRepo := repoCurrency.NewCurrencyRepository(nil)
-    currencyService := serviceCurrency.NewCurrencyService(currencyRepo)
-	currencyResolver := serviceCurrency.NewResolver(currencyService)
-
-    userRepo := repoUser.NewUserRepository(nil)
-    userService := serviceUser.NewUserService(userRepo)
-    userResolver := serviceUser.NewResolver(userService)
-
-	marketPriceRepo := repoMarketPrice.NewMarketPriceRepository(mockHTTPClient)
-	marketPriceService := serviceMarketPrice.NewMarketPriceService(marketPriceRepo)
-    marketPriceResolver := serviceMarketPrice.NewResolver(marketPriceService)
-
-// CustomQueryResolverの初期化
-resolver := graphql.NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver)
-
-return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
-}
-
 
 // executeGraphQLRequest はGraphQLリクエストを実行し、レスポンスを返します
 func executeGraphQLRequest(h http.Handler, query string) *httptest.ResponseRecorder {
@@ -94,9 +65,14 @@ func TestMarketPriceE2E(t *testing.T) {
         },
     }
     mockHTTPClient := &http.Client{Transport: mockTransport}
-
-    // GraphQLサーバーのセットアップ
-    graphqlServer := setupGraphQLServer(mockHTTPClient)
+    mockMarketPriceRepo := repoMarketPrice.NewMarketPriceRepository(mockHTTPClient)
+    // オプションを使用してGraphQLサーバーをセットアップ
+    opts := &graphql.SetupOptions{
+        MockHTTPClient: mockHTTPClient,
+        // MarketPriceRepoにモックリポジトリを指定
+        MarketPriceRepo: mockMarketPriceRepo,
+    }
+    graphqlServer := graphql.SetupGraphQLServer(nil,opts)
 
 	// GraphQLリクエストの実行
 	query := `query {
