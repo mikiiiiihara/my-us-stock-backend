@@ -9,4 +9,5 @@ type JapanFund struct {
     gorm.Model
 	Code   string  `gorm:"size:10;not null"`
 	GetPriceTotal float64 `gorm:"type:float"`
+	UserId string `gorm:"size:255;not null"`
 }

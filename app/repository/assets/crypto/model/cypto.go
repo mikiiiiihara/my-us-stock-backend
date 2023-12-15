@@ -10,4 +10,5 @@ type Crypto struct {
 	Ticker   string  `gorm:"size:10;not null"`
 	GetPrice float64 `gorm:"type:float"`
 	Quantity float64 `gorm:"type:float"`
+	UserId string `gorm:"size:255;not null"`
 }
