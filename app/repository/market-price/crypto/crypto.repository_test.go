@@ -3,7 +3,7 @@ package crypto
 import (
 	"bytes"
 	"io"
-	"my-us-stock-backend/app/repository/crypto/dto"
+	"my-us-stock-backend/app/repository/market-price/crypto/dto"
 	"net/http"
 	"testing"
 

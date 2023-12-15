@@ -3,7 +3,7 @@ package currency
 
 import (
 	"context"
-	"my-us-stock-backend/app/repository/currency"
+	"my-us-stock-backend/app/repository/market-price/currency"
 )
 
 type CurrencyService interface {

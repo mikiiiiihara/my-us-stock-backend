@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"my-us-stock-backend/app/repository/currency/dto"
+	"my-us-stock-backend/app/repository/market-price/currency/dto"
 	"net/http"
 	"os"
 	"strconv"

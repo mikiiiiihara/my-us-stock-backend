@@ -6,8 +6,8 @@ import (
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
 	"my-us-stock-backend/app/graphql/user"
 
-	repoCurrency "my-us-stock-backend/app/repository/currency"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
+	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
 
 	"github.com/99designs/gqlgen/graphql/handler"

@@ -6,8 +6,8 @@ import (
 	"my-us-stock-backend/app/graphql/generated"
 	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
 	serviceUser "my-us-stock-backend/app/graphql/user"
-	repoCurrency "my-us-stock-backend/app/repository/currency"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
+	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"net/http"
 
