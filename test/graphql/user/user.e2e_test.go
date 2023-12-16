@@ -68,12 +68,12 @@ func TestCreateUserE2E(t *testing.T) {
 	// GraphQLミューテーションの実行
 	mutation := `
 		mutation {
-			createUser(name: "Jane Doe", email: "jane@example.com") {
+			createUser(input: {name: "Jane Doe", email: "jane@example.com"}) {
 				id
 				name
 				email
 			}
-		}
+			}	  
 	`
 	w := executeGraphQLRequest(graphqlServer, mutation)
 

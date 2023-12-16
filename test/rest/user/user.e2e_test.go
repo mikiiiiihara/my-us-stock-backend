@@ -6,6 +6,7 @@ import (
 	RepoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/model"
 	"my-us-stock-backend/app/rest/user"
+	"my-us-stock-backend/app/rest/user/input"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -76,7 +77,7 @@ func TestCreateUserE2E(t *testing.T) {
     router.POST("/api/users", controller.CreateUser)
 
     // リクエストボディの作成
-    body, _ := json.Marshal(user.CreateUserInput{
+    body, _ := json.Marshal(input.CreateUserInput{
         Name: "Jane Doe",
         Email: "janedoe@example.com",
     })

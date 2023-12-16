@@ -36,8 +36,8 @@ func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, err
 }
 
 // MutationのCreateUserフィールドのResolverです。
-func (r *Resolver) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
-    userModel, err := r.UserService.CreateUser(ctx, name, email)
+func (r *Resolver) CreateUser(ctx context.Context, input generated.CreateUserInput) (*generated.User, error) {
+    userModel, err := r.UserService.CreateUser(ctx, input)
     if err != nil {
         return nil, err
     }

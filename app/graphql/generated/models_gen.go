@@ -2,6 +2,11 @@
 
 package generated
 
+type CreateUserInput struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 type MarketPrice struct {
 	// ティッカーシンボル
 	Ticker string `json:"ticker"`

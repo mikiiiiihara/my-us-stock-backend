@@ -4,6 +4,7 @@ import (
 	"context"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/repository/user"
+	"my-us-stock-backend/app/repository/user/dto"
 	"my-us-stock-backend/app/repository/user/model"
 	"strconv"
 )
@@ -11,7 +12,7 @@ import (
 // UserService インターフェースの定義
 type UserService interface {
     GetUserByID(ctx context.Context, id uint) (*generated.User, error)
-    CreateUser(ctx context.Context, name string, email string) (*generated.User, error)
+    CreateUser(ctx context.Context, input generated.CreateUserInput) (*generated.User, error)
 }
 
 // DefaultUserService 構造体の定義
@@ -34,8 +35,13 @@ func (s *DefaultUserService) GetUserByID(ctx context.Context, id uint) (*generat
 }
 
 // CreateUser は新しいユーザーを作成します
-func (s *DefaultUserService) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
-    modelUser, err := s.Repo.CreateUser(ctx, name, email)
+func (s *DefaultUserService) CreateUser(ctx context.Context, input generated.CreateUserInput) (*generated.User, error) {
+    // 更新用DTOの作成
+    createDto := dto.CreateUserDto{
+        Name: input.Name,
+        Email: input.Email,
+    }
+    modelUser, err := s.Repo.CreateUser(ctx, createDto)
     if err != nil {
         return nil, err
     }

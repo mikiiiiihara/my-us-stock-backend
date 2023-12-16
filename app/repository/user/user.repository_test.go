@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"my-us-stock-backend/app/repository/user/dto"
 	"my-us-stock-backend/app/repository/user/model"
 	"testing"
 
@@ -44,17 +45,20 @@ func TestCreateUser(t *testing.T) {
     repo := NewUserRepository(db)
 
     // 新しいユーザーを作成
-    name := "New User"
-    email := "newuser@example.com"
-    created, err := repo.CreateUser(context.Background(), name, email)
+        // 新しいデータを作成
+	createDto := dto.CreateUserDto{
+        Name:   "New User",
+        Email: "newuser@example.com",
+    }
+    created, err := repo.CreateUser(context.Background(), createDto)
     assert.NoError(t, err)
     assert.NotNil(t, created)
-    assert.Equal(t, name, created.Name)
-    assert.Equal(t, email, created.Email)
+    assert.Equal(t, createDto.Name, created.Name)
+    assert.Equal(t, createDto.Email, created.Email)
 
     // データベースでユーザーを確認
     var user model.User
     db.First(&user, created.ID)
-    assert.Equal(t, name, user.Name)
-    assert.Equal(t, email, user.Email)
+    assert.Equal(t, createDto.Name, created.Name)
+    assert.Equal(t, createDto.Email, created.Email)
 }

@@ -9,12 +9,18 @@ type Query {
 
 type Mutation {
   # 新しいユーザーを作成するミューテーション
-  createUser(name: String!, email: String!): User
+  createUser(input: CreateUserInput!): User
 }
 
 # ユーザー情報を表す型
 type User {
   id: ID!
+  name: String!
+  email: String!
+}
+
+# ユーザー作成時の入力型
+input CreateUserInput {
   name: String!
   email: String!
 }

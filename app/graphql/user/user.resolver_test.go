@@ -15,8 +15,8 @@ type MockUserService struct {
     mock.Mock
 }
 
-func (m *MockUserService) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
-    args := m.Called(ctx, name, email)
+func (m *MockUserService) CreateUser(ctx context.Context, input generated.CreateUserInput) (*generated.User, error) {
+    args := m.Called(ctx, input)
     return args.Get(0).(*generated.User), args.Error(1)
 }
 
@@ -32,10 +32,13 @@ func TestCreateUser(t *testing.T) {
     mockService := new(MockUserService)
     resolver := NewResolver(mockService)
 
+    createUserInput := generated.CreateUserInput{
+        Name:  "John Doe",
+        Email: "johndoe@example.com",
+    }
     mockUser := &generated.User{ID: "1", Name: "John Doe", Email: "johndoe@example.com"}
-    mockService.On("CreateUser", mock.Anything, "John Doe", "johndoe@example.com").Return(mockUser, nil)
-
-    result, err := resolver.CreateUser(context.Background(), "John Doe", "johndoe@example.com")
+    mockService.On("CreateUser", mock.Anything, createUserInput).Return(mockUser, nil)
+    result, err := resolver.CreateUser(context.Background(), createUserInput)
     assert.NoError(t, err)
     assert.IsType(t, &generated.User{}, result)
     assert.Equal(t, "John Doe", result.Name)

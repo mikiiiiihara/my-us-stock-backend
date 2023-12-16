@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/graphql/generated"
+	"my-us-stock-backend/app/rest/user/input"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,8 +20,8 @@ func (m *MockUserService) GetUserByID(ctx context.Context, id uint) (*generated.
     return args.Get(0).(*generated.User), args.Error(1)
 }
 
-func (m *MockUserService) CreateUser(ctx context.Context, name string, email string) (*generated.User, error) {
-    args := m.Called(ctx, name, email)
+func (m *MockUserService) CreateUser(ctx context.Context, input input.CreateUserInput) (*generated.User, error) {
+    args := m.Called(ctx, input)
     return args.Get(0).(*generated.User), args.Error(1)
 }
 
@@ -49,10 +50,15 @@ func TestUserController_CreateUser(t *testing.T) {
     controller := NewUserController(mockService)
 
     expectedUser := &generated.User{Name: "Jane Doe", Email: "janedoe@example.com"}
-    mockService.On("CreateUser", mock.Anything, "Jane Doe", "janedoe@example.com").Return(expectedUser, nil)
+
+    createUserInput := input.CreateUserInput{
+        Name:  "Jane Doe",
+        Email: "jane@example.com",
+    }
+    mockService.On("CreateUser", mock.Anything, createUserInput).Return(expectedUser, nil)
 
     // ここで直接メソッドを呼び出す
-    user, err := controller.UserService.CreateUser(context.Background(), "Jane Doe", "janedoe@example.com")
+    user, err := controller.UserService.CreateUser(context.Background(), createUserInput)
 
     assert.NoError(t, err)
     assert.Equal(t, expectedUser, user)

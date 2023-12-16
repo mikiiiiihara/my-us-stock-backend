@@ -53,7 +53,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateUser func(childComplexity int, name string, email string) int
+		CreateUser func(childComplexity int, input CreateUserInput) int
 	}
 
 	Query struct {
@@ -70,7 +70,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateUser(ctx context.Context, name string, email string) (*User, error)
+	CreateUser(ctx context.Context, input CreateUserInput) (*User, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, id string) (*User, error)
@@ -135,7 +135,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateUser(childComplexity, args["name"].(string), args["email"].(string)), true
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(CreateUserInput)), true
 
 	case "Query.getCurrentUsdJpy":
 		if e.complexity.Query.GetCurrentUsdJpy == nil {
@@ -196,7 +196,9 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateUserInput,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -304,12 +306,18 @@ type Query {
 
 type Mutation {
   # 新しいユーザーを作成するミューテーション
-  createUser(name: String!, email: String!): User
+  createUser(input: CreateUserInput!): User
 }
 
 # ユーザー情報を表す型
 type User {
   id: ID!
+  name: String!
+  email: String!
+}
+
+# ユーザー作成時の入力型
+input CreateUserInput {
   name: String!
   email: String!
 }
@@ -347,24 +355,15 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 CreateUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateUserInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["email"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -641,7 +640,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["name"].(string), fc.Args["email"].(string))
+		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["input"].(CreateUserInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -652,7 +651,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}
 	res := resTmp.(*User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -712,7 +711,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*User)
 	fc.Result = res
-	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -819,7 +818,7 @@ func (ec *executionContext) _Query_getMarketPrices(ctx context.Context, field gr
 	}
 	res := resTmp.([]*MarketPrice)
 	fc.Result = res
-	return ec.marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐMarketPriceᚄ(ctx, field.Selections, res)
+	return ec.marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐMarketPriceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getMarketPrices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2890,6 +2889,40 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, obj interface{}) (CreateUserInput, error) {
+	var it CreateUserInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "email"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3501,6 +3534,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateUserInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUserInput(ctx context.Context, v interface{}) (CreateUserInput, error) {
+	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	res, err := graphql.UnmarshalFloatContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3531,7 +3569,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐMarketPriceᚄ(ctx context.Context, sel ast.SelectionSet, v []*MarketPrice) graphql.Marshaler {
+func (ec *executionContext) marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐMarketPriceᚄ(ctx context.Context, sel ast.SelectionSet, v []*MarketPrice) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3555,7 +3593,7 @@ func (ec *executionContext) marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackend�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNMarketPrice2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐMarketPrice(ctx, sel, v[i])
+			ret[i] = ec.marshalNMarketPrice2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐMarketPrice(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3575,7 +3613,7 @@ func (ec *executionContext) marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackend�
 	return ret
 }
 
-func (ec *executionContext) marshalNMarketPrice2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐMarketPrice(ctx context.Context, sel ast.SelectionSet, v *MarketPrice) graphql.Marshaler {
+func (ec *executionContext) marshalNMarketPrice2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐMarketPrice(ctx context.Context, sel ast.SelectionSet, v *MarketPrice) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3921,7 +3959,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋgraphqlᚋgeneratedᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

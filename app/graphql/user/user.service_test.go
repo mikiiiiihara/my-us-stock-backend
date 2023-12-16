@@ -2,7 +2,9 @@ package user
 
 import (
 	"context"
+	"my-us-stock-backend/app/graphql/generated"
 	repoUser "my-us-stock-backend/app/repository/user"
+	"my-us-stock-backend/app/repository/user/dto"
 	userModel "my-us-stock-backend/app/repository/user/model"
 	"testing"
 
@@ -22,9 +24,9 @@ func (m *MockUserRepository) FindUserByID(ctx context.Context, id uint) (*userMo
     return args.Get(0).(*userModel.User), args.Error(1)
 }
 
-func (m *MockUserRepository) CreateUser(ctx context.Context, name string, email string) (*userModel.User, error) {
-    args := m.Called(ctx, name, email)
-    // 戻り値の型が *userModel.User であることを確認
+// CreateUser のモック関数を修正
+func (m *MockUserRepository) CreateUser(ctx context.Context, createDto dto.CreateUserDto) (*userModel.User, error) {
+    args := m.Called(ctx, createDto)
     return args.Get(0).(*userModel.User), args.Error(1)
 }
 
@@ -52,16 +54,22 @@ func TestGetUserByID(t *testing.T) {
 // TestCreateUserService は CreateUser メソッドのテストです。
 func TestCreateUserService(t *testing.T) {
     mockRepo := new(MockUserRepository)
-    service := NewUserService(mockRepo)  // repoUser エイリアスを使用
+    service := NewUserService(mockRepo)
 
-	mockUser := &userModel.User{
-		Model: gorm.Model{ID: 1},  // gorm.Model で ID を設定
-		Name:  "Jane Doe",
-		Email: "jane@example.com",
-	}
-    mockRepo.On("CreateUser", mock.Anything, "Jane Doe", "jane@example.com").Return(mockUser, nil)
+    createUserInput := generated.CreateUserInput{
+        Name:  "Jane Doe",
+        Email: "jane@example.com",
+    }
 
-    result, err := service.CreateUser(context.Background(), "Jane Doe", "jane@example.com")
+    mockUser := &userModel.User{
+        Model: gorm.Model{ID: 1},
+        Name:  "Jane Doe",
+        Email: "jane@example.com",
+    }
+
+    mockRepo.On("CreateUser", mock.Anything, dto.CreateUserDto{Name: "Jane Doe", Email: "jane@example.com"}).Return(mockUser, nil)
+
+    result, err := service.CreateUser(context.Background(), createUserInput)
     assert.NoError(t, err)
     assert.NotNil(t, result)
     assert.Equal(t, "Jane Doe", result.Name)
