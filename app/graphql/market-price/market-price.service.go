@@ -2,22 +2,37 @@ package marketprice
 
 import (
 	"context"
+	"my-us-stock-backend/app/graphql/generated"
 	repository "my-us-stock-backend/app/repository/market-price"
-	"my-us-stock-backend/app/repository/market-price/dto"
 )
 
 type MarketPriceService interface {
-    FetchMarketPriceList(ctx context.Context, tickers []string) ([]dto.MarketPriceDto, error)
+    FetchMarketPriceList(ctx context.Context, tickers []string) ([]*generated.MarketPrice, error)
 }
 
 type DefaultMarketPriceService struct {
-    MarketPriceRepo repository.MarketPriceRepository // ポインタ型に変更
+    MarketPriceRepo repository.MarketPriceRepository
 }
 
-func NewMarketPriceService(marketPriceRepo repository.MarketPriceRepository) MarketPriceService { // ポインタ型に変更
+func NewMarketPriceService(marketPriceRepo repository.MarketPriceRepository) MarketPriceService {
     return &DefaultMarketPriceService{MarketPriceRepo: marketPriceRepo}
 }
 
-func (s *DefaultMarketPriceService) FetchMarketPriceList(ctx context.Context, tickers []string) ([]dto.MarketPriceDto, error) {
-    return s.MarketPriceRepo.FetchMarketPriceList(ctx,tickers);
+func (s *DefaultMarketPriceService) FetchMarketPriceList(ctx context.Context, tickers []string) ([]*generated.MarketPrice, error) {
+    dtos, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, tickers)
+    if err != nil {
+        return nil, err
+    }
+
+    var marketPrices []*generated.MarketPrice
+    for _, dto := range dtos {
+        marketPrice := &generated.MarketPrice{
+            Ticker:       dto.Ticker,
+            CurrentPrice: dto.CurrentPrice,
+            PriceGets:    dto.PriceGets,
+            CurrentRate:  dto.CurrentRate,
+        }
+        marketPrices = append(marketPrices, marketPrice)
+    }
+    return marketPrices, nil
 }
