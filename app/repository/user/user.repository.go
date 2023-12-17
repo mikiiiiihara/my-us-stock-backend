@@ -26,12 +26,12 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 
 // FindUserByID はユーザーをIDによって検索します
 func (r *DefaultUserRepository) FindUserByID(ctx context.Context, id uint) (*model.User, error) {
-    var user model.User
+    user := new(model.User)
     result := r.DB.First(&user, id)
     if result.Error != nil {
         return nil, result.Error
     }
-    return &user, nil
+    return user, nil
 }
 
 // CreateUser は新しいユーザーをデータベースに保存します

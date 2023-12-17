@@ -25,14 +25,13 @@ func NewStrategyRepository(db *gorm.DB) StrategyRepository {
     return &DefaultStrategyRepository{DB: db}
 }
 
-// 戦略メモをIDによって検索します
 func (r *DefaultStrategyRepository) FindStrategy(ctx context.Context, userId string) (*model.Strategy, error) {
-    var strategy model.Strategy
-    result := r.DB.First(&strategy, userId)
+    strategy := new(model.Strategy)  // ポインタとしてオブジェクトを作成
+    result := r.DB.First(strategy, userId)
     if result.Error != nil {
         return nil, result.Error
     }
-    return &strategy, nil
+    return strategy, nil
 }
 
 // 戦略メモを更新します
