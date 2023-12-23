@@ -38,4 +38,5 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     // 認証用
     r.POST("/api/v1/signin", authController.SignIn)
     r.POST("/api/v1/signup", authController.SignUp)
+    r.POST("/api/v1/refresh", authController.RefreshAccessToken)
 }
