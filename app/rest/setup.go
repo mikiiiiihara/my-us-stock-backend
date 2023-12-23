@@ -1,10 +1,11 @@
 package rest
 
 import (
+	authService "my-us-stock-backend/app/common/auth"
+	"my-us-stock-backend/app/common/auth/logic"
+	"my-us-stock-backend/app/common/auth/validation"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/rest/auth"
-	"my-us-stock-backend/app/rest/auth/logic"
-	"my-us-stock-backend/app/rest/auth/validation"
 	"my-us-stock-backend/app/rest/user"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     userController := user.NewUserController(userRestService)
 
     // 認証サービスの初期化
-    authService := auth.NewAuthService(userRepo, authLogic, userLogic, responseLogic, jwtLogic, authValidation)
+    authService := authService.NewAuthService(userRepo, authLogic, userLogic, responseLogic, jwtLogic, authValidation)
     authController := auth.NewAuthController(authService)
 
     // RESTコントローラのルートを設定

@@ -2,12 +2,12 @@ package auth
 
 import (
 	"context"
+	"my-us-stock-backend/app/common/auth/logic"
+	"my-us-stock-backend/app/common/auth/model"
+	"my-us-stock-backend/app/common/auth/validation"
 	"my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
 	userModel "my-us-stock-backend/app/repository/user/model"
-	"my-us-stock-backend/app/rest/auth/logic"
-	"my-us-stock-backend/app/rest/auth/model"
-	"my-us-stock-backend/app/rest/auth/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

@@ -1,7 +1,7 @@
 package logic_test
 
 import (
-	"my-us-stock-backend/app/rest/auth/logic"
+	"my-us-stock-backend/app/common/auth/logic"
 	"testing"
 
 	"golang.org/x/crypto/bcrypt"

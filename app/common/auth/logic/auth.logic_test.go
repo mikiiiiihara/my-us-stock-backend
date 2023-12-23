@@ -2,7 +2,7 @@ package logic_test
 
 import (
 	"fmt"
-	"my-us-stock-backend/app/rest/auth/logic"
+	"my-us-stock-backend/app/common/auth/logic"
 	"net/http"
 	"testing"
 )

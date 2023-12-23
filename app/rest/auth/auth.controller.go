@@ -3,14 +3,16 @@ package auth
 import (
 	"net/http"
 
+	"my-us-stock-backend/app/common/auth"
+
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	AuthService AuthService
+	AuthService auth.AuthService
 }
 
-func NewAuthController(authService AuthService) *AuthController {
+func NewAuthController(authService auth.AuthService) *AuthController {
 	return &AuthController{AuthService: authService}
 }
 

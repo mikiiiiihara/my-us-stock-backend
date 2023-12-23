@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"my-us-stock-backend/app/rest/auth/model"
+	"my-us-stock-backend/app/common/auth/model"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
