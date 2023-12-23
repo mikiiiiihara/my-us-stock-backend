@@ -2,7 +2,9 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"my-us-stock-backend/app/graphql/generated"
+	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
 	"my-us-stock-backend/app/repository/user/model"
@@ -27,6 +29,9 @@ func NewUserService(repo user.UserRepository) UserService {
 
 // GetUserByID はユーザーをIDによって検索します
 func (s *DefaultUserService) GetUserByID(ctx context.Context, id uint) (*generated.User, error) {
+    // cookieからアクセストークンを取得
+    accessToken, _ := ctx.Value(utils.CookieKey).(string)
+    fmt.Println(accessToken)
     modelUser, err := s.Repo.FindUserByID(ctx, id)
     if err != nil {
         return nil, err

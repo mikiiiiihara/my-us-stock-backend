@@ -60,43 +60,59 @@ func (as *DefaultAuthService) GetUserIdFromToken(w http.ResponseWriter, r *http.
 func (as *DefaultAuthService) SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error) {
     var signInRequestParam model.SignInRequest
     if err := c.BindJSON(&signInRequestParam); err != nil {
+        // JSONパースエラーが発生した場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return nil, err
     }
 
     if err := as.authValidation.SignInValidate(signInRequestParam); err != nil {
+        // validationエラーの場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return nil, err
     }
 
     user, err := as.userRepository.GetUserByEmail(ctx, signInRequestParam.Email)
     if err != nil {
+        // メールアドレス不一致の場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": "入力されたメールアドレスまたはパスワードが一致しません。"})
         return nil, err
     }
 
     if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(signInRequestParam.Password)); err != nil {
+        // パスワード不一致の場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": "入力されたメールアドレスまたはパスワードが一致しません。"})
         return nil, err
     }
 
     return user, nil
 }
 
+
 // SignUp 会員登録処理
 func (as *DefaultAuthService) SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error) {
 	var signUpRequestParam model.SignUpRequest
-	if err := c.BindJSON(&signUpRequestParam); err != nil {
-		return nil, err
-	}
-
+    if err := c.BindJSON(&signUpRequestParam); err != nil {
+        // JSONパースエラーが発生した場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return nil, err
+    }
 	if err := as.authValidation.SignUpValidate(signUpRequestParam); err != nil {
+        // validationエラーの場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return nil, err
 	}
 
 	users, err := as.userRepository.GetAllUserByEmail(ctx, signUpRequestParam.Email)
 	if len(users) > 0 || err != nil {
+        // すでに登録されているメールアドレスの場合、400 Bad Requestを返す
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return nil, err
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(signUpRequestParam.Password), bcrypt.DefaultCost)
 	if err != nil {
+        // パスワード作成失敗の場合、400 Bad Requestを返す
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return nil, err
 	}
 	createDto := dto.CreateUserDto{
@@ -107,6 +123,8 @@ func (as *DefaultAuthService) SignUp(ctx context.Context, c *gin.Context) (*user
 
 	createdUser, err := as.userRepository.CreateUser(ctx, createDto)
 	if err != nil {
+        // ユーザー作成失敗の場合、500 Internal Server Errorを返す
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return nil, err
 	}
 

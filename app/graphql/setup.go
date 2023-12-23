@@ -1,10 +1,12 @@
 package graphql
 
 import (
+	"context"
 	"my-us-stock-backend/app/graphql/currency"
 	"my-us-stock-backend/app/graphql/generated"
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
 	"my-us-stock-backend/app/graphql/user"
+	"my-us-stock-backend/app/graphql/utils"
 
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
@@ -16,6 +18,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// この関数は、GinのContextからGraphQLのContextにデータを転送します。
+func ginContextToGraphQLMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Cookieの取得、見つからない場合は空文字とする
+        cookie, _ := c.Cookie("access_token")
+
+        // GraphQLのContextにCookieを追加（空文字も含む）
+        ctx := context.WithValue(c.Request.Context(), utils.CookieKey, cookie)
+        c.Request = c.Request.WithContext(ctx)
+
+        c.Next()
+    }
+}
+
+
 // Handler は GraphQL ハンドラをセットアップし、gin.HandlerFunc を返します
 func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver) gin.HandlerFunc {
     resolver := &CustomQueryResolver{
@@ -26,6 +43,9 @@ func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,ma
     srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
     return func(c *gin.Context) {
+        // ここでGinのContextをGraphQLのContextに変換
+        ginContextToGraphQLMiddleware()(c)
+
         srv.ServeHTTP(c.Writer, c.Request)
     }
 }
@@ -47,8 +67,8 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     userService := user.NewUserService(userRepo)
     userResolver := user.NewResolver(userService)
 
-    // GraphQL ハンドラ関数の設定
-    r.POST("/graphql", Handler(userResolver, currencyResolver, marketPriceResolver))
+    // GraphQLエンドポイントへのルート設定
+    r.POST("/graphql", ginContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver))
     r.GET("/graphql", PlaygroundHandler())
 }
 // Playgroundハンドラ関数

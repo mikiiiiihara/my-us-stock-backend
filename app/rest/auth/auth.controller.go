@@ -19,13 +19,7 @@ func NewAuthController(authService auth.AuthService) *AuthController {
 // SignIn ログイン
 func (ac *AuthController) SignIn(c *gin.Context) {
     ctx := c.Request.Context() // context.Context を取得
-    user, err := ac.AuthService.SignIn(ctx, c)
-    if err != nil {
-        // エラーハンドリングをここに追加する必要があります。
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
+    user, _ := ac.AuthService.SignIn(ctx, c)
     ac.AuthService.SendAuthResponse(ctx, c, user, http.StatusOK)
 }
 
@@ -33,12 +27,7 @@ func (ac *AuthController) SignIn(c *gin.Context) {
 // SignUp 会員登録処理
 func (ac *AuthController) SignUp(c *gin.Context) {
 	ctx := c.Request.Context() // context.Context を取得
-	user, err := ac.AuthService.SignUp(ctx, c)
-	if err != nil {
-		// エラーレスポンスの処理をここに追加
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	user, _ := ac.AuthService.SignUp(ctx, c)
 
 	ac.AuthService.SendAuthResponse(ctx, c, user, http.StatusCreated)
 }
