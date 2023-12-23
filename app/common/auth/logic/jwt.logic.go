@@ -11,7 +11,8 @@ import (
 )
 
 type JWTLogic interface {
-	CreateJwtToken(user *model.User) (string, error)
+	CreateAccessToken(user *model.User) (string, error)
+	CreateRefreshToken(user *model.User) (string, error)
 }
 
 type jwtLogic struct{}
@@ -20,8 +21,8 @@ func NewJWTLogic() JWTLogic {
 	return &jwtLogic{}
 }
 
-// CreateJwtToken jwtトークンの新規作成
-func (jl *jwtLogic) CreateJwtToken(user *model.User) (string, error) {
+// CreateAccessToken jwtトークンの新規作成
+func (jl *jwtLogic) CreateAccessToken(user *model.User) (string, error) {
 	// headerのセット
 	token := jwt.New(jwt.SigningMethodHS256)
 	// claimsのセット
@@ -35,13 +36,32 @@ func (jl *jwtLogic) CreateJwtToken(user *model.User) (string, error) {
 	// claims["iat"] = time.Now() // jwtの発行時間
 	// 経過時間
 	// 経過時間を過ぎたjetは処理しないようになる
-	// ここでは24時間の経過時間をリミットにしている
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	// ここでは15分の経過時間をリミットにしている
+	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
 
 	// 電子署名
 	tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_KEY")))
 
 	return tokenString, nil
+}
+
+func (jl *jwtLogic) CreateRefreshToken(user *model.User) (string, error) {
+    token := jwt.New(jwt.SigningMethodHS256)
+    claims := token.Claims.(jwt.MapClaims)
+
+    // リフレッシュトークンにはユーザーIDのみ含める
+    claims["id"] = user.ID
+
+    // リフレッシュトークンの有効期限を7日間に設定
+    claims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix()
+
+    // 電子署名
+    tokenString, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
+    if err != nil {
+        return "", err
+    }
+
+    return tokenString, nil
 }
 
 // JwtMiddleware jwt認証のミドルウェア

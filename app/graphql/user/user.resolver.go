@@ -2,12 +2,18 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/graphql/generated"
 	"strconv"
+	"strings"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 type Resolver struct {
     UserService UserService
+    AuthService auth.AuthService
 }
 
 func NewResolver(userService UserService) *Resolver {
@@ -15,6 +21,12 @@ func NewResolver(userService UserService) *Resolver {
 }
 
 func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, error) {
+    // GraphQLリクエストのヘッダーからアクセストークンを取得
+    opCtx := graphql.GetOperationContext(ctx)
+    authorizationValue := opCtx.Headers.Get("Authorization")
+    accessToken := strings.TrimPrefix(authorizationValue, "Bearer ")
+    fmt.Println(accessToken)
+    
     // string型のIDをuint型に変換
     id, err := strconv.ParseUint(idStr, 10, 64)
     if err != nil {

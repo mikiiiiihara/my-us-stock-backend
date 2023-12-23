@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"my-us-stock-backend/app/common/auth/logic"
 	"my-us-stock-backend/app/common/auth/model"
 	"my-us-stock-backend/app/common/auth/validation"
@@ -9,7 +11,10 @@ import (
 	"my-us-stock-backend/app/repository/user/dto"
 	userModel "my-us-stock-backend/app/repository/user/model"
 	"net/http"
+	"os"
+	"time"
 
+	"github.com/form3tech-oss/jwt-go"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,6 +25,7 @@ type AuthService interface {
 	SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int)
+	RefreshAccessToken(c *gin.Context, refreshToken string) (string, error)
 }
 
 // DefaultAuthService 構造体の定義
@@ -52,25 +58,25 @@ func (as *DefaultAuthService) GetUserIdFromToken(w http.ResponseWriter, r *http.
 
 // SignIn ログイン処理
 func (as *DefaultAuthService) SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error) {
-	var signInRequestParam model.SignInRequest
-	if err := c.BindJSON(&signInRequestParam); err != nil {
-		return nil, err
-	}
+    var signInRequestParam model.SignInRequest
+    if err := c.BindJSON(&signInRequestParam); err != nil {
+        return nil, err
+    }
 
-	if err := as.authValidation.SignInValidate(signInRequestParam); err != nil {
-		return nil, err
-	}
+    if err := as.authValidation.SignInValidate(signInRequestParam); err != nil {
+        return nil, err
+    }
 
-	user, err := as.userRepository.GetUserByEmail(ctx, signInRequestParam.Email)
-	if err != nil {
-		return nil, err
-	}
+    user, err := as.userRepository.GetUserByEmail(ctx, signInRequestParam.Email)
+    if err != nil {
+        return nil, err
+    }
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(signInRequestParam.Password)); err != nil {
-		return nil, err
-	}
+    if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(signInRequestParam.Password)); err != nil {
+        return nil, err
+    }
 
-	return user, nil
+    return user, nil
 }
 
 // SignUp 会員登録処理
@@ -89,8 +95,11 @@ func (as *DefaultAuthService) SignUp(ctx context.Context, c *gin.Context) (*user
 		return nil, err
 	}
 
-	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(signUpRequestParam.Password), bcrypt.DefaultCost)
-    createDto := dto.CreateUserDto{
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(signUpRequestParam.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	createDto := dto.CreateUserDto{
 		Name:     signUpRequestParam.Name,
 		Email:    signUpRequestParam.Email,
 		Password: string(hashPassword),
@@ -104,30 +113,99 @@ func (as *DefaultAuthService) SignUp(ctx context.Context, c *gin.Context) (*user
 	return createdUser, nil
 }
 
+
 // SendAuthResponse レスポンス送信処理
 func (as *DefaultAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int) {
-	token, err := as.jwtLogic.CreateJwtToken(user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
-		return
-	}
+    // アクセストークンの生成
+    accessToken, err := as.jwtLogic.CreateAccessToken(user)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create access token"})
+        return
+    }
 
-	// UserModelをUserResponseに変換する
-	userResponse := convertToUserResponse(user)
+    // リフレッシュトークンの生成
+    refreshToken, err := as.jwtLogic.CreateRefreshToken(user)
+    if err != nil {
+		fmt.Println("Sending JSON response...4")
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create refresh token"})
+        return
+    }
 
-	response := model.AuthResponse{
-		Token: token,
-		User:  userResponse,
-	}
+    // UserModelをUserResponseに変換する
+    userResponse := convertToUserResponse(user)
 
-	c.JSON(code, response)
+    // レスポンスにアクセストークンとリフレッシュトークンを含める
+    response := model.AuthResponse{
+        AccessToken:  accessToken,
+        RefreshToken: refreshToken,
+        User:         userResponse,
+    }
+    c.JSON(code, response)
 }
+
+// RefreshAccessToken リフレッシュトークンを使用して新しいアクセストークンを生成
+func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context, refreshToken string) (string, error) {
+    // refreshToken の検証ロジックを実装
+
+    // ここで refreshToken の検証を行います
+    // 例えば、データベース内のリフレッシュトークンと照合するなどの検証を行います
+
+    valid := validateRefreshToken(refreshToken)
+    if !valid {
+        // c.Status(http.StatusUnauthorized) // HTTPステータスコードを401に設定
+        return "", errors.New("invalid refreshToken")
+    }
+
+    // refreshToken の検証が成功した場合、新しい accessToken を生成
+    user := &userModel.User{} // ユーザー情報を取得する適切なコードを追加
+    newAccessToken, err := as.jwtLogic.CreateAccessToken(user)
+    if err != nil {
+        return "", err
+    }
+
+    return newAccessToken, nil
+}
+
 
 // convertToUserResponse はUserModelをUserResponseに変換します
 func convertToUserResponse(user *userModel.User) model.UserResponse {
-	return model.UserResponse{
-		Name:  user.Name,
-		Email: user.Email,
-		// 必要に応じて他のフィールドもマッピング
-	}
+    return model.UserResponse{
+        Name:  user.Name,
+        Email: user.Email,
+        // 必要に応じて他のフィールドもマッピング
+    }
+}
+
+func validateRefreshToken(refreshToken string) bool {
+    // refreshToken の検証ロジックを実装
+    token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, errors.New("invalid refreshToken")
+        }
+        return []byte(os.Getenv("JWT_KEY")), nil
+    })
+
+    // エラーが発生した場合やトークンが無効な場合は false を返す
+    if err != nil || !token.Valid {
+        return false
+    }
+
+    // 有効期限を確認
+    claims, claimOk := token.Claims.(jwt.MapClaims)
+    if !claimOk {
+        return false
+    }
+
+    exp, expOk := claims["exp"].(float64)
+    if !expOk {
+        return false
+    }
+
+    // 有効期限を比較
+    if int64(exp) < time.Now().Unix() {
+        return false
+    }
+
+    // すべての検証が成功した場合は true を返す
+    return true
 }
