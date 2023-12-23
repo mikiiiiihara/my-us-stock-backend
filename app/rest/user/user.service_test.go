@@ -30,6 +30,23 @@ func (m *MockUserRepository) CreateUser(ctx context.Context, createDto dto.Creat
     return args.Get(0).(*userModel.User), args.Error(1)
 }
 
+func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (*userModel.User, error) {
+    args := m.Called(ctx, email)
+    // 戻り値の型が *userModel.User であることを確認
+    var user *userModel.User
+    if args.Get(0) != nil {
+        user = args.Get(0).(*userModel.User)
+    }
+    return user, args.Error(1)
+}
+
+func (m *MockUserRepository) GetAllUserByEmail(ctx context.Context, email string) ([]*userModel.User, error) {
+    args := m.Called(ctx, email)
+    // 戻り値の型が []*userModel.User であることを確認
+    return args.Get(0).([]*userModel.User), args.Error(1)
+}
+
+
 var _ repoUser.UserRepository = (*MockUserRepository)(nil)
 
 // TestGetUserByID は GetUserByID メソッドのテストです。
