@@ -25,7 +25,7 @@ type AuthService interface {
 	SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int)
-	RefreshAccessToken(c *gin.Context, refreshToken string) (string, error)
+	RefreshAccessToken(c *gin.Context) (string, error)
 }
 
 // DefaultAuthService 構造体の定義
@@ -136,15 +136,21 @@ func (as *DefaultAuthService) SendAuthResponse(ctx context.Context, c *gin.Conte
 
     // レスポンスにアクセストークンとリフレッシュトークンを含める
     response := model.AuthResponse{
-        AccessToken:  accessToken,
-        RefreshToken: refreshToken,
         User:         userResponse,
     }
+    // アクセストークンとリフレッシュトークンをクッキーとしてセット
+    c.SetCookie("access_token", accessToken, 0, "/", "", false, true)
+    c.SetCookie("refresh_token", refreshToken, 0, "/", "", false, true)
     c.JSON(code, response)
 }
 
 // RefreshAccessToken リフレッシュトークンを使用して新しいアクセストークンを生成
-func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context, refreshToken string) (string, error) {
+func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
+        // クッキーからrefresh_tokenを取得
+        refreshToken, err := c.Cookie("refresh_token")
+        if err != nil {
+            return "", errors.New("access_token not found in cookie")
+        }
     // refreshToken の検証ロジックを実装
 
     // ここで refreshToken の検証を行います

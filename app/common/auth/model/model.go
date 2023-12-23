@@ -1,7 +1,5 @@
 package model
 
-import "gorm.io/gorm"
-
 // SignInRequest ログインパラメータ
 type SignInRequest struct {
 	Email    string `json:"email"`
@@ -16,13 +14,10 @@ type SignUpRequest struct {
 }
 
 type UserResponse struct {
-    gorm.Model
 	Name  string `gorm:"size:255" json:"name,omitempty"`
 	Email string `gorm:"size:255;not null;unique" json:"email,omitempty"`
 }
 
 type AuthResponse struct {
-    AccessToken  string       `json:"accessToken"`
-    RefreshToken string       `json:"refreshToken"`
 	User  UserResponse `json:"user"`
 }

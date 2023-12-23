@@ -35,8 +35,8 @@ func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, 
     m.Called(ctx, c, user, code)
 }
 
-func (m *MockAuthService) RefreshAccessToken(c *gin.Context, refreshToken string) (string, error) {
-    args := m.Called(c, refreshToken)
+func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
+    args := m.Called(c)
     return args.String(0), args.Error(1)
 }
 
@@ -83,11 +83,20 @@ func TestAuthController_RefreshAccessToken(t *testing.T) {
     newAccessToken := "newAccessToken"
 
     // MockAuthServiceのRefreshAccessTokenメソッドをモック化
-    mockAuthService.On("RefreshAccessToken", mock.Anything, refreshToken).Return(newAccessToken, nil)
+    mockAuthService.On("RefreshAccessToken", mock.Anything).Return(newAccessToken, nil)
 
-    // テスト対象のコントローラーメソッドを呼び出す
-    c := &gin.Context{} // 必要に応じてContextを作成
-    returnedAccessToken, err := controller.AuthService.RefreshAccessToken(c, refreshToken)
+    // テスト用のgin.Contextを作成
+    c := &gin.Context{
+        Request: &http.Request{
+            Header: http.Header{"Cookie": []string{"refresh_token=" + refreshToken}},
+        },
+    }
+
+    // モックのRefreshAccessTokenメソッドを呼び出す
+    returnedAccessToken, err := controller.AuthService.RefreshAccessToken(c)
+
+
+
 
     // エラーが発生しないことを検証
     assert.NoError(t, err)

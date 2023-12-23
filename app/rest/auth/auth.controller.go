@@ -2,7 +2,6 @@ package auth
 
 import (
 	"net/http"
-	"strings"
 
 	"my-us-stock-backend/app/common/auth"
 
@@ -46,22 +45,9 @@ func (ac *AuthController) SignUp(c *gin.Context) {
 
 // RefreshAccessTokenHandler リフレッシュトークンを使用してアクセストークンを更新する
 func (ac *AuthController) RefreshAccessToken(c *gin.Context) {
-    refreshToken := c.GetHeader("Authorization")
-    if refreshToken == "" {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token not provided"})
-        return
-    }
-
-    // "Bearer " プレフィックスを削除して refreshToken を抽出
-    refreshToken = strings.TrimPrefix(refreshToken, "Bearer ")
-
     // refreshToken を使用して新しい accessToken を取得
-    newAccessToken, err := ac.AuthService.RefreshAccessToken(c, refreshToken)
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-        return
-    }
+    ac.AuthService.RefreshAccessToken(c)
 
     // 新しい accessToken をレスポンスとして返す
-    c.JSON(http.StatusOK, gin.H{"accessToken": newAccessToken})
+    c.JSON(http.StatusOK, gin.H{"message": "Refreshed completely"})
 }
