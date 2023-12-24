@@ -102,14 +102,13 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
         marketPriceRepo = repoMarketPrice.NewMarketPriceRepository(httpClient)
     }
     // 認証機能
-    authLogic := logic.NewAuthLogic()
     userLogic := logic.NewUserLogic()
     responseLogic := logic.NewResponseLogic()
     jwtLogic := logic.NewJWTLogic()
     authValidation := validation.NewAuthValidation()
 
     // 認証サービスの初期化
-    authService := authService.NewAuthService(userRepo, authLogic, userLogic, responseLogic, jwtLogic, authValidation)
+    authService := authService.NewAuthService(userRepo, userLogic, responseLogic, jwtLogic, authValidation)
 
     // サービスとリゾルバの初期化
     currencyService := serviceCurrency.NewCurrencyService(currencyRepo)

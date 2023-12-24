@@ -34,7 +34,6 @@ type AuthService interface {
 // DefaultAuthService 構造体の定義
 type DefaultAuthService struct {
 	userRepository user.UserRepository
-	authLogic logic.AuthLogic
 	userLogic logic.UserLogic
 	responseLogic logic.ResponseLogic
 	jwtLogic logic.JWTLogic
@@ -42,8 +41,8 @@ type DefaultAuthService struct {
 }
 
 // NewAuthService は DefaultAuthService の新しいインスタンスを作成します
-func NewAuthService(ur user.UserRepository, al logic.AuthLogic, ul logic.UserLogic, rl logic.ResponseLogic, jl logic.JWTLogic, av validation.AuthValidation) AuthService {
-	return &DefaultAuthService{ur, al, ul, rl, jl, av}
+func NewAuthService(ur user.UserRepository, ul logic.UserLogic, rl logic.ResponseLogic, jl logic.JWTLogic, av validation.AuthValidation) AuthService {
+	return &DefaultAuthService{ur, ul, rl, jl, av}
 }
 
 // SignIn ログイン処理

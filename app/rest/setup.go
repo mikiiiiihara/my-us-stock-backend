@@ -18,7 +18,6 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     userRepo := repoUser.NewUserRepository(db)
 
     // 認証機能
-    authLogic := logic.NewAuthLogic()
     userLogic := logic.NewUserLogic()
     responseLogic := logic.NewResponseLogic()
     jwtLogic := logic.NewJWTLogic()
@@ -29,7 +28,7 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     userController := user.NewUserController(userRestService)
 
     // 認証サービスの初期化
-    authService := authService.NewAuthService(userRepo, authLogic, userLogic, responseLogic, jwtLogic, authValidation)
+    authService := authService.NewAuthService(userRepo, userLogic, responseLogic, jwtLogic, authValidation)
     authController := auth.NewAuthController(authService)
 
     // RESTコントローラのルートを設定
