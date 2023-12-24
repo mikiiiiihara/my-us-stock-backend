@@ -16,11 +16,6 @@ type MockAuthService struct {
     mock.Mock
 }
 
-func (m *MockAuthService) GetUserIdFromToken(w http.ResponseWriter, r *http.Request) (int, error) {
-    args := m.Called(w, r)
-    return args.Int(0), args.Error(1)
-}
-
 func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*model.User, error) {
     args := m.Called(ctx, c)
     return args.Get(0).(*model.User), args.Error(1)

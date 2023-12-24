@@ -7,7 +7,6 @@ import (
 	"my-us-stock-backend/app/graphql/utils"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
-	"net/http"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -19,11 +18,6 @@ import (
 // MockAuthServiceの定義
 type MockAuthService struct {
     mock.Mock
-}
-
-func (m *MockAuthService) GetUserIdFromToken(w http.ResponseWriter, r *http.Request) (int, error) {
-    args := m.Called(w, r)
-    return args.Int(0), args.Error(1)
 }
 
 func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error) {

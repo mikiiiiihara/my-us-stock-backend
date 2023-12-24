@@ -24,7 +24,6 @@ import (
 
 // AuthService インターフェースの定義
 type AuthService interface {
-	GetUserIdFromToken(w http.ResponseWriter, r *http.Request) (int, error)
 	SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int)
@@ -45,19 +44,6 @@ type DefaultAuthService struct {
 // NewAuthService は DefaultAuthService の新しいインスタンスを作成します
 func NewAuthService(ur user.UserRepository, al logic.AuthLogic, ul logic.UserLogic, rl logic.ResponseLogic, jl logic.JWTLogic, av validation.AuthValidation) AuthService {
 	return &DefaultAuthService{ur, al, ul, rl, jl, av}
-}
-
-// GetUserIdFromToken tokenよりuserIdを取得
-func (as *DefaultAuthService) GetUserIdFromToken(w http.ResponseWriter, r *http.Request) (int, error) {
-	// トークンからuserIdを取得
-	userId, err := as.authLogic.GetUserIdFromContext(r)
-	if err != nil {
-		errMessage := "認証エラー"
-		as.responseLogic.SendResponse(w, as.responseLogic.CreateErrorStringResponse(errMessage), http.StatusUnauthorized)
-		return 0, err
-	}
-
-	return userId, nil
 }
 
 // SignIn ログイン処理
