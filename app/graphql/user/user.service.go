@@ -9,8 +9,6 @@ import (
 	"my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
 	"strconv"
-
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // UserService インターフェースの定義
@@ -37,12 +35,7 @@ func (s *DefaultUserService) GetUserByID(ctx context.Context) (*generated.User, 
     // アクセストークンの検証
     userId, _ := s.Auth.FetchUserIdAccessToken(accessToken)
     if userId == 0 {
-        return nil, &gqlerror.Error{
-            Message: "Invalid user ID",
-            Extensions: map[string]interface{}{
-                "code": "UNAUTHENTICATED",
-            },
-        }
+        return nil, utils.UnauthenticatedError("Invalid user ID")
     }
     modelUser, err := s.Repo.FindUserByID(ctx, userId)
     if err != nil {

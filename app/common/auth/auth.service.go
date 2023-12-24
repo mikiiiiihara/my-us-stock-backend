@@ -15,8 +15,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/vektah/gqlparser/v2/gqlerror"
-
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -207,58 +205,31 @@ func (as *DefaultAuthService) FetchUserIdAccessToken(accessToken string) (uint, 
     // トークン解析のエラーをチェック
     if err != nil {
         fmt.Println("Error parsing token:", err)
-        return 0, &gqlerror.Error{
-            Message: "Error parsing token",
-            Extensions: map[string]interface{}{
-                "code": "UNAUTHENTICATED",
-            },
-        }
+        return 0, utils.UnauthenticatedError("Error parsing token")
     }
 
     // トークンの有効性をチェック
     if !token.Valid {
         fmt.Println("Invalid token")
-        return 0, &gqlerror.Error{
-            Message: "Invalid token",
-            Extensions: map[string]interface{}{
-                "code": "UNAUTHENTICATED",
-            },
-        }
+        return 0, utils.UnauthenticatedError("Invalid token")
     }
 
     // トークンのクレームを検証
     claims, ok := token.Claims.(jwt.MapClaims)
     if !ok {
-        return 0, &gqlerror.Error{
-            Message: "Invalid token claims",
-            Extensions: map[string]interface{}{
-                "code": "UNAUTHENTICATED",
-            },
-        }
+        return 0, utils.UnauthenticatedError("Invalid token claims")
     }
 
     // 有効期限のチェック
     if exp, ok := claims["exp"].(float64); !ok || int64(exp) < time.Now().Unix() {
-        return 0, &gqlerror.Error{
-            Message: "Token expired",
-            Extensions: map[string]interface{}{
-                "code": "UNAUTHENTICATED",
-            },
-        }
+        return 0, utils.UnauthenticatedError("Token expired")
     }
 
     // ユーザーIDの取得とログ出力
     userId, ok := claims["id"].(float64)
     if !ok || userId == 0 {
-        return 0, &gqlerror.Error{
-            Message: "Invalid user ID",
-            Extensions: map[string]interface{}{
-                "code": "UNAUTHENTICATED",
-            },
-        }
+        return 0, utils.UnauthenticatedError("Invalid user ID")
     }
-    fmt.Printf("Extracted UserID: %d, Type assertion successful: %t\n", uint(userId), ok)
-    
     // すべての検証が成功した場合はユーザーIDを返す
     return uint(userId), nil
 }
