@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"my-us-stock-backend/app/common/auth"
-	userModel "my-us-stock-backend/app/repository/user/model"
+	"my-us-stock-backend/app/database/model"
 	"net/http"
 	"testing"
 
@@ -21,17 +21,17 @@ func (m *MockAuthService) GetUserIdFromToken(w http.ResponseWriter, r *http.Requ
     return args.Int(0), args.Error(1)
 }
 
-func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error) {
+func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*model.User, error) {
     args := m.Called(ctx, c)
-    return args.Get(0).(*userModel.User), args.Error(1)
+    return args.Get(0).(*model.User), args.Error(1)
 }
 
-func (m *MockAuthService) SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error) {
+func (m *MockAuthService) SignUp(ctx context.Context, c *gin.Context) (*model.User, error) {
     args := m.Called(ctx, c)
-    return args.Get(0).(*userModel.User), args.Error(1)
+    return args.Get(0).(*model.User), args.Error(1)
 }
 
-func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int) {
+func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, user *model.User, code int) {
     m.Called(ctx, c, user, code)
 }
 
@@ -52,7 +52,7 @@ func TestAuthController_SignIn(t *testing.T) {
     mockAuthService := new(MockAuthService)
     controller := NewAuthController(mockAuthService)
 
-    mockUser := &userModel.User{Name: "Test User", Email: "test@example.com"}
+    mockUser := &model.User{Name: "Test User", Email: "test@example.com"}
     mockAuthService.On("SignIn", mock.Anything, mock.Anything).Return(mockUser, nil)
 
     // ここで直接メソッドを呼び出す
@@ -67,7 +67,7 @@ func TestAuthController_SignUp(t *testing.T) {
     mockAuthService := new(MockAuthService)
     controller := NewAuthController(mockAuthService)
 
-    mockUser := &userModel.User{Name: "New User", Email: "newuser@example.com"}
+    mockUser := &model.User{Name: "New User", Email: "newuser@example.com"}
     mockAuthService.On("SignUp", mock.Anything, mock.Anything).Return(mockUser, nil)
 
     // ここで直接メソッドを呼び出す

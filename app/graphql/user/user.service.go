@@ -3,11 +3,11 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/common/auth"
+	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
-	"my-us-stock-backend/app/repository/user/model"
 	"strconv"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"

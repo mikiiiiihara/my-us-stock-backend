@@ -1,7 +1,7 @@
 package test
 
 import (
-	"my-us-stock-backend/app/repository/user/model"
+	"my-us-stock-backend/app/database/model"
 	"testing"
 
 	"gorm.io/driver/sqlite"

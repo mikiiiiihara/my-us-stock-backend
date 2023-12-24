@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
+	userModel "my-us-stock-backend/app/database/model"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
-	userModel "my-us-stock-backend/app/repository/user/model"
 	"my-us-stock-backend/app/rest/user/input"
 	"testing"
 

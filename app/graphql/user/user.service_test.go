@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
+	userModel "my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
-	userModel "my-us-stock-backend/app/repository/user/model"
 	"net/http"
 	"testing"
 

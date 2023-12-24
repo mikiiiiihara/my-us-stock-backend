@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
+	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/repository/user/dto"
-	"my-us-stock-backend/app/repository/user/model"
 
 	"gorm.io/gorm"
 )

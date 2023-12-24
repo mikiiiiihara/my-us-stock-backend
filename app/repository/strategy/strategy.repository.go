@@ -2,8 +2,8 @@ package strategy
 
 import (
 	"context"
+	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/repository/strategy/dto"
-	"my-us-stock-backend/app/repository/strategy/model"
 
 	"gorm.io/gorm"
 )

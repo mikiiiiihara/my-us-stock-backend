@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"my-us-stock-backend/app/repository/user/model"
+	"my-us-stock-backend/app/database/model"
 	"os"
 	"strconv"
 	"time"

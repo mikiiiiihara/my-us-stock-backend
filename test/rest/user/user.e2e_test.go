@@ -3,8 +3,8 @@ package user_test
 import (
 	"bytes"
 	"encoding/json"
+	"my-us-stock-backend/app/database/model"
 	RepoUser "my-us-stock-backend/app/repository/user"
-	"my-us-stock-backend/app/repository/user/model"
 	"my-us-stock-backend/app/rest/user"
 	"my-us-stock-backend/app/rest/user/input"
 	"net/http"

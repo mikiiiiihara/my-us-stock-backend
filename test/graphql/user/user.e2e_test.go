@@ -2,7 +2,7 @@ package user
 
 import (
 	"encoding/json"
-	"my-us-stock-backend/app/repository/user/model"
+	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/test"
 	"my-us-stock-backend/test/graphql"
 	"net/http"
