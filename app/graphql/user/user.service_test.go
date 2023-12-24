@@ -40,8 +40,8 @@ func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
 }
 
 // FetchUserIdAccessTokenのモックメソッド
-func (m *MockAuthService) FetchUserIdAccessToken(token string) (uint, error) {
-    args := m.Called(token)
+func (m *MockAuthService) FetchUserIdAccessToken(ctx context.Context) (uint, error) {
+    args := m.Called(ctx)
     return args.Get(0).(uint), args.Error(1)
 }
 
@@ -91,7 +91,7 @@ func TestGetUserByID(t *testing.T) {
     testAccessToken := "testAccessToken"
     expectedUserID := uint(1)  // 明示的に uint 型を使用
 
-    mockAuth.On("FetchUserIdAccessToken", testAccessToken).Return(expectedUserID, nil)
+    mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(expectedUserID, nil)
     mockUser := &userModel.User{
         Model: gorm.Model{ID: 1},
         Name:  "John Doe",

@@ -30,10 +30,8 @@ func NewUserService(repo user.UserRepository, auth auth.AuthService) UserService
 
 // GetUserByID はユーザーをIDによって検索します
 func (s *DefaultUserService) GetUserByID(ctx context.Context) (*generated.User, error) {
-    // cookieからアクセストークンを取得
-    accessToken, _ := ctx.Value(utils.CookieKey).(string)
     // アクセストークンの検証
-    userId, _ := s.Auth.FetchUserIdAccessToken(accessToken)
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
     if userId == 0 {
         return nil, utils.UnauthenticatedError("Invalid user ID")
     }

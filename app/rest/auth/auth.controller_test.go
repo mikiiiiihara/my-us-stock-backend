@@ -36,8 +36,8 @@ func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
 }
 
 // FetchUserIdAccessTokenのモックメソッド
-func (m *MockAuthService) FetchUserIdAccessToken(token string) (uint, error) {
-    args := m.Called(token)
+func (m *MockAuthService) FetchUserIdAccessToken(ctx context.Context) (uint, error) {
+    args := m.Called(ctx)
     return args.Get(0).(uint), args.Error(1)
 }
 

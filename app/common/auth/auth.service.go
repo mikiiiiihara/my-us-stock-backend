@@ -26,7 +26,7 @@ type AuthService interface {
 	SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int)
 	RefreshAccessToken(c *gin.Context) (string, error)
-    FetchUserIdAccessToken(accessToken string) (uint, error)
+    FetchUserIdAccessToken(ctx context.Context) (uint, error)
 }
 
 // DefaultAuthService 構造体の定義
@@ -193,7 +193,9 @@ func convertToUserResponse(user *userModel.User) model.UserResponse {
 }
 
 // validateAccessToken は与えられたアクセストークンが有効かどうかを検証します
-func (as *DefaultAuthService) FetchUserIdAccessToken(accessToken string) (uint, error) {
+func (as *DefaultAuthService) FetchUserIdAccessToken(ctx context.Context) (uint, error) {
+    // cookieからアクセストークンを取得
+    accessToken, _ := ctx.Value(utils.CookieKey).(string)
     token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
         if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
             return nil, &utils.GraphQLAuthError{Code: "UNAUTHENTICATED", Message: "Invalid signing method"}
