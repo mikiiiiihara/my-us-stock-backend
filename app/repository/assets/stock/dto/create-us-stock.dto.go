@@ -1,7 +1,7 @@
 package dto
 
 type CreateUsStockDto struct {
-    Ticker   string  `json:"ticker"`
+    Code   string  `json:"code"`
     GetPrice float64 `json:"getPrice"`
     Quantity float64 `json:"quantity"`
     UserId   string  `json:"userId"`

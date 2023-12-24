@@ -29,14 +29,14 @@ func TestFetchUsStockListById(t *testing.T) {
     repo := NewUsStockRepository(db)
 
     // テスト用データを作成
-    stock := model.UsStock{Ticker: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
+    stock := model.UsStock{Code: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
     db.Create(&stock)
 
     // User IDで検索
     stocks, err := repo.FetchUsStockListById(context.Background(), stock.UserId)
     assert.NoError(t, err)
     assert.NotEmpty(t, stocks)
-    assert.Equal(t, stock.Ticker, stocks[0].Ticker)
+    assert.Equal(t, stock.Code, stocks[0].Code)
     assert.Equal(t, stock.Quantity, stocks[0].Quantity)
 }
 
@@ -45,7 +45,7 @@ func TestUpdateUsStock(t *testing.T) {
     repo := NewUsStockRepository(db)
 
     // テスト用データを作成
-    originalStock := model.UsStock{Ticker: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
+    originalStock := model.UsStock{Code: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
     db.Create(&originalStock)
 
     // 更新用DTOの作成
@@ -73,20 +73,20 @@ func TestCreateUsStock(t *testing.T) {
 
     // 新しい株式情報を作成
     createDto := dto.CreateUsStockDto{
-        Ticker:   "MSFT",
+        Code:   "MSFT",
         UserId:   "user1",
         Quantity: 5.0,
     }
     created, err := repo.CreateUsStock(context.Background(), createDto)
     assert.NoError(t, err)
     assert.NotNil(t, created)
-    assert.Equal(t, createDto.Ticker, created.Ticker)
+    assert.Equal(t, createDto.Code, created.Code)
     assert.Equal(t, createDto.Quantity, created.Quantity)
 
     // データベースで株式情報を確認
     var stock model.UsStock
     db.First(&stock, created.ID)
-    assert.Equal(t, createDto.Ticker, stock.Ticker)
+    assert.Equal(t, createDto.Code, stock.Code)
     assert.Equal(t, createDto.Quantity, stock.Quantity)
 }
 
@@ -95,12 +95,12 @@ func TestCreateUsStockAlreadyExists(t *testing.T) {
     repo := NewUsStockRepository(db)
 
     // 既存の銘柄をデータベースに登録
-    existingStock := model.UsStock{Ticker: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 150.0, Sector: "Tech", UsdJpy: 110.0}
+    existingStock := model.UsStock{Code: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 150.0, Sector: "Tech", UsdJpy: 110.0}
     db.Create(&existingStock)
 
     // 同じ銘柄で新しい株式情報を作成
     createDto := dto.CreateUsStockDto{
-        Ticker:   "AAPL",
+        Code:   "AAPL",
         UserId:   "user1",
         Quantity: 20,
         GetPrice: 155.0,
@@ -119,7 +119,7 @@ func TestDeleteUsStock(t *testing.T) {
     repo := NewUsStockRepository(db)
 
     // テスト用データを作成
-    stock := model.UsStock{Ticker: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
+    stock := model.UsStock{Code: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
     db.Create(&stock)
 
     // 株式情報を削除

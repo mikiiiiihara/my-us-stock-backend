@@ -70,13 +70,13 @@ func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto dto.Up
 func (r *DefaultUsStockRepository) CreateUsStock(ctx context.Context, dto dto.CreateUsStockDto) (*model.UsStock, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.UsStock
-    if err := r.DB.Where("ticker = ?", dto.Ticker).First(&existingUsStock).Error; err == nil {
+    if err := r.DB.Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
         return nil, fmt.Errorf("この銘柄は既に登録されています")
     }
 
     // 新しい米国株式情報を作成
     usStock := &model.UsStock{
-        Ticker:   dto.Ticker,
+        Code:   dto.Code,
         GetPrice: dto.GetPrice,
         Quantity: dto.Quantity,
         UserId:   dto.UserId,

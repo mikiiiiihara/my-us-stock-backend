@@ -72,7 +72,7 @@ func (r *DefaultJapanFundRepository) CreateJapanFund(ctx context.Context, dto dt
     }
 
     // 新しい米国株式情報を作成
-    JapanFund := &model.JapanFund{
+    japanFund := &model.JapanFund{
         Name: dto.Name,
         Code:   dto.Code,
         GetPriceTotal: dto.GetPriceTotal,
@@ -80,11 +80,11 @@ func (r *DefaultJapanFundRepository) CreateJapanFund(ctx context.Context, dto dt
         UserId:   dto.UserId,
     }
 
-    if err := r.DB.Create(&JapanFund).Error; err != nil {
+    if err := r.DB.Create(&japanFund).Error; err != nil {
         return nil, err
     }
 
-    return JapanFund, nil
+    return japanFund, nil
 }
 
 // 日本投資信託情報を削除します
