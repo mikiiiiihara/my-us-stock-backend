@@ -26,6 +26,7 @@ type AuthService interface {
 	SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int)
 	RefreshAccessToken(c *gin.Context) (string, error)
+    FetchUserIdAccessToken(accessToken string) (uint, bool)
 }
 
 // DefaultAuthService 構造体の定義
@@ -198,6 +199,44 @@ func convertToUserResponse(user *userModel.User) model.UserResponse {
         Email: user.Email,
         // 必要に応じて他のフィールドもマッピング
     }
+}
+
+// validateAccessToken は与えられたアクセストークンが有効かどうかを検証します
+func (as *DefaultAuthService) FetchUserIdAccessToken(accessToken string) (uint, bool) {
+    token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+        // トークンの署名方法を確認
+        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, errors.New("invalid signing method")
+        }
+        // 署名キーを返す
+        return []byte(os.Getenv("JWT_KEY")), nil
+    })
+
+    // エラーが発生した場合やトークンが無効な場合は false を返す
+    if err != nil || !token.Valid {
+        return 0, false
+    }
+
+    // トークンのクレームを検証
+    claims, ok := token.Claims.(jwt.MapClaims)
+    if !ok {
+        return 0, false
+    }
+
+    // 有効期限のチェック
+    if exp, ok := claims["exp"].(float64); !ok || int64(exp) < time.Now().Unix() {
+        return 0, false
+    }
+
+    // ユーザーIDの取得
+    userId, ok := claims["id"].(float64)
+    if !ok {
+        return 0, false
+    }
+    // 他の必要なクレームの検証をここに追加（必要に応じて）
+
+    // すべての検証が成功した場合はユーザーIDと true を返す
+    return uint(userId), true
 }
 
 func validateRefreshToken(refreshToken string) bool {

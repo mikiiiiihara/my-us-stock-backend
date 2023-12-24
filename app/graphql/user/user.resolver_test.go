@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/graphql/generated"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,8 +19,8 @@ func (m *MockUserService) CreateUser(ctx context.Context, input generated.Create
     return args.Get(0).(*generated.User), args.Error(1)
 }
 
-func (m *MockUserService) GetUserByID(ctx context.Context, id uint) (*generated.User, error) {
-    args := m.Called(ctx, id)
+func (m *MockUserService) GetUserByID(ctx context.Context) (*generated.User, error) {
+    args := m.Called(ctx)
     return args.Get(0).(*generated.User), args.Error(1)
 }
 
@@ -50,10 +49,9 @@ func TestUser(t *testing.T) {
     resolver := NewResolver(mockService)
 
     mockUser := &generated.User{ID: "1", Name: "John Doe", Email: "johndoe@example.com"}
-    mockService.On("GetUserByID", mock.Anything, uint(1)).Return(mockUser, nil)
+    mockService.On("GetUserByID", mock.Anything).Return(mockUser, nil)
 
-    idStr := strconv.FormatUint(uint64(1), 10)
-    result, err := resolver.User(context.Background(), idStr)
+    result, err := resolver.User(context.Background())
     assert.NoError(t, err)
     assert.IsType(t, &generated.User{}, result)
     assert.Equal(t, "John Doe", result.Name)

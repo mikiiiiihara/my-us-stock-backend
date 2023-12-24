@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/graphql/generated"
-	"strconv"
 )
 
 type Resolver struct {
@@ -14,16 +13,9 @@ func NewResolver(userService UserService) *Resolver {
     return &Resolver{UserService: userService}
 }
 
-func (r *Resolver) User(ctx context.Context, idStr string) (*generated.User, error) {
-    // string型のIDをuint型に変換
-    id, err := strconv.ParseUint(idStr, 10, 64)
-    if err != nil {
-        // ID変換エラーのハンドリング
-        return nil, err
-    }
-
+func (r *Resolver) User(ctx context.Context) (*generated.User, error) {
     // GetUserByID に uint 型の ID を渡す
-    userModel, err := r.UserService.GetUserByID(ctx, uint(id))
+    userModel, err := r.UserService.GetUserByID(ctx)
     if err != nil {
         return nil, err
     }

@@ -2,6 +2,9 @@ package graphql
 
 import (
 	"context"
+	authService "my-us-stock-backend/app/common/auth"
+	"my-us-stock-backend/app/common/auth/logic"
+	"my-us-stock-backend/app/common/auth/validation"
 	"my-us-stock-backend/app/graphql/currency"
 	"my-us-stock-backend/app/graphql/generated"
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
@@ -57,6 +60,16 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     currencyRepo := repoCurrency.NewCurrencyRepository(nil)
     marketPriceRepo := repoMarketPrice.NewMarketPriceRepository(nil)
 
+    // 認証機能
+    authLogic := logic.NewAuthLogic()
+    userLogic := logic.NewUserLogic()
+    responseLogic := logic.NewResponseLogic()
+    jwtLogic := logic.NewJWTLogic()
+    authValidation := validation.NewAuthValidation()
+
+    // 認証サービスの初期化
+    authService := authService.NewAuthService(userRepo, authLogic, userLogic, responseLogic, jwtLogic, authValidation)
+
     // GraphQLサービス、リゾルバの初期化
     currencyService := currency.NewCurrencyService(currencyRepo)
     currencyResolver := currency.NewResolver(currencyService)
@@ -64,7 +77,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     marketPriceService := marketPrice.NewMarketPriceService(marketPriceRepo)
     marketPriceResolver := marketPrice.NewResolver(marketPriceService)
 
-    userService := user.NewUserService(userRepo)
+    userService := user.NewUserService(userRepo,authService)
     userResolver := user.NewResolver(userService)
 
     // GraphQLエンドポイントへのルート設定

@@ -2,7 +2,7 @@
 
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
-  user(id: ID!): User
+  user: User
   getCurrentUsdJpy: Float!
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
 }

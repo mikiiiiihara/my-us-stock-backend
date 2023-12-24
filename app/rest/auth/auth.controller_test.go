@@ -40,6 +40,12 @@ func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
     return args.String(0), args.Error(1)
 }
 
+// FetchUserIdAccessTokenのモックメソッド
+func (m *MockAuthService) FetchUserIdAccessToken(token string) (uint, bool) {
+    args := m.Called(token)
+    return args.Get(0).(uint), true
+}
+
 var _ auth.AuthService = (*MockAuthService)(nil)
 
 func TestAuthController_SignIn(t *testing.T) {

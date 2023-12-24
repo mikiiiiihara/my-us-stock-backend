@@ -59,7 +59,7 @@ type ComplexityRoot struct {
 	Query struct {
 		GetCurrentUsdJpy func(childComplexity int) int
 		GetMarketPrices  func(childComplexity int, tickerList []*string) int
-		User             func(childComplexity int, id string) int
+		User             func(childComplexity int) int
 	}
 
 	User struct {
@@ -74,7 +74,7 @@ type MutationResolver interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (*User, error)
 }
 type QueryResolver interface {
-	User(ctx context.Context, id string) (*User, error)
+	User(ctx context.Context) (*User, error)
 	GetCurrentUsdJpy(ctx context.Context) (float64, error)
 	GetMarketPrices(ctx context.Context, tickerList []*string) ([]*MarketPrice, error)
 }
@@ -162,12 +162,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.User(childComplexity), true
 
 	case "User.email":
 		if e.complexity.User.Email == nil {
@@ -307,7 +302,7 @@ var sources = []*ast.Source{
 
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
-  user(id: ID!): User
+  user: User
   getCurrentUsdJpy: Float!
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
 }
@@ -403,21 +398,6 @@ func (ec *executionContext) field_Query_getMarketPrices_args(ctx context.Context
 		}
 	}
 	args["tickerList"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -711,7 +691,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().User(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -744,17 +724,6 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_user_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }

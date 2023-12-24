@@ -21,8 +21,8 @@ func (r *CustomQueryResolver) Query() generated.QueryResolver {
 }
 
 // Userメソッドの実装
-func (r *CustomQueryResolver) User(ctx context.Context, id string) (*generated.User, error) {
-	return r.UserResolver.User(ctx, id)
+func (r *CustomQueryResolver) User(ctx context.Context) (*generated.User, error) {
+	return r.UserResolver.User(ctx)
 }
 
 // GetCurrentUsdJpyメソッドの実装
