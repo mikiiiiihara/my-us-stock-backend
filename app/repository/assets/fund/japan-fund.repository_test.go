@@ -43,6 +43,21 @@ func TestFetchJapanFundListById(t *testing.T) {
 	assert.Equal(t, fund.UserId, funds[0].UserId)
 }
 
+// 取得結果が0件だった場合、空配列が返却される
+func TestFetchJapanFundListByIdEmpty(t *testing.T) {
+    db := setupTestDB()
+    repo := NewJapanFundRepository(db)
+
+    // テスト用データを作成
+    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: "user1", Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    db.Create(&fund)
+
+    // User IDで検索
+    funds, err := repo.FetchJapanFundListById(context.Background(), "user2")
+    assert.NoError(t, err)
+    assert.Empty(t, funds)
+}
+
 func TestUpdateJapanFund(t *testing.T) {
     db := setupTestDB()
     repo := NewJapanFundRepository(db)

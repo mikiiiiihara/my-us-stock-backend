@@ -40,6 +40,22 @@ func TestFetchUsStockListById(t *testing.T) {
     assert.Equal(t, stock.Quantity, stocks[0].Quantity)
 }
 
+// 取得結果が0件だった場合、空配列が返却される
+func TestFetchUsStockListByIdEmpty(t *testing.T) {
+    db := setupTestDB()
+    repo := NewUsStockRepository(db)
+
+    // テスト用データを作成
+    stock := model.UsStock{Code: "AAPL", UserId: "user1", Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
+    db.Create(&stock)
+
+    // User IDで検索
+    stocks, err := repo.FetchUsStockListById(context.Background(), "user2")
+    assert.NoError(t, err)
+    assert.Empty(t, stocks)
+}
+
+
 func TestUpdateUsStock(t *testing.T) {
     db := setupTestDB()
     repo := NewUsStockRepository(db)

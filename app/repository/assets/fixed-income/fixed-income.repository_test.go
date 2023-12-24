@@ -33,13 +33,28 @@ func TestFetchFixedIncomeAssetListById(t *testing.T) {
     db.Create(&fixedIncomeAsset)
 
     // User IDで検索
-    cryptoList, err := repo.FetchFixedIncomeAssetListById(context.Background(), fixedIncomeAsset.UserId)
+    fixedIncomeAssetList, err := repo.FetchFixedIncomeAssetListById(context.Background(), fixedIncomeAsset.UserId)
     assert.NoError(t, err)
-    assert.NotEmpty(t, cryptoList)
-    assert.Equal(t, fixedIncomeAsset.Code, cryptoList[0].Code)
-    assert.Equal(t, fixedIncomeAsset.DividendRate, cryptoList[0].DividendRate)
-	assert.Equal(t, fixedIncomeAsset.GetPriceTotal, cryptoList[0].GetPriceTotal)
-	assert.Equal(t, fixedIncomeAsset.UserId, cryptoList[0].UserId)
+    assert.NotEmpty(t, fixedIncomeAssetList)
+    assert.Equal(t, fixedIncomeAsset.Code, fixedIncomeAssetList[0].Code)
+    assert.Equal(t, fixedIncomeAsset.DividendRate, fixedIncomeAssetList[0].DividendRate)
+	assert.Equal(t, fixedIncomeAsset.GetPriceTotal, fixedIncomeAssetList[0].GetPriceTotal)
+	assert.Equal(t, fixedIncomeAsset.UserId, fixedIncomeAssetList[0].UserId)
+}
+
+// 取得結果が0件だった場合、空配列が返却される
+func TestFetchFixedIncomeAssetListByIdEmpty(t *testing.T) {
+    db := setupTestDB()
+    repo := NewFixedIncomeRepository(db)
+
+    // テスト用データを作成
+    fixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: "user1", DividendRate: 3.5, GetPriceTotal: 100000}
+    db.Create(&fixedIncomeAsset)
+
+    // User IDで検索
+    fixedIncomeAssetList, err := repo.FetchFixedIncomeAssetListById(context.Background(), "user2")
+    assert.NoError(t, err)
+    assert.Empty(t, fixedIncomeAssetList)
 }
 
 func TestUpdateFixedIncomeAsset(t *testing.T) {

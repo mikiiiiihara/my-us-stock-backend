@@ -40,6 +40,22 @@ func TestFetchUsStockListById(t *testing.T) {
     assert.Equal(t, crypto.Quantity, cryptoList[0].Quantity)
 }
 
+// 取得結果が0件だった場合、空配列が返却される
+func TestFetchUsStockListByIdEmpty(t *testing.T) {
+    db := setupTestDB()
+    repo := NewCryptoRepository(db)
+
+    // テスト用データを作成
+    crypto := model.Crypto{Code: "xrp", UserId: "user1", Quantity: 100, GetPrice: 80}
+    db.Create(&crypto)
+
+    // User IDで検索
+    cryptoList, err := repo.FetchCryptoListById(context.Background(), "user2")
+    assert.NoError(t, err)
+    assert.Empty(t, cryptoList)
+}
+
+
 func TestUpdateUsStock(t *testing.T) {
     db := setupTestDB()
     repo := NewCryptoRepository(db)
