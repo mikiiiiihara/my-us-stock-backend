@@ -7,12 +7,15 @@ import (
 	"my-us-stock-backend/app/common/auth/logic"
 	"my-us-stock-backend/app/common/auth/model"
 	"my-us-stock-backend/app/common/auth/validation"
+	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/user"
 	"my-us-stock-backend/app/repository/user/dto"
 	userModel "my-us-stock-backend/app/repository/user/model"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -26,7 +29,7 @@ type AuthService interface {
 	SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error)
 	SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int)
 	RefreshAccessToken(c *gin.Context) (string, error)
-    FetchUserIdAccessToken(accessToken string) (uint, bool)
+    FetchUserIdAccessToken(accessToken string) (uint, error)
 }
 
 // DefaultAuthService 構造体の定義
@@ -175,19 +178,24 @@ func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context) (string, error)
     // ここで refreshToken の検証を行います
     // 例えば、データベース内のリフレッシュトークンと照合するなどの検証を行います
 
-    valid := validateRefreshToken(refreshToken)
+    userId,valid := validateRefreshTokenAndGetUserID(refreshToken)
     if !valid {
         // c.Status(http.StatusUnauthorized) // HTTPステータスコードを401に設定
         return "", errors.New("invalid refreshToken")
     }
 
+    user, err := as.userRepository.FindUserByID(c, userId)
+    if err != nil {
+        return "", err
+    }
     // refreshToken の検証が成功した場合、新しい accessToken を生成
-    user := &userModel.User{} // ユーザー情報を取得する適切なコードを追加
     newAccessToken, err := as.jwtLogic.CreateAccessToken(user)
     if err != nil {
         return "", err
     }
 
+    // 新たなaccessTokenをcookieにセット
+    c.SetCookie("access_token", newAccessToken, 0, "/", "", false, true)
     return newAccessToken, nil
 }
 
@@ -202,44 +210,75 @@ func convertToUserResponse(user *userModel.User) model.UserResponse {
 }
 
 // validateAccessToken は与えられたアクセストークンが有効かどうかを検証します
-func (as *DefaultAuthService) FetchUserIdAccessToken(accessToken string) (uint, bool) {
+func (as *DefaultAuthService) FetchUserIdAccessToken(accessToken string) (uint, error) {
     token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
-        // トークンの署名方法を確認
         if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-            return nil, errors.New("invalid signing method")
+            return nil, &utils.GraphQLAuthError{Code: "UNAUTHENTICATED", Message: "Invalid signing method"}
         }
         // 署名キーを返す
         return []byte(os.Getenv("JWT_KEY")), nil
     })
 
-    // エラーが発生した場合やトークンが無効な場合は false を返す
-    if err != nil || !token.Valid {
-        return 0, false
+    // トークン解析のエラーをチェック
+    if err != nil {
+        fmt.Println("Error parsing token:", err)
+        return 0, &gqlerror.Error{
+            Message: "Error parsing token",
+            Extensions: map[string]interface{}{
+                "code": "UNAUTHENTICATED",
+            },
+        }
+    }
+
+    // トークンの有効性をチェック
+    if !token.Valid {
+        fmt.Println("Invalid token")
+        return 0, &gqlerror.Error{
+            Message: "Invalid token",
+            Extensions: map[string]interface{}{
+                "code": "UNAUTHENTICATED",
+            },
+        }
     }
 
     // トークンのクレームを検証
     claims, ok := token.Claims.(jwt.MapClaims)
     if !ok {
-        return 0, false
+        return 0, &gqlerror.Error{
+            Message: "Invalid token claims",
+            Extensions: map[string]interface{}{
+                "code": "UNAUTHENTICATED",
+            },
+        }
     }
 
     // 有効期限のチェック
     if exp, ok := claims["exp"].(float64); !ok || int64(exp) < time.Now().Unix() {
-        return 0, false
+        return 0, &gqlerror.Error{
+            Message: "Token expired",
+            Extensions: map[string]interface{}{
+                "code": "UNAUTHENTICATED",
+            },
+        }
     }
 
-    // ユーザーIDの取得
+    // ユーザーIDの取得とログ出力
     userId, ok := claims["id"].(float64)
-    if !ok {
-        return 0, false
+    if !ok || userId == 0 {
+        return 0, &gqlerror.Error{
+            Message: "Invalid user ID",
+            Extensions: map[string]interface{}{
+                "code": "UNAUTHENTICATED",
+            },
+        }
     }
-    // 他の必要なクレームの検証をここに追加（必要に応じて）
-
-    // すべての検証が成功した場合はユーザーIDと true を返す
-    return uint(userId), true
+    fmt.Printf("Extracted UserID: %d, Type assertion successful: %t\n", uint(userId), ok)
+    
+    // すべての検証が成功した場合はユーザーIDを返す
+    return uint(userId), nil
 }
 
-func validateRefreshToken(refreshToken string) bool {
+func validateRefreshTokenAndGetUserID(refreshToken string) (uint, bool) {
     // refreshToken の検証ロジックを実装
     token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
         if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -250,25 +289,26 @@ func validateRefreshToken(refreshToken string) bool {
 
     // エラーが発生した場合やトークンが無効な場合は false を返す
     if err != nil || !token.Valid {
-        return false
+        return 0, false
     }
 
-    // 有効期限を確認
+    // 有効期限とユーザーIDを確認
     claims, claimOk := token.Claims.(jwt.MapClaims)
     if !claimOk {
-        return false
+        return 0, false
     }
 
     exp, expOk := claims["exp"].(float64)
-    if !expOk {
-        return false
+    if !expOk || int64(exp) < time.Now().Unix() {
+        return 0, false
     }
 
-    // 有効期限を比較
-    if int64(exp) < time.Now().Unix() {
-        return false
+    // ユーザーIDの取得
+    userId, userIdOk := claims["id"].(float64)
+    if !userIdOk {
+        return 0, false
     }
 
-    // すべての検証が成功した場合は true を返す
-    return true
+    // すべての検証が成功した場合はユーザーIDと true を返す
+    return uint(userId), true
 }

@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
@@ -10,6 +9,8 @@ import (
 	"my-us-stock-backend/app/repository/user/dto"
 	"my-us-stock-backend/app/repository/user/model"
 	"strconv"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // UserService インターフェースの定義
@@ -35,14 +36,18 @@ func (s *DefaultUserService) GetUserByID(ctx context.Context) (*generated.User, 
     accessToken, _ := ctx.Value(utils.CookieKey).(string)
     // アクセストークンの検証
     userId, _ := s.Auth.FetchUserIdAccessToken(accessToken)
+    if userId == 0 {
+        return nil, &gqlerror.Error{
+            Message: "Invalid user ID",
+            Extensions: map[string]interface{}{
+                "code": "UNAUTHENTICATED",
+            },
+        }
+    }
     modelUser, err := s.Repo.FindUserByID(ctx, userId)
     if err != nil {
         return nil, err
     }
-    fmt.Println("------------")
-    fmt.Println(userId)
-    fmt.Println("------------")
-    fmt.Println(modelUser)
     return convertModelUserToGeneratedUser(modelUser), nil
 }
 
