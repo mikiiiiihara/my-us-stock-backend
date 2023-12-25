@@ -11,7 +11,7 @@ import (
 
 // UsStockRepository インターフェースの定義
 type UsStockRepository interface {
-	FetchUsStockListById(ctx context.Context, userId string) ([]model.UsStock, error)
+	FetchUsStockListById(ctx context.Context, userId uint) ([]model.UsStock, error)
     UpdateUsStock(ctx context.Context, dto dto.UpdateUsStockDto) (*model.UsStock, error)
 	CreateUsStock(ctx context.Context, dto dto.CreateUsStockDto) (*model.UsStock, error)
 	DeleteUsStock(ctx context.Context, id uint) error
@@ -28,7 +28,7 @@ func NewUsStockRepository(db *gorm.DB) UsStockRepository {
 }
 
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
-func (r *DefaultUsStockRepository) FetchUsStockListById(ctx context.Context, userId string) ([]model.UsStock, error) {
+func (r *DefaultUsStockRepository) FetchUsStockListById(ctx context.Context, userId uint) ([]model.UsStock, error) {
     var usStocks []model.UsStock
     err := r.DB.Where("user_id = ?", userId).Find(&usStocks).Error
     if err != nil {

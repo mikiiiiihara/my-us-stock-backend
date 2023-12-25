@@ -5,6 +5,7 @@ type Query {
   user: User
   getCurrentUsdJpy: Float!
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
+  usStocks: [UsStock!]
 }
 
 type Mutation {
@@ -32,6 +33,56 @@ type MarketPrice {
   ティッカーシンボル
   """
   ticker: String!
+
+  """
+  現在価格
+  """
+  currentPrice: Float!
+
+  """
+  変化額
+  """
+  priceGets: Float!
+
+  """
+  変化率
+  """
+  currentRate: Float!
+}
+
+# 米国株情報を表す型
+type UsStock {
+  id: ID!
+
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  １年当たり配当
+  """
+  dividend: Float!
+
+  """
+  保有株数
+  """
+  quantity: Int!
+
+  """
+  セクター
+  """
+  sector: String!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float!
 
   """
   現在価格

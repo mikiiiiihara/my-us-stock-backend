@@ -29,7 +29,7 @@ func TestFetchJapanFundListById(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // テスト用データを作成
-    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: "user1", Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
     db.Create(&fund)
 
     // User IDで検索
@@ -49,11 +49,11 @@ func TestFetchJapanFundListByIdEmpty(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // テスト用データを作成
-    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: "user1", Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
     db.Create(&fund)
 
     // User IDで検索
-    funds, err := repo.FetchJapanFundListById(context.Background(), "user2")
+    funds, err := repo.FetchJapanFundListById(context.Background(), 98)
     assert.NoError(t, err)
     assert.Empty(t, funds)
 }
@@ -63,7 +63,7 @@ func TestUpdateJapanFund(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // テスト用データを作成
-    originalFund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: "user1", Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    originalFund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
     db.Create(&originalFund)
 
     // 更新用DTOの作成
@@ -94,7 +94,7 @@ func TestCreateJapanFund(t *testing.T) {
     // 新しい株式情報を作成
     createDto := dto.CreateJapanFundDto{
         Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
-        UserId: "user1",
+        UserId: 99,
         Code: "253267",
         GetPrice: 15523.81,
         GetPriceTotal: 761157,
@@ -129,13 +129,13 @@ func TestCreateJapanFundAlreadyExists(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // 既存の銘柄をデータベースに登録
-    existingFund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: "user1", Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    existingFund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
     db.Create(&existingFund)
 
     // 同じ銘柄で新しい情報を作成
     createDto := dto.CreateJapanFundDto{
 		Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
-		UserId: "user1",
+		UserId: 99,
 		Code: "253266",
 		GetPrice: 15523.81,
 		GetPriceTotal: 761157,
@@ -152,7 +152,7 @@ func TestDeleteJapanFund(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // テスト用データを作成
-    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: "user1", Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    fund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
     db.Create(&fund)
 
     // 株式情報を削除

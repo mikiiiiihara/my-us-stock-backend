@@ -8,5 +8,5 @@ import (
 type Strategy struct {
     gorm.Model
     Text  string `gorm:"size:255;not null"`
-    UserId string `gorm:"size:255;not null"`
+	UserId uint `gorm:"not null"`
 }

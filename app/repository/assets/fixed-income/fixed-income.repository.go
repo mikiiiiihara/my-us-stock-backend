@@ -11,7 +11,7 @@ import (
 
 // FixedIncomeRepository インターフェースの定義
 type FixedIncomeRepository interface {
-	FetchFixedIncomeAssetListById(ctx context.Context, userId string) ([]model.FixedIncomeAsset, error)
+	FetchFixedIncomeAssetListById(ctx context.Context, userId uint) ([]model.FixedIncomeAsset, error)
     UpdateFixedIncomeAsset(ctx context.Context, dto dto.UpdateFixedIncomeDto) (*model.FixedIncomeAsset, error)
 	CreateFixedIncomeAsset(ctx context.Context, dto dto.CreateFixedIncomeDto) (*model.FixedIncomeAsset, error)
 	DeleteFixedIncomeAsset(ctx context.Context, id uint) error
@@ -28,7 +28,7 @@ func NewFixedIncomeRepository(db *gorm.DB) FixedIncomeRepository {
 }
 
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
-func (r *DefaultFixedIncomeRepository) FetchFixedIncomeAssetListById(ctx context.Context, userId string) ([]model.FixedIncomeAsset, error) {
+func (r *DefaultFixedIncomeRepository) FetchFixedIncomeAssetListById(ctx context.Context, userId uint) ([]model.FixedIncomeAsset, error) {
     var usStocks []model.FixedIncomeAsset
     err := r.DB.Where("user_id = ?", userId).Find(&usStocks).Error
     if err != nil {

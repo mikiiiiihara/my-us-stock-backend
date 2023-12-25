@@ -10,7 +10,7 @@ import (
 
 // StrategyRepository インターフェースの定義
 type StrategyRepository interface {
-    FindStrategy(ctx context.Context, userId string) (*model.Strategy, error)
+    FindStrategy(ctx context.Context, userId uint) (*model.Strategy, error)
     UpdateStrategy(ctx context.Context, dto dto.UpdateStrategyDto) (*model.Strategy, error)
     CreateStrategy(ctx context.Context, dto dto.CreateStrategyDto) (*model.Strategy, error)
 }
@@ -25,11 +25,11 @@ func NewStrategyRepository(db *gorm.DB) StrategyRepository {
     return &DefaultStrategyRepository{DB: db}
 }
 
-func (r *DefaultStrategyRepository) FindStrategy(ctx context.Context, userId string) (*model.Strategy, error) {
+func (r *DefaultStrategyRepository) FindStrategy(ctx context.Context, userId uint) (*model.Strategy, error) {
     strategy := new(model.Strategy)  // ポインタとしてオブジェクトを作成
-    result := r.DB.First(strategy, userId)
-    if result.Error != nil {
-        return nil, result.Error
+    err := r.DB.Where("user_id = ?", userId).First(&strategy).Error
+    if err != nil {
+        return nil, err
     }
     return strategy, nil
 }

@@ -24,12 +24,12 @@ func setupTestDB() *gorm.DB {
     return db
 }
 
-func TestFetchUsStockListById(t *testing.T) {
+func TestFetchCryptoListById(t *testing.T) {
     db := setupTestDB()
     repo := NewCryptoRepository(db)
 
     // テスト用データを作成
-    crypto := model.Crypto{Code: "xrp", UserId: "user1", Quantity: 100, GetPrice: 80}
+    crypto := model.Crypto{Code: "xrp", UserId: 99, Quantity: 100, GetPrice: 80}
     db.Create(&crypto)
 
     // User IDで検索
@@ -41,27 +41,27 @@ func TestFetchUsStockListById(t *testing.T) {
 }
 
 // 取得結果が0件だった場合、空配列が返却される
-func TestFetchUsStockListByIdEmpty(t *testing.T) {
+func TestFetchCryptoListByIdEmpty(t *testing.T) {
     db := setupTestDB()
     repo := NewCryptoRepository(db)
 
     // テスト用データを作成
-    crypto := model.Crypto{Code: "xrp", UserId: "user1", Quantity: 100, GetPrice: 80}
+    crypto := model.Crypto{Code: "xrp", UserId: 99, Quantity: 100, GetPrice: 80}
     db.Create(&crypto)
 
     // User IDで検索
-    cryptoList, err := repo.FetchCryptoListById(context.Background(), "user2")
+    cryptoList, err := repo.FetchCryptoListById(context.Background(), 98)
     assert.NoError(t, err)
     assert.Empty(t, cryptoList)
 }
 
 
-func TestUpdateUsStock(t *testing.T) {
+func TestUpdateCrypto(t *testing.T) {
     db := setupTestDB()
     repo := NewCryptoRepository(db)
 
     // テスト用データを作成
-    originalCrypto :=model.Crypto{Code: "xrp", UserId: "user1", Quantity: 100, GetPrice: 80}
+    originalCrypto :=model.Crypto{Code: "xrp", UserId: 99, Quantity: 100, GetPrice: 80}
     db.Create(&originalCrypto)
 
     // 更新用DTOの作成
@@ -86,14 +86,14 @@ func TestUpdateUsStock(t *testing.T) {
     assert.Equal(t, *updateDto.Quantity, dbCrypto.Quantity)
 }
 
-func TestCreateUsStock(t *testing.T) {
+func TestCryptoUsStock(t *testing.T) {
     db := setupTestDB()
     repo := NewCryptoRepository(db)
 
     // 新しい株式情報を作成
     createDto := dto.CreateCryptDto{
         Code:   "btc",
-        UserId:   "user1",
+        UserId:   99,
         Quantity: 0.4,
     }
     created, err := repo.CreateCrypto(context.Background(), createDto)
@@ -109,18 +109,18 @@ func TestCreateUsStock(t *testing.T) {
     assert.Equal(t, createDto.Quantity, crypto.Quantity)
 }
 
-func TestCreateUsStockAlreadyExists(t *testing.T) {
+func TestCreateCryptoAlreadyExists(t *testing.T) {
     db := setupTestDB()
     repo := NewCryptoRepository(db)
 
     // 既存の銘柄をデータベースに登録
-    existingCrypto := model.Crypto{Code: "xrp", UserId: "user1", Quantity: 100, GetPrice: 80}
+    existingCrypto := model.Crypto{Code: "xrp", UserId: 99, Quantity: 100, GetPrice: 80}
     db.Create(&existingCrypto)
 
     // 同じ銘柄で新しい株式情報を作成
     createDto := dto.CreateCryptDto{
         Code:   "xrp",
-        UserId:   "user1",
+        UserId:   99,
         Quantity: 20,
         GetPrice: 86.0,
     }
@@ -136,7 +136,7 @@ func TestDeleteUsStock(t *testing.T) {
     repo := NewCryptoRepository(db)
 
     // テスト用データを作成
-    crypto  := model.Crypto{Code: "xrp", UserId: "user1", Quantity: 100, GetPrice: 80}
+    crypto  := model.Crypto{Code: "xrp", UserId: 99, Quantity: 100, GetPrice: 80}
     db.Create(&crypto)
 
     // 株式情報を削除

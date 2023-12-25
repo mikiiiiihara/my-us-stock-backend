@@ -29,7 +29,7 @@ func TestFindStrategy(t *testing.T) {
     repo := NewStrategyRepository(db)
 
     // テスト用データを作成
-    strategy := model.Strategy{Text: "Test Text", UserId: "0001"}
+    strategy := model.Strategy{Text: "Test Text", UserId: 99}
     db.Create(&strategy)
 
     // User IDで検索
@@ -45,7 +45,7 @@ func TestUpdateStrategy(t *testing.T) {
     repo := NewStrategyRepository(db)
 
     // テスト用データを作成
-    originalStrategy := model.Strategy{Text: "Original Text", UserId: "0001"}
+    originalStrategy := model.Strategy{Text: "Original Text", UserId: 99}
     db.Create(&originalStrategy)
 
     // 更新用DTOの作成
@@ -76,7 +76,7 @@ func TestCreateStrategy(t *testing.T) {
     // 新しいデータを作成
 	createDto := dto.CreateStrategyDto{
         Text:   "New Strategy",
-        UserId: "0001",
+        UserId: 99,
     }
     created, err := repo.CreateStrategy(context.Background(), createDto)
     assert.NoError(t, err)

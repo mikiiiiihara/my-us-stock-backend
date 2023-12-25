@@ -11,7 +11,7 @@ import (
 
 // CryptoRepository インターフェースの定義
 type CryptoRepository interface {
-	FetchCryptoListById(ctx context.Context, userId string) ([]model.Crypto, error)
+	FetchCryptoListById(ctx context.Context, userId uint) ([]model.Crypto, error)
     UpdateCrypto(ctx context.Context, dto dto.UpdateCryptoDto) (*model.Crypto, error)
 	CreateCrypto(ctx context.Context, dto dto.CreateCryptDto) (*model.Crypto, error)
 	DeleteCrypto(ctx context.Context, id uint) error
@@ -28,7 +28,7 @@ func NewCryptoRepository(db *gorm.DB) CryptoRepository {
 }
 
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
-func (r *DefaultCryptoRepository) FetchCryptoListById(ctx context.Context, userId string) ([]model.Crypto, error) {
+func (r *DefaultCryptoRepository) FetchCryptoListById(ctx context.Context, userId uint) ([]model.Crypto, error) {
     var usStocks []model.Crypto
     err := r.DB.Where("user_id = ?", userId).Find(&usStocks).Error
     if err != nil {

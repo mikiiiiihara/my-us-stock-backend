@@ -11,5 +11,5 @@ type FixedIncomeAsset struct {
 	GetPriceTotal float64 `gorm:"type:float"`
 	DividendRate float64 `gorm:"type:float"`
 	UsdJpy   float64 `gorm:"type:float"`
-	UserId string `gorm:"size:255;not null"`
+	UserId uint `gorm:"not null"`
 }

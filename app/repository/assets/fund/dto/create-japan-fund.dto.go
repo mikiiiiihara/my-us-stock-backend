@@ -5,5 +5,5 @@ type CreateJapanFundDto struct {
     Code   string  `json:"code"`
     GetPriceTotal float64 `json:"getPriceTotal"`
     GetPrice float64 `json:"getPrice"`
-    UserId   string  `json:"userId"`
+    UserId   uint  `json:"userId"`
 }

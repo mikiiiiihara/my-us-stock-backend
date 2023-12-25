@@ -4,5 +4,5 @@ package dto
 type UpdateStrategyDto struct {
     Text   string
     ID     uint
-    UserId string
+    UserId uint
 }

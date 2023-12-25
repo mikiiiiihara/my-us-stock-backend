@@ -11,7 +11,7 @@ import (
 
 // JapanFundRepository インターフェースの定義
 type JapanFundRepository interface {
-	FetchJapanFundListById(ctx context.Context, userId string) ([]model.JapanFund, error)
+	FetchJapanFundListById(ctx context.Context, userId uint) ([]model.JapanFund, error)
     UpdateJapanFund(ctx context.Context, dto dto.UpdateJapanFundDto) (*model.JapanFund, error)
 	CreateJapanFund(ctx context.Context, dto dto.CreateJapanFundDto) (*model.JapanFund, error)
 	DeleteJapanFund(ctx context.Context, id uint) error
@@ -28,7 +28,7 @@ func NewJapanFundRepository(db *gorm.DB) JapanFundRepository {
 }
 
 // 指定したuserIdのユーザーが保有する日本投資信託のリストを取得する
-func (r *DefaultJapanFundRepository) FetchJapanFundListById(ctx context.Context, userId string) ([]model.JapanFund, error) {
+func (r *DefaultJapanFundRepository) FetchJapanFundListById(ctx context.Context, userId uint) ([]model.JapanFund, error) {
     var funds []model.JapanFund
     err := r.DB.Where("user_id = ?", userId).Find(&funds).Error
     if err != nil {

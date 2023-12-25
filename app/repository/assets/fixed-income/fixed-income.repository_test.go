@@ -29,7 +29,7 @@ func TestFetchFixedIncomeAssetListById(t *testing.T) {
     repo := NewFixedIncomeRepository(db)
 
     // テスト用データを作成
-    fixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: "user1", DividendRate: 3.5, GetPriceTotal: 100000}
+    fixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000}
     db.Create(&fixedIncomeAsset)
 
     // User IDで検索
@@ -48,11 +48,11 @@ func TestFetchFixedIncomeAssetListByIdEmpty(t *testing.T) {
     repo := NewFixedIncomeRepository(db)
 
     // テスト用データを作成
-    fixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: "user1", DividendRate: 3.5, GetPriceTotal: 100000}
+    fixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000}
     db.Create(&fixedIncomeAsset)
 
     // User IDで検索
-    fixedIncomeAssetList, err := repo.FetchFixedIncomeAssetListById(context.Background(), "user2")
+    fixedIncomeAssetList, err := repo.FetchFixedIncomeAssetListById(context.Background(), 98)
     assert.NoError(t, err)
     assert.Empty(t, fixedIncomeAssetList)
 }
@@ -62,7 +62,7 @@ func TestUpdateFixedIncomeAsset(t *testing.T) {
     repo := NewFixedIncomeRepository(db)
 
     // テスト用データを作成
-    originalFixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: "user1", DividendRate: 3.5, GetPriceTotal: 100000}
+    originalFixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000}
     db.Create(&originalFixedIncomeAsset)
 
     // 更新用DTOの作成
@@ -94,7 +94,7 @@ func TestCreateFixedIncomeAsset(t *testing.T) {
     // 新しい株式情報を作成
     createDto := dto.CreateFixedIncomeDto{
         Code:   "Bankers",
-        UserId:   "user1",
+        UserId:   99,
 		DividendRate: 3.5, 
 		GetPriceTotal: 100000,
     }
@@ -122,13 +122,13 @@ func TestCreateFixedIncomeAssetAlreadyExists(t *testing.T) {
     repo := NewFixedIncomeRepository(db)
 
     // 既存の銘柄をデータベースに登録
-    existingFixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: "user1", DividendRate: 3.5, GetPriceTotal: 100000}
+    existingFixedIncomeAsset := model.FixedIncomeAsset{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000}
     db.Create(&existingFixedIncomeAsset)
 
     // 同じ銘柄で新しい株式情報を作成
     createDto := dto.CreateFixedIncomeDto{
         Code:   "Funds",
-        UserId:   "user1",
+        UserId:   99,
 		DividendRate: 3.5, 
 		GetPriceTotal: 100000,
     }
@@ -144,7 +144,7 @@ func TestDeleteFixedIncomeAsset(t *testing.T) {
     repo := NewFixedIncomeRepository(db)
 
     // テスト用データを作成
-    fixedIncomeAsset  := model.FixedIncomeAsset{Code: "Funds", UserId: "user1", DividendRate: 3.5, GetPriceTotal: 100000}
+    fixedIncomeAsset  := model.FixedIncomeAsset{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000}
     db.Create(&fixedIncomeAsset)
 
     // 株式情報を削除
