@@ -7,7 +7,6 @@ import (
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/user"
-	"my-us-stock-backend/app/repository/user/dto"
 	"strconv"
 )
 
@@ -45,7 +44,7 @@ func (s *DefaultUserService) GetUserByID(ctx context.Context) (*generated.User, 
 // CreateUser は新しいユーザーを作成します
 func (s *DefaultUserService) CreateUser(ctx context.Context, input generated.CreateUserInput) (*generated.User, error) {
     // 更新用DTOの作成
-    createDto := dto.CreateUserDto{
+    createDto := user.CreateUserDto{
         Name: input.Name,
         Email: input.Email,
     }

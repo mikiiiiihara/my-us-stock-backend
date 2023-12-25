@@ -3,7 +3,6 @@ package strategy
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/strategy/dto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,7 +48,7 @@ func TestUpdateStrategy(t *testing.T) {
     db.Create(&originalStrategy)
 
     // 更新用DTOの作成
-    updateDto := dto.UpdateStrategyDto{
+    updateDto := UpdateStrategyDto{
         Text:   "Updated Text",
         ID:     originalStrategy.ID,
         UserId: originalStrategy.UserId,
@@ -74,7 +73,7 @@ func TestCreateStrategy(t *testing.T) {
     repo := NewStrategyRepository(db)
 
     // 新しいデータを作成
-	createDto := dto.CreateStrategyDto{
+	createDto := CreateStrategyDto{
         Text:   "New Strategy",
         UserId: 99,
     }

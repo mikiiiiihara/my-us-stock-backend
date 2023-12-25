@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"my-us-stock-backend/app/repository/market-price/dto"
-	"my-us-stock-backend/app/repository/market-price/entity"
 	"net/http"
 	"os"
 	"strings"
@@ -15,8 +13,8 @@ import (
 
 // MarketPriceRepository は仮想通貨の価格を取得するためのインターフェースです。
 type MarketPriceRepository interface {
-	FetchMarketPriceList(ctx context.Context, tickers []string) ([]dto.MarketPriceDto, error)
-    FetchDividend(ctx context.Context, ticker string) (*entity.DividendEntity, error)
+	FetchMarketPriceList(ctx context.Context, tickers []string) ([]MarketPriceDto, error)
+    FetchDividend(ctx context.Context, ticker string) (*DividendEntity, error)
 }
 
 // DefaultMarketPriceRepository は CryptoRepository のデフォルト実装です。
@@ -47,7 +45,7 @@ func NewMarketPriceRepository(client *http.Client) *DefaultMarketPriceRepository
 }
 
 // FetchMarketPriceList fetches the current market prices for a list of tickers.
-func (repo *DefaultMarketPriceRepository) FetchMarketPriceList(ctx context.Context, tickers []string) ([]dto.MarketPriceDto, error) {
+func (repo *DefaultMarketPriceRepository) FetchMarketPriceList(ctx context.Context, tickers []string) ([]MarketPriceDto, error) {
     baseUrl := repo.baseURL
     token := repo.tickerToken
     url := fmt.Sprintf("%s/v3/quote-order/%s?apikey=%s", baseUrl, strings.Join(tickers, ","), token)
@@ -67,7 +65,7 @@ func (repo *DefaultMarketPriceRepository) FetchMarketPriceList(ctx context.Conte
         return nil, fmt.Errorf("error fetching market prices: status %d", resp.StatusCode)
     }
 
-    var prices []dto.MarketPriceResponse
+    var prices []MarketPriceResponse
     err = json.NewDecoder(resp.Body).Decode(&prices)
     if err != nil {
         return nil, err
@@ -79,9 +77,9 @@ func (repo *DefaultMarketPriceRepository) FetchMarketPriceList(ctx context.Conte
     }
 
     // MarketPriceResponseからMarketPriceDtoに変換
-    var priceDtos []dto.MarketPriceDto
+    var priceDtos []MarketPriceDto
     for _, price := range prices {
-        priceDtos = append(priceDtos, dto.MarketPriceDto{
+        priceDtos = append(priceDtos, MarketPriceDto{
             Ticker:       price.Symbol,
             CurrentPrice: price.Price,
             PriceGets:    price.Change,
@@ -93,7 +91,7 @@ func (repo *DefaultMarketPriceRepository) FetchMarketPriceList(ctx context.Conte
 }
 
 
-func (repo *DefaultMarketPriceRepository) FetchDividend(ctx context.Context, ticker string) (*entity.DividendEntity, error) {
+func (repo *DefaultMarketPriceRepository) FetchDividend(ctx context.Context, ticker string) (*DividendEntity, error) {
     token := repo.dividendMainToken
     res, err := repo.fetchDividendApi(ctx, token, ticker)
     if err != nil {
@@ -112,7 +110,7 @@ func (repo *DefaultMarketPriceRepository) FetchDividend(ctx context.Context, tic
 }
 
 // FetchDividend は指定された銘柄の配当情報を取得します。
-func (repo *DefaultMarketPriceRepository) fetchDividendApi(ctx context.Context, token string, ticker string) (*dto.DividendResponse, error) {
+func (repo *DefaultMarketPriceRepository) fetchDividendApi(ctx context.Context, token string, ticker string) (*DividendResponse, error) {
     url := fmt.Sprintf("%s/v3/historical-price-full/stock_dividend/%s?apikey=%s", repo.baseURL, ticker, token)
     resp, err := repo.httpClient.Get(url)
     if err != nil {
@@ -125,7 +123,7 @@ func (repo *DefaultMarketPriceRepository) fetchDividendApi(ctx context.Context, 
         return nil, fmt.Errorf("rate limit exceeded")
     }
 
-    var dividendResponse dto.DividendResponse
+    var dividendResponse DividendResponse
     err = json.NewDecoder(resp.Body).Decode(&dividendResponse)
     if err != nil {
         return nil, err

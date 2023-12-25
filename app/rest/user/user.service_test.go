@@ -4,8 +4,6 @@ import (
 	"context"
 	userModel "my-us-stock-backend/app/database/model"
 	repoUser "my-us-stock-backend/app/repository/user"
-	"my-us-stock-backend/app/repository/user/dto"
-	"my-us-stock-backend/app/rest/user/input"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,7 +22,7 @@ func (m *MockUserRepository) FindUserByID(ctx context.Context, id uint) (*userMo
     return args.Get(0).(*userModel.User), args.Error(1)
 }
 
-func (m *MockUserRepository) CreateUser(ctx context.Context, createDto dto.CreateUserDto) (*userModel.User, error) {
+func (m *MockUserRepository) CreateUser(ctx context.Context, createDto repoUser.CreateUserDto) (*userModel.User, error) {
     args := m.Called(ctx, createDto)
     // 戻り値の型が *userModel.User であることを確認
     return args.Get(0).(*userModel.User), args.Error(1)
@@ -72,7 +70,7 @@ func TestGetUserByID(t *testing.T) {
 func TestCreateUserService(t *testing.T) {
     mockRepo := new(MockUserRepository)
     service := NewUserService(mockRepo)  // repoUser エイリアスを使用
-    createUserDto := dto.CreateUserDto{
+    createUserDto := repoUser.CreateUserDto{
         Name:  "Jane Doe",
         Email: "jane@example.com",
     }
@@ -83,7 +81,7 @@ func TestCreateUserService(t *testing.T) {
 	}
     mockRepo.On("CreateUser", mock.Anything, createUserDto).Return(mockUser, nil)
 
-    createUserInput := input.CreateUserInput{
+    createUserInput := CreateUserInput{
         Name:  "Jane Doe",
         Email: "jane@example.com",
     }

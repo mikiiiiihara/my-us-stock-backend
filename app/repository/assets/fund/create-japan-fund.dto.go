@@ -1,4 +1,4 @@
-package dto
+package fund
 
 type CreateJapanFundDto struct {
     Name   string  `json:"name"`

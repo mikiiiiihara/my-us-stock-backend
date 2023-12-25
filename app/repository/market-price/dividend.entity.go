@@ -1,4 +1,4 @@
-package entity
+package marketprice
 
 type DividendEntity struct {
     Ticker          string    `json:"ticker"`

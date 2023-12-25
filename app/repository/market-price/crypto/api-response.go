@@ -1,4 +1,4 @@
-package dto
+package crypto
 
 // ApiResponse represents the structure of the API response
 type ApiResponse struct {

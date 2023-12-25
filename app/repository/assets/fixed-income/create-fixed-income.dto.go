@@ -1,4 +1,4 @@
-package dto
+package fixedincome
 
 type CreateFixedIncomeDto struct {
     Code   string  `json:"code"`

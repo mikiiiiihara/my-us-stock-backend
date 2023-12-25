@@ -1,14 +1,12 @@
 package marketprice
 
 import (
-	"my-us-stock-backend/app/repository/market-price/dto"
-	"my-us-stock-backend/app/repository/market-price/entity"
 	"sort"
 	"time"
 )
 
 // createDividendEntity は DividendEntity レスポンスを構築します。
-func (repo *DefaultMarketPriceRepository) createDividendEntity(res *dto.DividendResponse) *entity.DividendEntity {
+func (repo *DefaultMarketPriceRepository) createDividendEntity(res *DividendResponse) *DividendEntity {
     dividends := filterDividends(res.Historical)
     totalCashAmount := 0.0
     for _, dividend := range dividends {
@@ -27,7 +25,7 @@ func (repo *DefaultMarketPriceRepository) createDividendEntity(res *dto.Dividend
         cashAmount = roundToThreeDecimals(totalCashAmount / float64(len(dividends)))
     }
 
-    return &entity.DividendEntity{
+    return &DividendEntity{
         Ticker:           res.Symbol,
         DividendTime:     len(dividends),
         DividendMonth:    calculateDividendMonth(true, dividends),
@@ -37,9 +35,9 @@ func (repo *DefaultMarketPriceRepository) createDividendEntity(res *dto.Dividend
     }
 }
 // filterDividends は直近1年の配当記録をフィルタリングします。
-func filterDividends(dividends []dto.Historical) []dto.Historical {
+func filterDividends(dividends []Historical) []Historical {
     oneYearAgo := time.Now().AddDate(-1, 0, 0)
-    filteredDividends := make([]dto.Historical, 0)
+    filteredDividends := make([]Historical, 0)
     for _, dividend := range dividends {
         payDate, _ := time.Parse("2006-01-02", dividend.PaymentDate)
         if payDate.After(oneYearAgo) {
@@ -50,7 +48,7 @@ func filterDividends(dividends []dto.Historical) []dto.Historical {
 }
 
 // calculateDividendMonth は配当権利落月・支払い月を取得します。
-func calculateDividendMonth(isPayment bool, dividends []dto.Historical) []int {
+func calculateDividendMonth(isPayment bool, dividends []Historical) []int {
     monthSet := make(map[int]struct{})
     for _, dividend := range dividends {
         var month int

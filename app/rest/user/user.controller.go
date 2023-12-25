@@ -1,7 +1,6 @@
 package user
 
 import (
-	"my-us-stock-backend/app/rest/user/input"
 	"net/http"
 	"strconv"
 
@@ -38,7 +37,7 @@ func (uc *UserController) GetUser(c *gin.Context) {
 
 // CreateUser は新しいユーザーを作成します
 func (uc *UserController) CreateUser(c *gin.Context) {
-    var input input.CreateUserInput
+    var input CreateUserInput
     if err := c.ShouldBindJSON(&input); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return

@@ -3,7 +3,6 @@ package fund
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/fund/dto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -67,7 +66,7 @@ func TestUpdateJapanFund(t *testing.T) {
     db.Create(&originalFund)
 
     // 更新用DTOの作成
-    updateDto := dto.UpdateJapanFundDto{
+    updateDto := UpdateJapanFundDto{
         ID:       originalFund.ID,
         GetPrice: new(float64),
     }
@@ -92,7 +91,7 @@ func TestCreateJapanFund(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // 新しい株式情報を作成
-    createDto := dto.CreateJapanFundDto{
+    createDto := CreateJapanFundDto{
         Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
         UserId: 99,
         Code: "253267",
@@ -133,7 +132,7 @@ func TestCreateJapanFundAlreadyExists(t *testing.T) {
     db.Create(&existingFund)
 
     // 同じ銘柄で新しい情報を作成
-    createDto := dto.CreateJapanFundDto{
+    createDto := CreateJapanFundDto{
 		Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
 		UserId: 99,
 		Code: "253266",

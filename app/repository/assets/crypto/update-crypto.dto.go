@@ -1,4 +1,4 @@
-package dto
+package crypto
 
 type UpdateCryptoDto struct {
     ID       uint     `json:"id"`

@@ -3,7 +3,6 @@ package fixedincome
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/fixed-income/dto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,7 +65,7 @@ func TestUpdateFixedIncomeAsset(t *testing.T) {
     db.Create(&originalFixedIncomeAsset)
 
     // 更新用DTOの作成
-    updateDto := dto.UpdateFixedIncomeDto{
+    updateDto := UpdateFixedIncomeDto{
         ID:       originalFixedIncomeAsset.ID,
         GetPriceTotal: new(float64),
     }
@@ -92,7 +91,7 @@ func TestCreateFixedIncomeAsset(t *testing.T) {
     repo := NewFixedIncomeRepository(db)
 
     // 新しい株式情報を作成
-    createDto := dto.CreateFixedIncomeDto{
+    createDto := CreateFixedIncomeDto{
         Code:   "Bankers",
         UserId:   99,
 		DividendRate: 3.5, 
@@ -126,7 +125,7 @@ func TestCreateFixedIncomeAssetAlreadyExists(t *testing.T) {
     db.Create(&existingFixedIncomeAsset)
 
     // 同じ銘柄で新しい株式情報を作成
-    createDto := dto.CreateFixedIncomeDto{
+    createDto := CreateFixedIncomeDto{
         Code:   "Funds",
         UserId:   99,
 		DividendRate: 3.5, 

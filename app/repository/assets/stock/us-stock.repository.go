@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/stock/dto"
 
 	"gorm.io/gorm"
 )
@@ -12,8 +11,8 @@ import (
 // UsStockRepository インターフェースの定義
 type UsStockRepository interface {
 	FetchUsStockListById(ctx context.Context, userId uint) ([]model.UsStock, error)
-    UpdateUsStock(ctx context.Context, dto dto.UpdateUsStockDto) (*model.UsStock, error)
-	CreateUsStock(ctx context.Context, dto dto.CreateUsStockDto) (*model.UsStock, error)
+    UpdateUsStock(ctx context.Context, dto UpdateUsStockDto) (*model.UsStock, error)
+	CreateUsStock(ctx context.Context, dto CreateUsStockDto) (*model.UsStock, error)
 	DeleteUsStock(ctx context.Context, id uint) error
 }
 
@@ -38,7 +37,7 @@ func (r *DefaultUsStockRepository) FetchUsStockListById(ctx context.Context, use
 }
 
 // 米国株式情報を更新します
-func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto dto.UpdateUsStockDto) (*model.UsStock, error) {
+func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto UpdateUsStockDto) (*model.UsStock, error) {
     // 更新用のマップを作成します
     newStock := map[string]interface{}{}
 
@@ -67,7 +66,7 @@ func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto dto.Up
 }
 
 // 米国株式情報を作成します
-func (r *DefaultUsStockRepository) CreateUsStock(ctx context.Context, dto dto.CreateUsStockDto) (*model.UsStock, error) {
+func (r *DefaultUsStockRepository) CreateUsStock(ctx context.Context, dto CreateUsStockDto) (*model.UsStock, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.UsStock
     if err := r.DB.Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {

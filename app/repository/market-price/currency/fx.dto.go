@@ -1,4 +1,4 @@
-package dto
+package currency
 
 // CurrencyPair は通貨ペアの情報を表します。
 type CurrencyPair struct {

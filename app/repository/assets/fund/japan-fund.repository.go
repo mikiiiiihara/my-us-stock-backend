@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/fund/dto"
 
 	"gorm.io/gorm"
 )
@@ -12,8 +11,8 @@ import (
 // JapanFundRepository インターフェースの定義
 type JapanFundRepository interface {
 	FetchJapanFundListById(ctx context.Context, userId uint) ([]model.JapanFund, error)
-    UpdateJapanFund(ctx context.Context, dto dto.UpdateJapanFundDto) (*model.JapanFund, error)
-	CreateJapanFund(ctx context.Context, dto dto.CreateJapanFundDto) (*model.JapanFund, error)
+    UpdateJapanFund(ctx context.Context, dto UpdateJapanFundDto) (*model.JapanFund, error)
+	CreateJapanFund(ctx context.Context, dto CreateJapanFundDto) (*model.JapanFund, error)
 	DeleteJapanFund(ctx context.Context, id uint) error
 }
 
@@ -38,7 +37,7 @@ func (r *DefaultJapanFundRepository) FetchJapanFundListById(ctx context.Context,
 }
 
 // 日本投資信託情報を更新します
-func (r *DefaultJapanFundRepository) UpdateJapanFund(ctx context.Context, dto dto.UpdateJapanFundDto) (*model.JapanFund, error) {
+func (r *DefaultJapanFundRepository) UpdateJapanFund(ctx context.Context, dto UpdateJapanFundDto) (*model.JapanFund, error) {
     // 更新用のマップを作成します
     newFund := map[string]interface{}{}
 
@@ -64,7 +63,7 @@ func (r *DefaultJapanFundRepository) UpdateJapanFund(ctx context.Context, dto dt
 }
 
 // 日本投資信託情報を作成します
-func (r *DefaultJapanFundRepository) CreateJapanFund(ctx context.Context, dto dto.CreateJapanFundDto) (*model.JapanFund, error) {
+func (r *DefaultJapanFundRepository) CreateJapanFund(ctx context.Context, dto CreateJapanFundDto) (*model.JapanFund, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingJapanFund model.JapanFund
     if err := r.DB.Where("code = ?", dto.Code).First(&existingJapanFund).Error; err == nil {

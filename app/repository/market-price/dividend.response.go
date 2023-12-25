@@ -1,4 +1,4 @@
-package dto
+package marketprice
 
 // Historical は配当情報の履歴を表します。
 type Historical struct {

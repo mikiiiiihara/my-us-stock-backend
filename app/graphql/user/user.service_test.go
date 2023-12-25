@@ -6,7 +6,6 @@ import (
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	repoUser "my-us-stock-backend/app/repository/user"
-	"my-us-stock-backend/app/repository/user/dto"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -57,7 +56,7 @@ func (m *MockUserRepository) FindUserByID(ctx context.Context, id uint) (*userMo
 }
 
 // CreateUser のモック関数を修正
-func (m *MockUserRepository) CreateUser(ctx context.Context, createDto dto.CreateUserDto) (*userModel.User, error) {
+func (m *MockUserRepository) CreateUser(ctx context.Context, createDto repoUser.CreateUserDto) (*userModel.User, error) {
     args := m.Called(ctx, createDto)
     return args.Get(0).(*userModel.User), args.Error(1)
 }
@@ -132,7 +131,7 @@ func TestCreateUserService(t *testing.T) {
         Email: "jane@example.com",
     }
 
-    mockRepo.On("CreateUser", mock.Anything, dto.CreateUserDto{Name: "Jane Doe", Email: "jane@example.com"}).Return(mockUser, nil)
+    mockRepo.On("CreateUser", mock.Anything, repoUser.CreateUserDto{Name: "Jane Doe", Email: "jane@example.com"}).Return(mockUser, nil)
 
     result, err := service.CreateUser(context.Background(), createUserInput)
     assert.NoError(t, err)

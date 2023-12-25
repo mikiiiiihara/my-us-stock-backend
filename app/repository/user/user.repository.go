@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/user/dto"
 
 	"gorm.io/gorm"
 )
@@ -11,7 +10,7 @@ import (
 // UserRepository インターフェースの定義
 type UserRepository interface {
     FindUserByID(ctx context.Context, id uint) (*model.User, error)
-    CreateUser(ctx context.Context, dto dto.CreateUserDto) (*model.User, error)
+    CreateUser(ctx context.Context, dto CreateUserDto) (*model.User, error)
     GetUserByEmail(ctx context.Context, email string) (*model.User, error)
     GetAllUserByEmail(ctx context.Context, email string) ([]*model.User, error)
 }
@@ -37,7 +36,7 @@ func (r *DefaultUserRepository) FindUserByID(ctx context.Context, id uint) (*mod
 }
 
 // CreateUser は新しいユーザーをデータベースに保存します
-func (r *DefaultUserRepository) CreateUser(ctx context.Context, dto dto.CreateUserDto) (*model.User, error) {
+func (r *DefaultUserRepository) CreateUser(ctx context.Context, dto CreateUserDto) (*model.User, error) {
     user := &model.User{Name: dto.Name, Email: dto.Email, Password: dto.Password}
     if err := r.DB.Create(user).Error; err != nil {
         return nil, err

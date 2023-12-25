@@ -1,4 +1,4 @@
-package dto
+package fixedincome
 
 type UpdateFixedIncomeDto struct {
     ID       uint     `json:"id"`

@@ -1,4 +1,4 @@
-package dto
+package marketprice
 
 type MarketPriceDto struct {
     Ticker        string  `json:"ticker"`

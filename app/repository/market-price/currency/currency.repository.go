@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"my-us-stock-backend/app/repository/market-price/currency/dto"
 	"net/http"
 	"os"
 	"strconv"
@@ -48,7 +47,7 @@ func (repo *DefaultCurrencyRepository) FetchCurrentUsdJpy(ctx context.Context) (
         return 0, err
     }
 
-    var fx dto.Fx
+    var fx Fx
     err = json.Unmarshal(body, &fx)
     if err != nil {
         log.Printf("Error unmarshalling JSON: %v\n", err)

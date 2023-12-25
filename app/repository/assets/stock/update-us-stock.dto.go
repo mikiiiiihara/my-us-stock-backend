@@ -1,4 +1,4 @@
-package dto
+package stock
 
 type UpdateUsStockDto struct {
     ID       uint     `json:"id"`

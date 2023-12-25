@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"my-us-stock-backend/app/graphql/generated"
-	"my-us-stock-backend/app/repository/market-price/dto"
-	"my-us-stock-backend/app/repository/market-price/entity"
+	marketPrice "my-us-stock-backend/app/repository/market-price"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,14 +16,14 @@ type MockMarketPriceRepository struct {
     mock.Mock
 }
 
-func (m *MockMarketPriceRepository) FetchMarketPriceList(ctx context.Context, tickers []string) ([]dto.MarketPriceDto, error) {
+func (m *MockMarketPriceRepository) FetchMarketPriceList(ctx context.Context, tickers []string) ([]marketPrice.MarketPriceDto, error) {
     args := m.Called(ctx, tickers)
-    return args.Get(0).([]dto.MarketPriceDto), args.Error(1)
+    return args.Get(0).([]marketPrice.MarketPriceDto), args.Error(1)
 }
 
-func (m *MockMarketPriceRepository) FetchDividend(ctx context.Context, ticker string) (*entity.DividendEntity, error) {
+func (m *MockMarketPriceRepository) FetchDividend(ctx context.Context, ticker string) (*marketPrice.DividendEntity, error) {
 	args := m.Called(ctx, ticker)
-	return args.Get(0).(*entity.DividendEntity), args.Error(1)
+	return args.Get(0).(*marketPrice.DividendEntity), args.Error(1)
 }
 
 
@@ -33,7 +32,7 @@ func TestFetchMarketPriceList(t *testing.T) {
     mockRepo := new(MockMarketPriceRepository)
     service := NewMarketPriceService(mockRepo)
 
-    mockResponseBody := []dto.MarketPriceDto{
+    mockResponseBody := []marketPrice.MarketPriceDto{
         {Ticker: "AAPL", CurrentPrice: 189.84, PriceGets: 0.0685, CurrentRate: 0.13},
         {Ticker: "KO", CurrentPrice: 57.205, PriceGets: 0.0962, CurrentRate: 0.055},
     }
@@ -58,7 +57,7 @@ func TestFetchMarketPriceListError(t *testing.T) {
     service := NewMarketPriceService(mockRepo)
 
     tickers := []string{"INVALID"}
-    mockRepo.On("FetchMarketPriceList", mock.Anything, tickers).Return([]dto.MarketPriceDto(nil), errors.New("error fetching market prices"))
+    mockRepo.On("FetchMarketPriceList", mock.Anything, tickers).Return([]marketPrice.MarketPriceDto(nil), errors.New("error fetching market prices"))
 
     _, err := service.FetchMarketPriceList(context.Background(), tickers)
 

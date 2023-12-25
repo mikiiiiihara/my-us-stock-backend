@@ -1,4 +1,4 @@
-package dto
+package fund
 
 type UpdateJapanFundDto struct {
     ID       uint     `json:"id"`

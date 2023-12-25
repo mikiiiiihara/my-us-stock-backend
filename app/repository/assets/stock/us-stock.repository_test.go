@@ -3,7 +3,6 @@ package stock
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/stock/dto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,7 +64,7 @@ func TestUpdateUsStock(t *testing.T) {
     db.Create(&originalStock)
 
     // 更新用DTOの作成
-    updateDto := dto.UpdateUsStockDto{
+    updateDto := UpdateUsStockDto{
         ID:       originalStock.ID,
         Quantity: new(float64),
     }
@@ -88,7 +87,7 @@ func TestCreateUsStock(t *testing.T) {
     repo := NewUsStockRepository(db)
 
     // 新しい株式情報を作成
-    createDto := dto.CreateUsStockDto{
+    createDto := CreateUsStockDto{
         Code:   "MSFT",
         UserId:   99,
         Quantity: 5.0,
@@ -115,7 +114,7 @@ func TestCreateUsStockAlreadyExists(t *testing.T) {
     db.Create(&existingStock)
 
     // 同じ銘柄で新しい株式情報を作成
-    createDto := dto.CreateUsStockDto{
+    createDto := CreateUsStockDto{
         Code:   "AAPL",
         UserId:   99,
         Quantity: 20,

@@ -3,7 +3,6 @@ package strategy
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/strategy/dto"
 
 	"gorm.io/gorm"
 )
@@ -11,8 +10,8 @@ import (
 // StrategyRepository インターフェースの定義
 type StrategyRepository interface {
     FindStrategy(ctx context.Context, userId uint) (*model.Strategy, error)
-    UpdateStrategy(ctx context.Context, dto dto.UpdateStrategyDto) (*model.Strategy, error)
-    CreateStrategy(ctx context.Context, dto dto.CreateStrategyDto) (*model.Strategy, error)
+    UpdateStrategy(ctx context.Context, dto UpdateStrategyDto) (*model.Strategy, error)
+    CreateStrategy(ctx context.Context, dto CreateStrategyDto) (*model.Strategy, error)
 }
 
 // DefaultStrategyRepository 構造体の定義
@@ -35,7 +34,7 @@ func (r *DefaultStrategyRepository) FindStrategy(ctx context.Context, userId uin
 }
 
 // 戦略メモを更新します
-func (r *DefaultStrategyRepository) UpdateStrategy(ctx context.Context, dto dto.UpdateStrategyDto) (*model.Strategy, error) {
+func (r *DefaultStrategyRepository) UpdateStrategy(ctx context.Context, dto UpdateStrategyDto) (*model.Strategy, error) {
     strategy := &model.Strategy{Text: dto.Text, UserId: dto.UserId}
     if err := r.DB.Model(&strategy).Where("id = ?", dto.ID).Updates(strategy).Error; err != nil {
         return nil, err
@@ -44,7 +43,7 @@ func (r *DefaultStrategyRepository) UpdateStrategy(ctx context.Context, dto dto.
 }
 
 // 戦略メモをデータベースに保存します
-func (r *DefaultStrategyRepository) CreateStrategy(ctx context.Context, dto dto.CreateStrategyDto) (*model.Strategy, error) {
+func (r *DefaultStrategyRepository) CreateStrategy(ctx context.Context, dto CreateStrategyDto) (*model.Strategy, error) {
     strategy := &model.Strategy{Text: dto.Text, UserId: dto.UserId}
     if err := r.DB.Create(strategy).Error; err != nil {
         return nil, err

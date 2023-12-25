@@ -3,7 +3,6 @@ package crypto
 import (
 	"bytes"
 	"io"
-	"my-us-stock-backend/app/repository/market-price/crypto/dto"
 	"net/http"
 	"testing"
 
@@ -54,7 +53,7 @@ func TestCryptoRepository_FetchCryptoPrice(t *testing.T) {
 
 	// テストの実行
 	t.Run("正常に仮想通貨の価格を取得", func(t *testing.T) {
-		expected := &dto.Crypto{
+		expected := &Crypto{
 			Name:  "btc",
 			Price: 50.749,
 		}

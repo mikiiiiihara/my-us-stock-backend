@@ -1,4 +1,4 @@
-package dto
+package marketprice
 
 type MarketPriceResponse struct {
 	Symbol               string  `json:"symbol"`               // ティッカー名

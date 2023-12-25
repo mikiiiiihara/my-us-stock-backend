@@ -3,7 +3,6 @@ package crypto
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/crypto/dto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,7 +64,7 @@ func TestUpdateCrypto(t *testing.T) {
     db.Create(&originalCrypto)
 
     // 更新用DTOの作成
-    updateDto := dto.UpdateCryptoDto{
+    updateDto := UpdateCryptoDto{
         ID:       originalCrypto.ID,
         Quantity: new(float64),
     }
@@ -91,7 +90,7 @@ func TestCryptoUsStock(t *testing.T) {
     repo := NewCryptoRepository(db)
 
     // 新しい株式情報を作成
-    createDto := dto.CreateCryptDto{
+    createDto := CreateCryptDto{
         Code:   "btc",
         UserId:   99,
         Quantity: 0.4,
@@ -118,7 +117,7 @@ func TestCreateCryptoAlreadyExists(t *testing.T) {
     db.Create(&existingCrypto)
 
     // 同じ銘柄で新しい株式情報を作成
-    createDto := dto.CreateCryptDto{
+    createDto := CreateCryptDto{
         Code:   "xrp",
         UserId:   99,
         Quantity: 20,

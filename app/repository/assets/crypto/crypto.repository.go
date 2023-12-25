@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/assets/crypto/dto"
 
 	"gorm.io/gorm"
 )
@@ -12,8 +11,8 @@ import (
 // CryptoRepository インターフェースの定義
 type CryptoRepository interface {
 	FetchCryptoListById(ctx context.Context, userId uint) ([]model.Crypto, error)
-    UpdateCrypto(ctx context.Context, dto dto.UpdateCryptoDto) (*model.Crypto, error)
-	CreateCrypto(ctx context.Context, dto dto.CreateCryptDto) (*model.Crypto, error)
+    UpdateCrypto(ctx context.Context, dto UpdateCryptoDto) (*model.Crypto, error)
+	CreateCrypto(ctx context.Context, dto CreateCryptDto) (*model.Crypto, error)
 	DeleteCrypto(ctx context.Context, id uint) error
 }
 
@@ -38,7 +37,7 @@ func (r *DefaultCryptoRepository) FetchCryptoListById(ctx context.Context, userI
 }
 
 // 米国株式情報を更新します
-func (r *DefaultCryptoRepository) UpdateCrypto(ctx context.Context, dto dto.UpdateCryptoDto) (*model.Crypto, error) {
+func (r *DefaultCryptoRepository) UpdateCrypto(ctx context.Context, dto UpdateCryptoDto) (*model.Crypto, error) {
     // 更新用のマップを作成します
     newStock := map[string]interface{}{}
 
@@ -64,7 +63,7 @@ func (r *DefaultCryptoRepository) UpdateCrypto(ctx context.Context, dto dto.Upda
 }
 
 // 米国株式情報を作成します
-func (r *DefaultCryptoRepository) CreateCrypto(ctx context.Context, dto dto.CreateCryptDto) (*model.Crypto, error) {
+func (r *DefaultCryptoRepository) CreateCrypto(ctx context.Context, dto CreateCryptDto) (*model.Crypto, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.Crypto
     if err := r.DB.Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {

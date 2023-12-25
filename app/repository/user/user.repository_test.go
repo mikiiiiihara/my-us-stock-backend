@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/database/model"
-	"my-us-stock-backend/app/repository/user/dto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,7 +49,7 @@ func TestCreateUser(t *testing.T) {
 
     // 新しいユーザーを作成
         // 新しいデータを作成
-	createDto := dto.CreateUserDto{
+	createDto := CreateUserDto{
         Name:   "New User",
         Email: "newuser@example.com",
     }

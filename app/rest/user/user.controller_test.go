@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"my-us-stock-backend/app/graphql/generated"
-	"my-us-stock-backend/app/rest/user/input"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +19,7 @@ func (m *MockUserService) GetUserByID(ctx context.Context, id uint) (*generated.
     return args.Get(0).(*generated.User), args.Error(1)
 }
 
-func (m *MockUserService) CreateUser(ctx context.Context, input input.CreateUserInput) (*generated.User, error) {
+func (m *MockUserService) CreateUser(ctx context.Context, input CreateUserInput) (*generated.User, error) {
     args := m.Called(ctx, input)
     return args.Get(0).(*generated.User), args.Error(1)
 }
@@ -51,7 +50,7 @@ func TestUserController_CreateUser(t *testing.T) {
 
     expectedUser := &generated.User{Name: "Jane Doe", Email: "janedoe@example.com"}
 
-    createUserInput := input.CreateUserInput{
+    createUserInput := CreateUserInput{
         Name:  "Jane Doe",
         Email: "jane@example.com",
     }

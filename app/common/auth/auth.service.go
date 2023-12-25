@@ -10,7 +10,6 @@ import (
 	userModel "my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/user"
-	"my-us-stock-backend/app/repository/user/dto"
 	"net/http"
 	"os"
 	"time"
@@ -102,7 +101,7 @@ func (as *DefaultAuthService) SignUp(ctx context.Context, c *gin.Context) (*user
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return nil, err
 	}
-	createDto := dto.CreateUserDto{
+	createDto := user.CreateUserDto{
 		Name:     signUpRequestParam.Name,
 		Email:    signUpRequestParam.Email,
 		Password: string(hashPassword),

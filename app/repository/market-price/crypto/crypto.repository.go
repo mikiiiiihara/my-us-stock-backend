@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"my-us-stock-backend/app/repository/market-price/crypto/dto"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,7 +11,7 @@ import (
 
 // CryptoRepository は仮想通貨の価格を取得するためのインターフェースです。
 type CryptoRepository interface {
-    FetchCryptoPrice(ticker CryptoTicker) (*dto.Crypto, error)
+    FetchCryptoPrice(ticker CryptoTicker) (*Crypto, error)
 }
 
 // DefaultCryptoRepository は CryptoRepository のデフォルト実装です。
@@ -34,7 +33,7 @@ func NewCryptoRepository(client *http.Client) *DefaultCryptoRepository {
 }
 
 // FetchCryptoPrice は指定された仮想通貨の価格を取得します。
-func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*dto.Crypto, error) {
+func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*Crypto, error) {
     url := fmt.Sprintf("%s/%s_jpy/ticker", repo.cryptoURL, ticker)
     resp, err := repo.httpClient.Get(url)
     if err != nil {
@@ -47,7 +46,7 @@ func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*dto
         return nil, err
     }
 
-    var apiResp dto.ApiResponse
+    var apiResp ApiResponse
     err = json.Unmarshal(body, &apiResp)
     if err != nil {
         return nil, err
@@ -58,7 +57,7 @@ func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*dto
         return nil, err
     }
 
-    return &dto.Crypto{
+    return &Crypto{
         Name:  string(ticker),
         Price: price,
     }, nil

@@ -1,4 +1,4 @@
-package dto
+package crypto
 
 // Crypto represents the structure of the cryptocurrency data
 type Crypto struct {
