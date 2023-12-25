@@ -72,7 +72,7 @@ type UsStock {
   """
   保有株数
   """
-  quantity: Int!
+  quantity: Float!
 
   """
   セクター

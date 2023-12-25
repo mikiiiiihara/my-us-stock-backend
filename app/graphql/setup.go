@@ -8,9 +8,11 @@ import (
 	"my-us-stock-backend/app/graphql/currency"
 	"my-us-stock-backend/app/graphql/generated"
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
+	"my-us-stock-backend/app/graphql/stock"
 	"my-us-stock-backend/app/graphql/user"
 	"my-us-stock-backend/app/graphql/utils"
 
+	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
@@ -37,11 +39,12 @@ func ginContextToGraphQLMiddleware() gin.HandlerFunc {
 
 
 // Handler は GraphQL ハンドラをセットアップし、gin.HandlerFunc を返します
-func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver) gin.HandlerFunc {
+func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver, usStockResolver *stock.Resolver) gin.HandlerFunc {
     resolver := &CustomQueryResolver{
         UserResolver:     userResolver,
         CurrencyResolver: currencyResolver,
         MarketPriceResolver: marketPriceResolver,
+        UsStockResolver: usStockResolver,
     }
     srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
@@ -59,6 +62,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     userRepo := repoUser.NewUserRepository(db)
     currencyRepo := repoCurrency.NewCurrencyRepository(nil)
     marketPriceRepo := repoMarketPrice.NewMarketPriceRepository(nil)
+    usStockRepo := repoStock.NewUsStockRepository(db)
 
     // 認証機能
     userLogic := logic.NewUserLogic()
@@ -78,9 +82,11 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
 
     userService := user.NewUserService(userRepo,authService)
     userResolver := user.NewResolver(userService)
-
+    
+    usStockService := stock.NewUsStockService(usStockRepo, authService)
+    usStockResolver := stock.NewResolver(usStockService)
     // GraphQLエンドポイントへのルート設定
-    r.POST("/graphql", ginContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver))
+    r.POST("/graphql", ginContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver))
     r.GET("/graphql", PlaygroundHandler())
 }
 // Playgroundハンドラ関数

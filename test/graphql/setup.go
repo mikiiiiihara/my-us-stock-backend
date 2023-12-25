@@ -8,8 +8,11 @@ import (
 	serviceCurrency "my-us-stock-backend/app/graphql/currency"
 	"my-us-stock-backend/app/graphql/generated"
 	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
+	"my-us-stock-backend/app/graphql/stock"
+	serviceStock "my-us-stock-backend/app/graphql/stock"
 	serviceUser "my-us-stock-backend/app/graphql/user"
 	"my-us-stock-backend/app/graphql/utils"
+	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
@@ -25,14 +28,16 @@ type CustomQueryResolver struct {
     UserResolver         *serviceUser.Resolver
     CurrencyResolver     *serviceCurrency.Resolver
     MarketPriceResolver  *serviceMarketPrice.Resolver
+    UsStockResolver *stock.Resolver
 }
 
 // NewCustomQueryResolver - CustomQueryResolverのコンストラクタ関数
-func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver, marketPriceResolver *serviceMarketPrice.Resolver) *CustomQueryResolver {
+func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver, marketPriceResolver *serviceMarketPrice.Resolver, usStockResolver *serviceStock.Resolver) *CustomQueryResolver {
     return &CustomQueryResolver{
         UserResolver:         userResolver,
         CurrencyResolver:     currencyResolver,
         MarketPriceResolver:  marketPriceResolver,
+        UsStockResolver:      usStockResolver,
     }
 }
 
@@ -53,6 +58,11 @@ func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, er
     return r.CurrencyResolver.GetCurrentUsdJpy(ctx)
 }
 
+// UsStocksメソッドの実装
+func (r *CustomQueryResolver) UsStocks(ctx context.Context) ([]*generated.UsStock, error) {
+	return r.UsStockResolver.UsStocks(ctx)
+}
+
 // GetMarketPricesメソッドの実装
 func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*string) ([]*generated.MarketPrice, error) {
     // 文字列スライスに変換
@@ -71,6 +81,7 @@ type SetupOptions struct {
     CurrencyRepo      repoCurrency.CurrencyRepository
     UserRepo          repoUser.UserRepository
     MarketPriceRepo   repoMarketPrice.MarketPriceRepository
+    UsStockRepo   repoStock.UsStockRepository
 }
 
 // SetupGraphQLServer - GraphQLサーバーのセットアップ
@@ -78,12 +89,14 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     var currencyRepo repoCurrency.CurrencyRepository
     var userRepo repoUser.UserRepository
     var marketPriceRepo repoMarketPrice.MarketPriceRepository
+    var usStockRepo repoStock.UsStockRepository
 
     // optsがnilでない場合にのみ、各リポジトリを設定
     if opts != nil {
         currencyRepo = opts.CurrencyRepo
         userRepo = opts.UserRepo
         marketPriceRepo = opts.MarketPriceRepo
+        usStockRepo = opts.UsStockRepo
     }
 
     // 各リポジトリがまだnilの場合、デフォルトのリポジトリを使用
@@ -92,6 +105,9 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     }
     if userRepo == nil {
         userRepo = repoUser.NewUserRepository(db)
+    }
+    if usStockRepo == nil {
+        usStockRepo = repoStock.NewUsStockRepository(db)
     }
     if marketPriceRepo == nil {
         // 注意: ここでは opts が nil の可能性があるため、opts.MockHTTPClient の前に nil チェックが必要
@@ -118,8 +134,11 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     marketPriceService := serviceMarketPrice.NewMarketPriceService(marketPriceRepo)
     marketPriceResolver := serviceMarketPrice.NewResolver(marketPriceService)
 
+    usStockService := serviceStock.NewUsStockService(usStockRepo, authService)
+    usStockResolver := serviceStock.NewResolver(usStockService)
+
     // CustomQueryResolverの初期化
-    resolver := NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver)
+    resolver := NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver, usStockResolver)
 
     // GraphQLサーバーの初期化
     srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
