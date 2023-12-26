@@ -18,3 +18,12 @@ func (r *Resolver) UsStocks(ctx context.Context) ([]*generated.UsStock, error) {
     fmt.Println(r.UsStockService.UsStocks(ctx))
     return r.UsStockService.UsStocks(ctx)
 }
+
+func (r *Resolver) CreateUsStock(ctx context.Context, input generated.CreateUsStockInput) (*generated.UsStock, error) {
+    newUsStock, err := r.UsStockService.CreateUsStock(ctx, input)
+    if err != nil {
+        return nil, err
+    }
+
+    return newUsStock, nil
+}

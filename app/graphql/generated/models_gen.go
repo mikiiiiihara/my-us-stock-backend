@@ -2,6 +2,19 @@
 
 package generated
 
+type CreateUsStockInput struct {
+	// ティッカーシンボル
+	Code string `json:"code"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 保有株数
+	Quantity float64 `json:"quantity"`
+	// セクター
+	Sector string `json:"sector"`
+	// 購入時為替
+	UsdJpy float64 `json:"usdJpy"`
+}
+
 type CreateUserInput struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`

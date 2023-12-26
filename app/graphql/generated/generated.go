@@ -53,7 +53,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateUser func(childComplexity int, input CreateUserInput) int
+		CreateUsStock func(childComplexity int, input CreateUsStockInput) int
+		CreateUser    func(childComplexity int, input CreateUserInput) int
 	}
 
 	Query struct {
@@ -86,6 +87,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (*User, error)
+	CreateUsStock(ctx context.Context, input CreateUsStockInput) (*UsStock, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context) (*User, error)
@@ -140,6 +142,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MarketPrice.Ticker(childComplexity), true
+
+	case "Mutation.createUsStock":
+		if e.complexity.Mutation.CreateUsStock == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUsStock_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUsStock(childComplexity, args["input"].(CreateUsStockInput)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -292,6 +306,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateUsStockInput,
 		ec.unmarshalInputCreateUserInput,
 	)
 	first := true
@@ -401,8 +416,8 @@ type Query {
 }
 
 type Mutation {
-  # 新しいユーザーを作成するミューテーション
   createUser(input: CreateUserInput!): User
+  createUsStock(input: CreateUsStockInput!): UsStock!
 }
 
 # ユーザー情報を表す型
@@ -417,6 +432,34 @@ type User {
 input CreateUserInput {
   name: String!
   email: String!
+}
+
+# 米国株式作成時の入力型
+input CreateUsStockInput {
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
+
+  """
+  セクター
+  """
+  sector: String!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float!
 }
 
 # マーケットの価格情報を表す型
@@ -498,6 +541,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createUsStock_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateUsStockInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateUsStockInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUsStockInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -814,6 +872,83 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createUsStock(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createUsStock(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateUsStock(rctx, fc.Args["input"].(CreateUsStockInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UsStock)
+	fc.Result = res
+	return ec.marshalNUsStock2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUsStock(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createUsStock(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UsStock_id(ctx, field)
+			case "code":
+				return ec.fieldContext_UsStock_code(ctx, field)
+			case "getPrice":
+				return ec.fieldContext_UsStock_getPrice(ctx, field)
+			case "dividend":
+				return ec.fieldContext_UsStock_dividend(ctx, field)
+			case "quantity":
+				return ec.fieldContext_UsStock_quantity(ctx, field)
+			case "sector":
+				return ec.fieldContext_UsStock_sector(ctx, field)
+			case "usdJpy":
+				return ec.fieldContext_UsStock_usdJpy(ctx, field)
+			case "currentPrice":
+				return ec.fieldContext_UsStock_currentPrice(ctx, field)
+			case "priceGets":
+				return ec.fieldContext_UsStock_priceGets(ctx, field)
+			case "currentRate":
+				return ec.fieldContext_UsStock_currentRate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UsStock", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createUsStock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3561,6 +3696,61 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateUsStockInput(ctx context.Context, obj interface{}) (CreateUsStockInput, error) {
+	var it CreateUsStockInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"code", "getPrice", "quantity", "sector", "usdJpy"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Code = data
+		case "getPrice":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("getPrice"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GetPrice = data
+		case "quantity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantity"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Quantity = data
+		case "sector":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sector"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sector = data
+		case "usdJpy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usdJpy"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UsdJpy = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, obj interface{}) (CreateUserInput, error) {
 	var it CreateUserInput
 	asMap := map[string]interface{}{}
@@ -3680,6 +3870,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
 			})
+		case "createUsStock":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createUsStock(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4314,6 +4511,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateUsStockInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUsStockInput(ctx context.Context, v interface{}) (CreateUsStockInput, error) {
+	res, err := ec.unmarshalInputCreateUsStockInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateUserInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUserInput(ctx context.Context, v interface{}) (CreateUserInput, error) {
 	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4442,6 +4644,10 @@ func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNUsStock2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUsStock(ctx context.Context, sel ast.SelectionSet, v UsStock) graphql.Marshaler {
+	return ec._UsStock(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUsStock2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUsStock(ctx context.Context, sel ast.SelectionSet, v *UsStock) graphql.Marshaler {

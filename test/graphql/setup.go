@@ -1,79 +1,23 @@
 package graphql
 
 import (
-	"context"
 	authService "my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/common/auth/logic"
 	"my-us-stock-backend/app/common/auth/validation"
+	"my-us-stock-backend/app/graphql"
 	serviceCurrency "my-us-stock-backend/app/graphql/currency"
-	"my-us-stock-backend/app/graphql/generated"
 	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
-	"my-us-stock-backend/app/graphql/stock"
 	serviceStock "my-us-stock-backend/app/graphql/stock"
 	serviceUser "my-us-stock-backend/app/graphql/user"
-	"my-us-stock-backend/app/graphql/utils"
 	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"net/http"
 
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
-
-type CustomQueryResolver struct {
-    // 各リゾルバを含めます
-    UserResolver         *serviceUser.Resolver
-    CurrencyResolver     *serviceCurrency.Resolver
-    MarketPriceResolver  *serviceMarketPrice.Resolver
-    UsStockResolver *stock.Resolver
-}
-
-// NewCustomQueryResolver - CustomQueryResolverのコンストラクタ関数
-func NewCustomQueryResolver(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver, marketPriceResolver *serviceMarketPrice.Resolver, usStockResolver *serviceStock.Resolver) *CustomQueryResolver {
-    return &CustomQueryResolver{
-        UserResolver:         userResolver,
-        CurrencyResolver:     currencyResolver,
-        MarketPriceResolver:  marketPriceResolver,
-        UsStockResolver:      usStockResolver,
-    }
-}
-
-func (r *CustomQueryResolver) Query() generated.QueryResolver {
-    return r
-}
-
-func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
-    // ここでuserResolverを使用してMutationを実装する
-    return r.UserResolver
-}
-
-func (r *CustomQueryResolver) User(ctx context.Context) (*generated.User, error) {
-    return r.UserResolver.User(ctx)
-}
-
-func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
-    return r.CurrencyResolver.GetCurrentUsdJpy(ctx)
-}
-
-// UsStocksメソッドの実装
-func (r *CustomQueryResolver) UsStocks(ctx context.Context) ([]*generated.UsStock, error) {
-	return r.UsStockResolver.UsStocks(ctx)
-}
-
-// GetMarketPricesメソッドの実装
-func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*string) ([]*generated.MarketPrice, error) {
-    // 文字列スライスに変換
-    tickerStrs := make([]string, len(tickers))
-    for i, t := range tickers {
-        tickerStrs[i] = *t
-    }
-
-    // サービスを呼び出して結果を取得
-    return r.MarketPriceResolver.GetMarketPrices(ctx, tickerStrs)
-}
 
 // SetupOptions - GraphQLサーバーのセットアップオプション
 type SetupOptions struct {
@@ -134,50 +78,14 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     marketPriceService := serviceMarketPrice.NewMarketPriceService(marketPriceRepo)
     marketPriceResolver := serviceMarketPrice.NewResolver(marketPriceService)
 
-    usStockService := serviceStock.NewUsStockService(usStockRepo, authService)
+    usStockService := serviceStock.NewUsStockService(usStockRepo, authService,marketPriceRepo)
     usStockResolver := serviceStock.NewResolver(usStockService)
 
-    // CustomQueryResolverの初期化
-    resolver := NewCustomQueryResolver(userResolver, currencyResolver, marketPriceResolver, usStockResolver)
-
-    // GraphQLサーバーの初期化
-    srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
-
+  
     // Ginのルーターを初期化
     r := gin.Default()
-
-    // ミドルウェアを追加してGinのコンテキストを設定
-    r.Use(ginContextToGraphQLMiddleware())
-
     // GraphQLのエンドポイントを設定
-    r.POST("/graphql", gin.WrapH(srv))
+    r.POST("/graphql", graphql.GinContextToGraphQLMiddleware(), graphql.Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver))
 
     return r
-}
-
-// ginContextToGraphQLMiddleware - GinのContextからGraphQLのContextへのデータ転送を行うミドルウェア
-func ginContextToGraphQLMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        cookie, _ := c.Cookie("access_token")
-        ctx := context.WithValue(c.Request.Context(), utils.CookieKey, cookie)
-        c.Request = c.Request.WithContext(ctx)
-        c.Next()
-    }
-}
-
-// Handler は GraphQL ハンドラをセットアップし、gin.HandlerFunc を返します
-func Handler(userResolver *serviceUser.Resolver, currencyResolver *serviceCurrency.Resolver,marketPriceResolver *serviceMarketPrice.Resolver) gin.HandlerFunc {
-    resolver := &CustomQueryResolver{
-        UserResolver:     userResolver,
-        CurrencyResolver: currencyResolver,
-        MarketPriceResolver: marketPriceResolver,
-    }
-    srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
-
-    return func(c *gin.Context) {
-        // ここでGinのContextをGraphQLのContextに変換
-        ginContextToGraphQLMiddleware()(c)
-
-        srv.ServeHTTP(c.Writer, c.Request)
-    }
 }

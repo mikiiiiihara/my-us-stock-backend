@@ -9,7 +9,7 @@ import (
 	"my-us-stock-backend/app/graphql/user"
 )
 
-// CustomQueryResolver は QueryResolver と MutationResolver インターフェースを実装します
+// QueryResolverインターフェースを実装します
 type CustomQueryResolver struct {
 	UserResolver     *user.Resolver
 	CurrencyResolver *currency.Resolver
@@ -47,9 +47,4 @@ func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*st
 // UsStocksメソッドの実装
 func (r *CustomQueryResolver) UsStocks(ctx context.Context) ([]*generated.UsStock, error) {
 	return r.UsStockResolver.UsStocks(ctx)
-}
-
-// Mutationメソッドの実装
-func (r *CustomQueryResolver) Mutation() generated.MutationResolver {
-	return r.UserResolver
 }
