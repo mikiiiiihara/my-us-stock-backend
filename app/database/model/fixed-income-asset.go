@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -11,5 +13,6 @@ type FixedIncomeAsset struct {
 	GetPriceTotal float64 `gorm:"type:float"`
 	DividendRate float64 `gorm:"type:float"`
 	UsdJpy   float64 `gorm:"type:float"`
+	PaymentDate time.Time  `gorm:"type:timestamp"`
 	UserId uint `gorm:"not null"`
 }

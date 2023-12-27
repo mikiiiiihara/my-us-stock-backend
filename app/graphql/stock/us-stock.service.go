@@ -154,6 +154,6 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
 		UsdJpy:       modelStock.UsdJpy,
 		CurrentPrice: marketPrices[0].CurrentPrice,
 		PriceGets:    marketPrices[0].PriceGets,
-		CurrentRate:  marketPrices[0].CurrentPrice,
+		CurrentRate:  marketPrices[0].CurrentRate,
 	}, err
 }
