@@ -2,7 +2,6 @@ package stock
 
 import (
 	"context"
-	"fmt"
 	"my-us-stock-backend/app/graphql/generated"
 )
 
@@ -15,7 +14,6 @@ func NewResolver(usStockService UsStockService) *Resolver {
 }
 
 func (r *Resolver) UsStocks(ctx context.Context) ([]*generated.UsStock, error) {
-    fmt.Println(r.UsStockService.UsStocks(ctx))
     return r.UsStockService.UsStocks(ctx)
 }
 

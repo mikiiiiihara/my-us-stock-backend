@@ -3,6 +3,7 @@ package stock
 import (
 	"context"
 	"my-us-stock-backend/app/common/auth"
+	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/assets/stock"
@@ -39,25 +40,73 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
     if err != nil {
         return nil, err
     }
-
-    // 空の配列を初期化
-    usStocks := make([]*generated.UsStock, 0)
+    // 米国株の市場価格情報取得
+    // (本来はfor文内で呼びたいが、外部APIコール数削減のため一度に呼んでいる)
+    usStockCodes := make([]string, 0)
     for _, modelStock := range modelStocks {
-        usStock := &generated.UsStock{
-            ID: utils.ConvertIdToString(modelStock.ID),
-            Code:         modelStock.Code,
-            GetPrice:     modelStock.GetPrice,
-            Dividend:     99.9, // TODO: 配当APIから取得
-            Quantity:     modelStock.Quantity,
-            Sector:       modelStock.Sector,
-            UsdJpy:       modelStock.UsdJpy,
-            CurrentPrice: 99.9, // TODO: 株価APIから取得
-            PriceGets:    1.0,
-            CurrentRate:  1.1,
-        }
-        usStocks = append(usStocks, usStock)
+        usStockCodes = append(usStockCodes, modelStock.Code)
     }
-    // エラーがなければ空の配列とnilを返す
+    marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx,usStockCodes)
+    if err != nil {
+        return nil, err
+    }
+
+    type stockWithMarketPrice struct {
+        stock      *model.UsStock
+        marketPrice *marketPrice.MarketPriceDto
+        dividend   *marketPrice.DividendEntity
+    }
+
+    // ゴルーチンの実行結果を収集するためのチャネル
+    results := make(chan stockWithMarketPrice, len(modelStocks))
+    errChan := make(chan error, len(modelStocks))
+
+    for _, modelStock := range modelStocks {
+        modelStockCopy := modelStock
+        go func(ms *model.UsStock) {
+            dividend, err := s.MarketPriceRepo.FetchDividend(ctx, ms.Code)
+            if err != nil {
+                errChan <- err
+                return
+            }
+
+            var marketPrice *marketPrice.MarketPriceDto
+            for _, mp := range marketPrices {
+                if mp.Ticker == ms.Code {
+                    marketPrice = &mp
+                    break
+                }
+            }
+
+            results <- stockWithMarketPrice{
+                stock:      ms,
+                marketPrice: marketPrice,
+                dividend:   dividend,
+            }
+        }(&modelStockCopy)
+    }
+
+    var usStocks []*generated.UsStock
+    for i := 0; i < len(modelStocks); i++ {
+        select {
+        case result := <-results:
+            usStocks = append(usStocks, &generated.UsStock{
+                ID: utils.ConvertIdToString(result.stock.ID),
+                Code:         result.stock.Code,
+                GetPrice:     result.stock.GetPrice,
+                Dividend:     result.dividend.DividendTotal,
+                Quantity:     result.stock.Quantity,
+                Sector:       result.stock.Sector,
+                UsdJpy:       result.stock.UsdJpy,
+                CurrentPrice: result.marketPrice.CurrentPrice, 
+                PriceGets:    result.marketPrice.PriceGets,
+                CurrentRate:  result.marketPrice.CurrentRate,
+            })
+        case err := <-errChan:
+            return nil, err
+        }
+    }
+
     return usStocks, nil
 }
 
@@ -83,17 +132,28 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
     if err != nil {
         return nil, err
     }
+    // 配当情報取得
+    dividend, err := s.MarketPriceRepo.FetchDividend(ctx, createDto.Code)
+    if err != nil {
+        return nil, err
+    }
+    // 市場価格取得
+    var codeInput = []string{createDto.Code}
+    marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, codeInput)
+    if err != nil {
+        return nil, err
+    }
 	// 市場情報を追加して返却
 	return &generated.UsStock{
         ID: utils.ConvertIdToString(modelStock.ID),
 		Code: modelStock.Code,
 		GetPrice: modelStock.GetPrice,
-		Dividend: 99.9, // TODO: 配当APIから取得
+		Dividend: dividend.DividendTotal,
 		Quantity:     modelStock.Quantity,
 		Sector:       modelStock.Sector,
 		UsdJpy:       modelStock.UsdJpy,
-		CurrentPrice: 99.9, // TODO: 株価APIから取得
-		PriceGets:    1.0,
-		CurrentRate:  1.1,
+		CurrentPrice: marketPrices[0].CurrentPrice,
+		PriceGets:    marketPrices[0].PriceGets,
+		CurrentRate:  marketPrices[0].CurrentPrice,
 	}, err
 }
