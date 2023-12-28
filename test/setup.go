@@ -15,5 +15,6 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("failed to connect database: %v", err)
 	}
 	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.UsStock{})
 	return db
 }

@@ -9,8 +9,8 @@ type Query {
 }
 
 type Mutation {
-  # 新しいユーザーを作成するミューテーション
   createUser(input: CreateUserInput!): User
+  createUsStock(input: CreateUsStockInput!): UsStock!
 }
 
 # ユーザー情報を表す型
@@ -25,6 +25,34 @@ type User {
 input CreateUserInput {
   name: String!
   email: String!
+}
+
+# 米国株式作成時の入力型
+input CreateUsStockInput {
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
+
+  """
+  セクター
+  """
+  sector: String!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float!
 }
 
 # マーケットの価格情報を表す型
@@ -72,7 +100,7 @@ type UsStock {
   """
   保有株数
   """
-  quantity: Int!
+  quantity: Float!
 
   """
   セクター

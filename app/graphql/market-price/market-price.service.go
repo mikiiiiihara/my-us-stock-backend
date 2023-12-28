@@ -24,7 +24,7 @@ func (s *DefaultMarketPriceService) FetchMarketPriceList(ctx context.Context, ti
         return nil, err
     }
 
-    var marketPrices []*generated.MarketPrice
+    marketPrices := make([]*generated.MarketPrice,0)
     for _, dto := range dtos {
         marketPrice := &generated.MarketPrice{
             Ticker:       dto.Ticker,

@@ -99,6 +99,8 @@ func (repo *DefaultMarketPriceRepository) FetchDividend(ctx context.Context, tic
         if err.Error() == "rate limit exceeded" {
             token = repo.dividendSubToken
             res, err = repo.fetchDividendApi(ctx, token, ticker)
+            fmt.Println("---- response ----")
+            fmt.Println(res)
             if err != nil {
                 return nil, fmt.Errorf("配当情報の取得に失敗しました。しばらく待ってからアクセスしてください: %w", err)
             }
