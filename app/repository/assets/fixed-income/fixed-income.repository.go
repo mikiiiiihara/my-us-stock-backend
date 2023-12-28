@@ -79,6 +79,7 @@ func (r *DefaultFixedIncomeRepository) CreateFixedIncomeAsset(ctx context.Contex
         GetPriceTotal: dto.GetPriceTotal,
         DividendRate: dto.DividendRate,
 		UsdJpy: dto.UsdJpy,
+        PaymentDate: dto.PaymentDate,
         UserId:   dto.UserId,
     }
 
