@@ -1,12 +1,12 @@
 package crypto
 
-// CryptoTicker defines available crypto tickers
-type CryptoTicker string
+// CryptoCode defines available crypto tickers
+type CryptoCode string
 
 const (
-    BTC CryptoTicker = "btc"
-    ETH CryptoTicker = "eth"
-    XRP CryptoTicker = "xrp"
-    BAT CryptoTicker = "bat"
-    LTC CryptoTicker = "ltc"
+    BTC CryptoCode = "btc"
+    ETH CryptoCode = "eth"
+    XRP CryptoCode = "xrp"
+    BAT CryptoCode = "bat"
+    LTC CryptoCode = "ltc"
 )
