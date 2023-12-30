@@ -28,12 +28,12 @@ func NewCryptoRepository(db *gorm.DB) CryptoRepository {
 
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
 func (r *DefaultCryptoRepository) FetchCryptoListById(ctx context.Context, userId uint) ([]model.Crypto, error) {
-    var usStocks []model.Crypto
-    err := r.DB.Where("user_id = ?", userId).Find(&usStocks).Error
+    var cryptos []model.Crypto
+    err := r.DB.Where("user_id = ?", userId).Find(&cryptos).Error
     if err != nil {
         return nil, err
     }
-    return usStocks, nil
+    return cryptos, nil
 }
 
 // 米国株式情報を更新します

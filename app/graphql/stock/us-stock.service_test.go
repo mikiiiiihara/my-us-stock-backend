@@ -38,21 +38,6 @@ func (m *MockUsStockRepository) DeleteUsStock(ctx context.Context, id uint) erro
 	return args.Error(1)
 }
 
-// MockMarketPriceRepository は MarketPriceRepository のモックです。
-type MockMarketPriceRepository struct {
-	mock.Mock
-}
-
-func (m *MockMarketPriceRepository) FetchMarketPriceList(ctx context.Context, tickers []string) ([]marketPrice.MarketPriceDto, error) {
-	args := m.Called(ctx, tickers)
-	return args.Get(0).([]marketPrice.MarketPriceDto), args.Error(1)
-}
-
-func (m *MockMarketPriceRepository) FetchDividend(ctx context.Context, ticker string) (*marketPrice.DividendEntity, error) {
-	args := m.Called(ctx, ticker)
-	return args.Get(0).(*marketPrice.DividendEntity), args.Error(1)
-}
-
 // MockAuthService は AuthService のモックです。
 type MockAuthService struct {
 	mock.Mock
@@ -85,7 +70,7 @@ func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, 
 // TestUsStocks は UsStocks メソッドのテストです。
 func TestUsStocksService(t *testing.T) {
 	mockStockRepo := new(MockUsStockRepository)
-	mockMarketPriceRepo := new(MockMarketPriceRepository)
+    mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
 	mockAuth := new(MockAuthService)
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
 
@@ -131,7 +116,7 @@ func TestUsStocksService(t *testing.T) {
 // TestCreateUsStockService は TestCreateUsStock メソッドのテストです。
 func TestCreateUsStockService(t *testing.T) {
 	mockStockRepo := new(MockUsStockRepository)
-	mockMarketPriceRepo := new(MockMarketPriceRepository)
+    mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
 	mockAuth := new(MockAuthService)
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
 

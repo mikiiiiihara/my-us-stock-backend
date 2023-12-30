@@ -4,8 +4,8 @@ import (
 	"context"
 	"my-us-stock-backend/app/database/model"
 	"testing"
-	"time"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -90,7 +90,7 @@ func TestUpdateFixedIncomeAsset(t *testing.T) {
 func TestCreateFixedIncomeAsset(t *testing.T) {
     db := setupTestDB()
     repo := NewFixedIncomeRepository(db)
-    paymentDate := time.Date(2024, time.December, 31, 12, 13, 24, 0, time.UTC)
+    paymentMonth := []int64{6,12}
 
     // 新しい株式情報を作成
     createDto := CreateFixedIncomeDto{
@@ -98,16 +98,17 @@ func TestCreateFixedIncomeAsset(t *testing.T) {
         UserId:   99,
 		DividendRate: 3.5, 
 		GetPriceTotal: 100000,
-        PaymentDate: paymentDate,
+        PaymentMonth: paymentMonth,
     }
     created, err := repo.CreateFixedIncomeAsset(context.Background(), createDto)
+    expectedPaymentMonth := pq.Int64Array{6, 12}
     assert.NoError(t, err)
     assert.NotNil(t, created)
     assert.Equal(t, createDto.Code, created.Code)
     assert.Equal(t, createDto.GetPriceTotal, created.GetPriceTotal)
 	assert.Equal(t, createDto.DividendRate, created.DividendRate)
 	assert.Equal(t, createDto.UsdJpy, created.UsdJpy)
-    assert.Equal(t, createDto.PaymentDate, created.PaymentDate)
+    assert.Equal(t, expectedPaymentMonth, created.PaymentMonth)
 	assert.Equal(t, createDto.UserId, created.UserId)
 
     // データベースで株式情報を確認
@@ -117,7 +118,7 @@ func TestCreateFixedIncomeAsset(t *testing.T) {
     assert.Equal(t, createDto.GetPriceTotal, fixedIncomeAsset.GetPriceTotal)
 	assert.Equal(t, createDto.DividendRate, fixedIncomeAsset.DividendRate)
 	assert.Equal(t, createDto.UsdJpy, fixedIncomeAsset.UsdJpy)
-    assert.Equal(t, createDto.PaymentDate, fixedIncomeAsset.PaymentDate)
+    assert.Equal(t, expectedPaymentMonth, fixedIncomeAsset.PaymentMonth)
 	assert.Equal(t, createDto.UserId, fixedIncomeAsset.UserId)
 }
 

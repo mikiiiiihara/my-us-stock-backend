@@ -2,6 +2,15 @@
 
 package generated
 
+type CreateCryptoInput struct {
+	// ティッカーシンボル
+	Code string `json:"code"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 保有株数
+	Quantity float64 `json:"quantity"`
+}
+
 type CreateUsStockInput struct {
 	// ティッカーシンボル
 	Code string `json:"code"`
@@ -18,6 +27,18 @@ type CreateUsStockInput struct {
 type CreateUserInput struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type Crypto struct {
+	ID string `json:"id"`
+	// ティッカーシンボル
+	Code string `json:"code"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 保有株数
+	Quantity float64 `json:"quantity"`
+	// 現在価格
+	CurrentPrice float64 `json:"currentPrice"`
 }
 
 type MarketPrice struct {

@@ -6,44 +6,49 @@ import (
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
-	"my-us-stock-backend/app/repository/assets/stock"
+	"my-us-stock-backend/app/repository/assets/crypto"
 	marketPrice "my-us-stock-backend/app/repository/market-price/crypto"
 )
 
 // CryptoService インターフェースの定義
 type CryptoService interface {
-    Cryptos(ctx context.Context) ([]*generated.UsStock, error)
-	CreateCrypto(ctx context.Context, input generated.CreateUsStockInput) (*generated.UsStock, error)
+    Cryptos(ctx context.Context) ([]*generated.Crypto, error)
+	CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error)
 }
 
 // DefaultCryptoService 構造体の定義
 type DefaultCryptoService struct {
-    StockRepo stock.UsStockRepository // インターフェースを利用
+    Repo crypto.CryptoRepository // インターフェースを利用
 	MarketPriceRepo marketPrice.CryptoRepository
     Auth auth.AuthService        // 認証サービスのインターフェース
 }
 
-// NewUsCryptoService は DefaultUsStockService の新しいインスタンスを作成します
-func NewUsCryptoService(stockRepo stock.UsStockRepository, auth auth.AuthService, marketPriceRepo marketPrice.CryptoRepository) CryptoService {
-    return &DefaultCryptoService{StockRepo: stockRepo, Auth: auth, MarketPriceRepo: marketPriceRepo}
+// NewCryptoService は DefaultUsStockService の新しいインスタンスを作成します
+func NewCryptoService(stockRepo crypto.CryptoRepository, auth auth.AuthService, marketPriceRepo marketPrice.CryptoRepository) CryptoService {
+    return &DefaultCryptoService{Repo: stockRepo, Auth: auth, MarketPriceRepo: marketPriceRepo}
 }
 
 // Cryptos はユーザーの米国株式情報リストを取得します
-func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.UsStock, error) {
+func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.Crypto, error) {
     // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
     userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
     if userId == 0 {
         return nil, utils.UnauthenticatedError("Invalid user ID")
     }
 
-    modelCryptos, err := s.StockRepo.FetchUsStockListById(ctx, userId)
+    modelCryptos, err := s.Repo.FetchCryptoListById(ctx, userId)
     if err != nil {
         return nil, err
     }
 
+    // modelCryptosが空の場合は空の配列を返却する
+    if len(modelCryptos) == 0 {
+        return []*generated.Crypto{}, nil
+    }
+
     type cryptoWithMarketPrice struct {
         crypto      *model.Crypto
-        dividend   *marketPrice.Crypto
+        marketPrice   *marketPrice.Crypto
     }
 
     // ゴルーチンの実行結果を収集するためのチャネル
@@ -53,7 +58,7 @@ func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.UsStoc
     for _, modelCrypto := range modelCryptos {
         modelCryptoCopy := modelCrypto
         go func(ms *model.Crypto) {
-            dividend, err := s.MarketPriceRepo.FetchCryptoPrice(ms.Code)
+            cryptoPrice, err := s.MarketPriceRepo.FetchCryptoPrice(ms.Code)
             if err != nil {
                 errChan <- err
                 return
@@ -61,26 +66,21 @@ func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.UsStoc
 
             results <- cryptoWithMarketPrice{
                 crypto:      ms,
-                dividend:   dividend,
+                marketPrice:   cryptoPrice,
             }
         }(&modelCryptoCopy)
     }
 
-    var cryptos []*generated.UsStock
+    var cryptos []*generated.Crypto
     for i := 0; i < len(modelCryptos); i++ {
         select {
         case result := <-results:
-            cryptos = append(cryptos, &generated.UsStock{
+            cryptos = append(cryptos, &generated.Crypto{
                 ID: utils.ConvertIdToString(result.crypto.ID),
                 Code:         result.crypto.Code,
                 GetPrice:     result.crypto.GetPrice,
-                Dividend:     result.dividend.DividendTotal,
                 Quantity:     result.crypto.Quantity,
-                Sector:       result.crypto.Sector,
-                UsdJpy:       result.crypto.UsdJpy,
-                // CurrentPrice: result.marketPrice.CurrentPrice, 
-                // PriceGets:    result.marketPrice.PriceGets,
-                // CurrentRate:  result.marketPrice.CurrentRate,
+                CurrentPrice: result.marketPrice.Price, // 外部APIから取得
             })
         case err := <-errChan:
             return nil, err
@@ -90,8 +90,8 @@ func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.UsStoc
     return cryptos, nil
 }
 
-// UsStocks はユーザーの米国株式情報リストを新規作成します
-func (s *DefaultCryptoService) CreateCrypto(ctx context.Context, input generated.CreateUsStockInput) (*generated.UsStock, error) {
+// ユーザーの米国株式情報リストを新規作成します
+func (s *DefaultCryptoService) CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error) {
     // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
     userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
     if userId == 0 {
@@ -99,41 +99,28 @@ func (s *DefaultCryptoService) CreateCrypto(ctx context.Context, input generated
     }
 	
 	// 値入れ直し
-	createDto := stock.CreateUsStockDto{
+	createDto := crypto.CreateCryptDto{
 		Code: input.Code,
 		GetPrice: input.GetPrice,
 		Quantity: input.Quantity,
-		UsdJpy: input.UsdJpy,
-		Sector: input.Sector,
 		UserId: userId,
 	}
 
-    modelStock, err := s.StockRepo.CreateUsStock(ctx, createDto)
-    if err != nil {
-        return nil, err
-    }
-    // 配当情報取得
-    dividend, err := s.MarketPriceRepo.FetchDividend(ctx, createDto.Code)
+    modelStock, err := s.Repo.CreateCrypto(ctx, createDto)
     if err != nil {
         return nil, err
     }
     // 市場価格取得
-    var codeInput = []string{createDto.Code}
-    marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, codeInput)
+    marketPrice, err := s.MarketPriceRepo.FetchCryptoPrice(createDto.Code)
     if err != nil {
         return nil, err
     }
 	// 市場情報を追加して返却
-	return &generated.UsStock{
+	return &generated.Crypto{
         ID: utils.ConvertIdToString(modelStock.ID),
 		Code: modelStock.Code,
 		GetPrice: modelStock.GetPrice,
-		Dividend: dividend.DividendTotal,
 		Quantity:     modelStock.Quantity,
-		Sector:       modelStock.Sector,
-		UsdJpy:       modelStock.UsdJpy,
-		CurrentPrice: marketPrices[0].CurrentPrice,
-		PriceGets:    marketPrices[0].PriceGets,
-		CurrentRate:  marketPrices[0].CurrentRate,
+		CurrentPrice: marketPrice.Price,
 	}, err
 }
