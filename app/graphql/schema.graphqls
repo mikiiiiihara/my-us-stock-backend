@@ -7,12 +7,14 @@ type Query {
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
   usStocks: [UsStock!]
   cryptos: [Crypto!]
+  fixedIncomeAssets: [FixedIncomeAsset!]
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
   createCrypto(input: CreateCryptoInput!): Crypto!
+  createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
 }
 
 # ユーザー情報を表す型
@@ -73,6 +75,34 @@ input CreateCryptoInput {
   保有株数
   """
   quantity: Float!
+}
+
+# 固定利回り資産作成時の入力型
+input CreateFixedIncomeAssetInput {
+  """
+  資産名称
+  """
+  code: String!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  １年当たり配当利回り
+  """
+  dividendRate: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
+
+  """
+  配当支払い月
+  """
+  paymentMonth: [Int!]!
 }
 
 # マーケットの価格情報を表す型
@@ -171,4 +201,34 @@ type Crypto {
   現在価格
   """
   currentPrice: Float!
+}
+
+# 固定利回り資産情報を表す型
+type FixedIncomeAsset {
+  id: ID!
+
+  """
+  資産名称
+  """
+  code: String!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  １年当たり配当利回り
+  """
+  dividendRate: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
+
+  """
+  配当支払い月
+  """
+  paymentMonth: [Int!]!
 }

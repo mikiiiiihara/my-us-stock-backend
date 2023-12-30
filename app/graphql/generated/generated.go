@@ -53,6 +53,15 @@ type ComplexityRoot struct {
 		Quantity     func(childComplexity int) int
 	}
 
+	FixedIncomeAsset struct {
+		Code          func(childComplexity int) int
+		DividendRate  func(childComplexity int) int
+		GetPriceTotal func(childComplexity int) int
+		ID            func(childComplexity int) int
+		PaymentMonth  func(childComplexity int) int
+		UsdJpy        func(childComplexity int) int
+	}
+
 	MarketPrice struct {
 		CurrentPrice func(childComplexity int) int
 		CurrentRate  func(childComplexity int) int
@@ -61,17 +70,19 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateCrypto  func(childComplexity int, input CreateCryptoInput) int
-		CreateUsStock func(childComplexity int, input CreateUsStockInput) int
-		CreateUser    func(childComplexity int, input CreateUserInput) int
+		CreateCrypto           func(childComplexity int, input CreateCryptoInput) int
+		CreateFixedIncomeAsset func(childComplexity int, input CreateFixedIncomeAssetInput) int
+		CreateUsStock          func(childComplexity int, input CreateUsStockInput) int
+		CreateUser             func(childComplexity int, input CreateUserInput) int
 	}
 
 	Query struct {
-		Cryptos          func(childComplexity int) int
-		GetCurrentUsdJpy func(childComplexity int) int
-		GetMarketPrices  func(childComplexity int, tickerList []*string) int
-		UsStocks         func(childComplexity int) int
-		User             func(childComplexity int) int
+		Cryptos           func(childComplexity int) int
+		FixedIncomeAssets func(childComplexity int) int
+		GetCurrentUsdJpy  func(childComplexity int) int
+		GetMarketPrices   func(childComplexity int, tickerList []*string) int
+		UsStocks          func(childComplexity int) int
+		User              func(childComplexity int) int
 	}
 
 	UsStock struct {
@@ -99,6 +110,7 @@ type MutationResolver interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (*User, error)
 	CreateUsStock(ctx context.Context, input CreateUsStockInput) (*UsStock, error)
 	CreateCrypto(ctx context.Context, input CreateCryptoInput) (*Crypto, error)
+	CreateFixedIncomeAsset(ctx context.Context, input CreateFixedIncomeAssetInput) (*FixedIncomeAsset, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context) (*User, error)
@@ -106,6 +118,7 @@ type QueryResolver interface {
 	GetMarketPrices(ctx context.Context, tickerList []*string) ([]*MarketPrice, error)
 	UsStocks(ctx context.Context) ([]*UsStock, error)
 	Cryptos(ctx context.Context) ([]*Crypto, error)
+	FixedIncomeAssets(ctx context.Context) ([]*FixedIncomeAsset, error)
 }
 
 type executableSchema struct {
@@ -162,6 +175,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Crypto.Quantity(childComplexity), true
 
+	case "FixedIncomeAsset.code":
+		if e.complexity.FixedIncomeAsset.Code == nil {
+			break
+		}
+
+		return e.complexity.FixedIncomeAsset.Code(childComplexity), true
+
+	case "FixedIncomeAsset.dividendRate":
+		if e.complexity.FixedIncomeAsset.DividendRate == nil {
+			break
+		}
+
+		return e.complexity.FixedIncomeAsset.DividendRate(childComplexity), true
+
+	case "FixedIncomeAsset.getPriceTotal":
+		if e.complexity.FixedIncomeAsset.GetPriceTotal == nil {
+			break
+		}
+
+		return e.complexity.FixedIncomeAsset.GetPriceTotal(childComplexity), true
+
+	case "FixedIncomeAsset.id":
+		if e.complexity.FixedIncomeAsset.ID == nil {
+			break
+		}
+
+		return e.complexity.FixedIncomeAsset.ID(childComplexity), true
+
+	case "FixedIncomeAsset.paymentMonth":
+		if e.complexity.FixedIncomeAsset.PaymentMonth == nil {
+			break
+		}
+
+		return e.complexity.FixedIncomeAsset.PaymentMonth(childComplexity), true
+
+	case "FixedIncomeAsset.usdJpy":
+		if e.complexity.FixedIncomeAsset.UsdJpy == nil {
+			break
+		}
+
+		return e.complexity.FixedIncomeAsset.UsdJpy(childComplexity), true
+
 	case "MarketPrice.currentPrice":
 		if e.complexity.MarketPrice.CurrentPrice == nil {
 			break
@@ -202,6 +257,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateCrypto(childComplexity, args["input"].(CreateCryptoInput)), true
 
+	case "Mutation.createFixedIncomeAsset":
+		if e.complexity.Mutation.CreateFixedIncomeAsset == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createFixedIncomeAsset_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateFixedIncomeAsset(childComplexity, args["input"].(CreateFixedIncomeAssetInput)), true
+
 	case "Mutation.createUsStock":
 		if e.complexity.Mutation.CreateUsStock == nil {
 			break
@@ -232,6 +299,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Cryptos(childComplexity), true
+
+	case "Query.fixedIncomeAssets":
+		if e.complexity.Query.FixedIncomeAssets == nil {
+			break
+		}
+
+		return e.complexity.Query.FixedIncomeAssets(childComplexity), true
 
 	case "Query.getCurrentUsdJpy":
 		if e.complexity.Query.GetCurrentUsdJpy == nil {
@@ -373,6 +447,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateCryptoInput,
+		ec.unmarshalInputCreateFixedIncomeAssetInput,
 		ec.unmarshalInputCreateUsStockInput,
 		ec.unmarshalInputCreateUserInput,
 	)
@@ -481,12 +556,14 @@ type Query {
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
   usStocks: [UsStock!]
   cryptos: [Crypto!]
+  fixedIncomeAssets: [FixedIncomeAsset!]
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
   createCrypto(input: CreateCryptoInput!): Crypto!
+  createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
 }
 
 # ユーザー情報を表す型
@@ -547,6 +624,34 @@ input CreateCryptoInput {
   保有株数
   """
   quantity: Float!
+}
+
+# 固定利回り資産作成時の入力型
+input CreateFixedIncomeAssetInput {
+  """
+  資産名称
+  """
+  code: String!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  １年当たり配当利回り
+  """
+  dividendRate: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
+
+  """
+  配当支払い月
+  """
+  paymentMonth: [Int!]!
 }
 
 # マーケットの価格情報を表す型
@@ -646,6 +751,36 @@ type Crypto {
   """
   currentPrice: Float!
 }
+
+# 固定利回り資産情報を表す型
+type FixedIncomeAsset {
+  id: ID!
+
+  """
+  資産名称
+  """
+  code: String!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  １年当たり配当利回り
+  """
+  dividendRate: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
+
+  """
+  配当支払い月
+  """
+  paymentMonth: [Int!]!
+}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -661,6 +796,21 @@ func (ec *executionContext) field_Mutation_createCrypto_args(ctx context.Context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateCryptoInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateCryptoInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createFixedIncomeAsset_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateFixedIncomeAssetInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateFixedIncomeAssetInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateFixedIncomeAssetInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -982,6 +1132,267 @@ func (ec *executionContext) fieldContext_Crypto_currentPrice(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FixedIncomeAsset_id(ctx context.Context, field graphql.CollectedField, obj *FixedIncomeAsset) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FixedIncomeAsset_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FixedIncomeAsset_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FixedIncomeAsset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FixedIncomeAsset_code(ctx context.Context, field graphql.CollectedField, obj *FixedIncomeAsset) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FixedIncomeAsset_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FixedIncomeAsset_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FixedIncomeAsset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FixedIncomeAsset_getPriceTotal(ctx context.Context, field graphql.CollectedField, obj *FixedIncomeAsset) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FixedIncomeAsset_getPriceTotal(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GetPriceTotal, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FixedIncomeAsset_getPriceTotal(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FixedIncomeAsset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FixedIncomeAsset_dividendRate(ctx context.Context, field graphql.CollectedField, obj *FixedIncomeAsset) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FixedIncomeAsset_dividendRate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DividendRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FixedIncomeAsset_dividendRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FixedIncomeAsset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FixedIncomeAsset_usdJpy(ctx context.Context, field graphql.CollectedField, obj *FixedIncomeAsset) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FixedIncomeAsset_usdJpy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UsdJpy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FixedIncomeAsset_usdJpy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FixedIncomeAsset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FixedIncomeAsset_paymentMonth(ctx context.Context, field graphql.CollectedField, obj *FixedIncomeAsset) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_FixedIncomeAsset_paymentMonth(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PaymentMonth, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	fc.Result = res
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_FixedIncomeAsset_paymentMonth(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FixedIncomeAsset",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1369,6 +1780,75 @@ func (ec *executionContext) fieldContext_Mutation_createCrypto(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createFixedIncomeAsset(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createFixedIncomeAsset(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateFixedIncomeAsset(rctx, fc.Args["input"].(CreateFixedIncomeAssetInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*FixedIncomeAsset)
+	fc.Result = res
+	return ec.marshalNFixedIncomeAsset2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAsset(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createFixedIncomeAsset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FixedIncomeAsset_id(ctx, field)
+			case "code":
+				return ec.fieldContext_FixedIncomeAsset_code(ctx, field)
+			case "getPriceTotal":
+				return ec.fieldContext_FixedIncomeAsset_getPriceTotal(ctx, field)
+			case "dividendRate":
+				return ec.fieldContext_FixedIncomeAsset_dividendRate(ctx, field)
+			case "usdJpy":
+				return ec.fieldContext_FixedIncomeAsset_usdJpy(ctx, field)
+			case "paymentMonth":
+				return ec.fieldContext_FixedIncomeAsset_paymentMonth(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FixedIncomeAsset", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createFixedIncomeAsset_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_user(ctx, field)
 	if err != nil {
@@ -1640,6 +2120,61 @@ func (ec *executionContext) fieldContext_Query_cryptos(ctx context.Context, fiel
 				return ec.fieldContext_Crypto_currentPrice(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Crypto", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_fixedIncomeAssets(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_fixedIncomeAssets(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FixedIncomeAssets(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*FixedIncomeAsset)
+	fc.Result = res
+	return ec.marshalOFixedIncomeAsset2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAssetᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_fixedIncomeAssets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FixedIncomeAsset_id(ctx, field)
+			case "code":
+				return ec.fieldContext_FixedIncomeAsset_code(ctx, field)
+			case "getPriceTotal":
+				return ec.fieldContext_FixedIncomeAsset_getPriceTotal(ctx, field)
+			case "dividendRate":
+				return ec.fieldContext_FixedIncomeAsset_dividendRate(ctx, field)
+			case "usdJpy":
+				return ec.fieldContext_FixedIncomeAsset_usdJpy(ctx, field)
+			case "paymentMonth":
+				return ec.fieldContext_FixedIncomeAsset_paymentMonth(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FixedIncomeAsset", field.Name)
 		},
 	}
 	return fc, nil
@@ -4204,6 +4739,61 @@ func (ec *executionContext) unmarshalInputCreateCryptoInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateFixedIncomeAssetInput(ctx context.Context, obj interface{}) (CreateFixedIncomeAssetInput, error) {
+	var it CreateFixedIncomeAssetInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"code", "getPriceTotal", "dividendRate", "usdJpy", "paymentMonth"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Code = data
+		case "getPriceTotal":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("getPriceTotal"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GetPriceTotal = data
+		case "dividendRate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dividendRate"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DividendRate = data
+		case "usdJpy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usdJpy"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UsdJpy = data
+		case "paymentMonth":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paymentMonth"))
+			data, err := ec.unmarshalNInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PaymentMonth = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUsStockInput(ctx context.Context, obj interface{}) (CreateUsStockInput, error) {
 	var it CreateUsStockInput
 	asMap := map[string]interface{}{}
@@ -4360,6 +4950,67 @@ func (ec *executionContext) _Crypto(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var fixedIncomeAssetImplementors = []string{"FixedIncomeAsset"}
+
+func (ec *executionContext) _FixedIncomeAsset(ctx context.Context, sel ast.SelectionSet, obj *FixedIncomeAsset) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fixedIncomeAssetImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FixedIncomeAsset")
+		case "id":
+			out.Values[i] = ec._FixedIncomeAsset_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "code":
+			out.Values[i] = ec._FixedIncomeAsset_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "getPriceTotal":
+			out.Values[i] = ec._FixedIncomeAsset_getPriceTotal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dividendRate":
+			out.Values[i] = ec._FixedIncomeAsset_dividendRate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "usdJpy":
+			out.Values[i] = ec._FixedIncomeAsset_usdJpy(ctx, field, obj)
+		case "paymentMonth":
+			out.Values[i] = ec._FixedIncomeAsset_paymentMonth(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var marketPriceImplementors = []string{"MarketPrice"}
 
 func (ec *executionContext) _MarketPrice(ctx context.Context, sel ast.SelectionSet, obj *MarketPrice) graphql.Marshaler {
@@ -4447,6 +5098,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createCrypto":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createCrypto(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createFixedIncomeAsset":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createFixedIncomeAsset(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -4585,6 +5243,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_cryptos(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "fixedIncomeAssets":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fixedIncomeAssets(ctx, field)
 				return res
 			}
 
@@ -5109,6 +5786,11 @@ func (ec *executionContext) unmarshalNCreateCryptoInput2myᚑusᚑstockᚑbacken
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateFixedIncomeAssetInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateFixedIncomeAssetInput(ctx context.Context, v interface{}) (CreateFixedIncomeAssetInput, error) {
+	res, err := ec.unmarshalInputCreateFixedIncomeAssetInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateUsStockInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUsStockInput(ctx context.Context, v interface{}) (CreateUsStockInput, error) {
 	res, err := ec.unmarshalInputCreateUsStockInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5131,6 +5813,20 @@ func (ec *executionContext) marshalNCrypto2ᚖmyᚑusᚑstockᚑbackendᚋappᚋ
 		return graphql.Null
 	}
 	return ec._Crypto(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFixedIncomeAsset2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAsset(ctx context.Context, sel ast.SelectionSet, v FixedIncomeAsset) graphql.Marshaler {
+	return ec._FixedIncomeAsset(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFixedIncomeAsset2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAsset(ctx context.Context, sel ast.SelectionSet, v *FixedIncomeAsset) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FixedIncomeAsset(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
@@ -5161,6 +5857,53 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐMarketPriceᚄ(ctx context.Context, sel ast.SelectionSet, v []*MarketPrice) graphql.Marshaler {
@@ -5596,6 +6339,69 @@ func (ec *executionContext) marshalOCrypto2ᚕᚖmyᚑusᚑstockᚑbackendᚋapp
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOFixedIncomeAsset2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAssetᚄ(ctx context.Context, sel ast.SelectionSet, v []*FixedIncomeAsset) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFixedIncomeAsset2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAsset(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
