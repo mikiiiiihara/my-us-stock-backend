@@ -11,25 +11,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockMarketPriceRepository の定義
-type MockMarketPriceRepository struct {
-    mock.Mock
-}
-
-func (m *MockMarketPriceRepository) FetchMarketPriceList(ctx context.Context, tickers []string) ([]marketPrice.MarketPriceDto, error) {
-    args := m.Called(ctx, tickers)
-    return args.Get(0).([]marketPrice.MarketPriceDto), args.Error(1)
-}
-
-func (m *MockMarketPriceRepository) FetchDividend(ctx context.Context, ticker string) (*marketPrice.DividendEntity, error) {
-	args := m.Called(ctx, ticker)
-	return args.Get(0).(*marketPrice.DividendEntity), args.Error(1)
-}
-
-
 // FetchMarketPriceList のテスト
 func TestFetchMarketPriceList(t *testing.T) {
-    mockRepo := new(MockMarketPriceRepository)
+    mockRepo := marketPrice.NewMockMarketPriceRepository()
     service := NewMarketPriceService(mockRepo)
 
     mockResponseBody := []marketPrice.MarketPriceDto{
@@ -53,7 +37,7 @@ func TestFetchMarketPriceList(t *testing.T) {
 
 // エラー発生時のテスト
 func TestFetchMarketPriceListError(t *testing.T) {
-    mockRepo := new(MockMarketPriceRepository)
+    mockRepo := marketPrice.NewMockMarketPriceRepository()
     service := NewMarketPriceService(mockRepo)
 
     tickers := []string{"INVALID"}

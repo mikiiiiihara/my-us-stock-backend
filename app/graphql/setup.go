@@ -4,14 +4,17 @@ import (
 	authService "my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/common/auth/logic"
 	"my-us-stock-backend/app/common/auth/validation"
+	"my-us-stock-backend/app/graphql/crypto"
 	"my-us-stock-backend/app/graphql/currency"
 	"my-us-stock-backend/app/graphql/generated"
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
 	"my-us-stock-backend/app/graphql/stock"
 	"my-us-stock-backend/app/graphql/user"
 
+	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
 	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
+	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
 
@@ -29,16 +32,18 @@ type CombinedResolver struct {
 
 
 // Handler は GraphQL ハンドラをセットアップし、gin.HandlerFunc を返します
-func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver, usStockResolver *stock.Resolver) gin.HandlerFunc {
+func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver, usStockResolver *stock.Resolver, cryptoResolver *crypto.Resolver) gin.HandlerFunc {
     queryResolver := &CustomQueryResolver{
         UserResolver:     userResolver,
         CurrencyResolver: currencyResolver,
         MarketPriceResolver: marketPriceResolver,
         UsStockResolver: usStockResolver,
+        CryptoResolver: cryptoResolver,
     }
     mutationResolver := &CustomMutationResolver{
         UserResolver: userResolver,
         UsStockResolver: usStockResolver,
+        CryptoResolver: cryptoResolver,
     }
     combinedResolver := &CombinedResolver{
         CustomQueryResolver: queryResolver,
@@ -60,7 +65,9 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     userRepo := repoUser.NewUserRepository(db)
     currencyRepo := repoCurrency.NewCurrencyRepository(nil)
     marketPriceRepo := repoMarketPrice.NewMarketPriceRepository(nil)
+    marketCryptoRepo := repoMarketCrypto.NewCryptoRepository(nil)
     usStockRepo := repoStock.NewUsStockRepository(db)
+    cryptoRepo := repoCrypto.NewCryptoRepository(db)
 
     // 認証機能
     userLogic := logic.NewUserLogic()
@@ -83,8 +90,12 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     
     usStockService := stock.NewUsStockService(usStockRepo, authService, marketPriceRepo)
     usStockResolver := stock.NewResolver(usStockService)
+
+    cryptoService := crypto.NewCryptoService(cryptoRepo, authService, marketCryptoRepo)
+    cryptoResolver := crypto.NewResolver(cryptoService)
+
     // GraphQLエンドポイントへのルート設定
-    r.POST("/graphql", GinContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver))
+    r.POST("/graphql", GinContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver, cryptoResolver))
     r.GET("/graphql", PlaygroundHandler())
 }
 // Playgroundハンドラ関数

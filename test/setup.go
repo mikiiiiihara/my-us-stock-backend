@@ -16,5 +16,8 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	}
 	db.AutoMigrate(&model.User{})
 	db.AutoMigrate(&model.UsStock{})
+	db.AutoMigrate(&model.Crypto{})
+	db.AutoMigrate(&model.FixedIncomeAsset{})
+	db.AutoMigrate(&model.JapanFund{})
 	return db
 }

@@ -5,12 +5,15 @@ import (
 	"my-us-stock-backend/app/common/auth/logic"
 	"my-us-stock-backend/app/common/auth/validation"
 	"my-us-stock-backend/app/graphql"
+	"my-us-stock-backend/app/graphql/crypto"
 	serviceCurrency "my-us-stock-backend/app/graphql/currency"
 	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
 	serviceStock "my-us-stock-backend/app/graphql/stock"
 	serviceUser "my-us-stock-backend/app/graphql/user"
+	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
 	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
+	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"net/http"
@@ -25,7 +28,9 @@ type SetupOptions struct {
     CurrencyRepo      repoCurrency.CurrencyRepository
     UserRepo          repoUser.UserRepository
     MarketPriceRepo   repoMarketPrice.MarketPriceRepository
+    MarketCryptoRepo   repoMarketCrypto.CryptoRepository
     UsStockRepo   repoStock.UsStockRepository
+    CryptoRepo   repoCrypto.CryptoRepository
 }
 
 // SetupGraphQLServer - GraphQLサーバーのセットアップ
@@ -33,7 +38,9 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     var currencyRepo repoCurrency.CurrencyRepository
     var userRepo repoUser.UserRepository
     var marketPriceRepo repoMarketPrice.MarketPriceRepository
+    var marketCryptoRepo repoMarketCrypto.CryptoRepository
     var usStockRepo repoStock.UsStockRepository
+    var cryptoRepo repoCrypto.CryptoRepository
 
     // optsがnilでない場合にのみ、各リポジトリを設定
     if opts != nil {
@@ -53,6 +60,11 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     if usStockRepo == nil {
         usStockRepo = repoStock.NewUsStockRepository(db)
     }
+
+    if cryptoRepo == nil {
+        cryptoRepo = repoCrypto.NewCryptoRepository(db)
+    }
+
     if marketPriceRepo == nil {
         // 注意: ここでは opts が nil の可能性があるため、opts.MockHTTPClient の前に nil チェックが必要
         var httpClient *http.Client
@@ -61,6 +73,16 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
         }
         marketPriceRepo = repoMarketPrice.NewMarketPriceRepository(httpClient)
     }
+
+    if marketCryptoRepo == nil {
+        // 注意: ここでは opts が nil の可能性があるため、opts.MockHTTPClient の前に nil チェックが必要
+        var httpClient *http.Client
+        if opts != nil {
+            httpClient = opts.MockHTTPClient
+        }
+        marketCryptoRepo = repoMarketCrypto.NewCryptoRepository(httpClient)
+    }
+
     // 認証機能
     userLogic := logic.NewUserLogic()
     responseLogic := logic.NewResponseLogic()
@@ -81,11 +103,14 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     usStockService := serviceStock.NewUsStockService(usStockRepo, authService,marketPriceRepo)
     usStockResolver := serviceStock.NewResolver(usStockService)
 
+    cryptoService := crypto.NewCryptoService(cryptoRepo, authService, marketCryptoRepo)
+    cryptoResolver := crypto.NewResolver(cryptoService)
+
   
     // Ginのルーターを初期化
     r := gin.Default()
     // GraphQLのエンドポイントを設定
-    r.POST("/graphql", graphql.GinContextToGraphQLMiddleware(), graphql.Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver))
+    r.POST("/graphql", graphql.GinContextToGraphQLMiddleware(), graphql.Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver, cryptoResolver))
 
     return r
 }

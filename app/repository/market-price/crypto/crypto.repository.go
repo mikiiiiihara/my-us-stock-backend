@@ -11,7 +11,7 @@ import (
 
 // CryptoRepository は仮想通貨の価格を取得するためのインターフェースです。
 type CryptoRepository interface {
-    FetchCryptoPrice(ticker CryptoTicker) (*Crypto, error)
+    FetchCryptoPrice(code string) (*Crypto, error)
 }
 
 // DefaultCryptoRepository は CryptoRepository のデフォルト実装です。
@@ -33,8 +33,8 @@ func NewCryptoRepository(client *http.Client) *DefaultCryptoRepository {
 }
 
 // FetchCryptoPrice は指定された仮想通貨の価格を取得します。
-func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*Crypto, error) {
-    url := fmt.Sprintf("%s/%s_jpy/ticker", repo.cryptoURL, ticker)
+func (repo *DefaultCryptoRepository) FetchCryptoPrice(code string) (*Crypto, error) {
+    url := fmt.Sprintf("%s/%s_jpy/ticker", repo.cryptoURL, code)
     resp, err := repo.httpClient.Get(url)
     if err != nil {
         return nil, err
@@ -58,7 +58,7 @@ func (repo *DefaultCryptoRepository) FetchCryptoPrice(ticker CryptoTicker) (*Cry
     }
 
     return &Crypto{
-        Name:  string(ticker),
+        Name:  string(code),
         Price: price,
     }, nil
 }

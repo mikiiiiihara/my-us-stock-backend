@@ -6,11 +6,13 @@ type Query {
   getCurrentUsdJpy: Float!
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
   usStocks: [UsStock!]
+  cryptos: [Crypto!]
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
+  createCrypto(input: CreateCryptoInput!): Crypto!
 }
 
 # ユーザー情報を表す型
@@ -53,6 +55,24 @@ input CreateUsStockInput {
   購入時為替
   """
   usdJpy: Float!
+}
+
+# 仮想通貨作成時の入力型
+input CreateCryptoInput {
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
 }
 
 # マーケットの価格情報を表す型
@@ -126,4 +146,29 @@ type UsStock {
   変化率
   """
   currentRate: Float!
+}
+
+# 仮想通貨情報を表す型
+type Crypto {
+  id: ID!
+
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
+
+  """
+  現在価格
+  """
+  currentPrice: Float!
 }

@@ -45,6 +45,14 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Crypto struct {
+		Code         func(childComplexity int) int
+		CurrentPrice func(childComplexity int) int
+		GetPrice     func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Quantity     func(childComplexity int) int
+	}
+
 	MarketPrice struct {
 		CurrentPrice func(childComplexity int) int
 		CurrentRate  func(childComplexity int) int
@@ -53,11 +61,13 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateCrypto  func(childComplexity int, input CreateCryptoInput) int
 		CreateUsStock func(childComplexity int, input CreateUsStockInput) int
 		CreateUser    func(childComplexity int, input CreateUserInput) int
 	}
 
 	Query struct {
+		Cryptos          func(childComplexity int) int
 		GetCurrentUsdJpy func(childComplexity int) int
 		GetMarketPrices  func(childComplexity int, tickerList []*string) int
 		UsStocks         func(childComplexity int) int
@@ -88,12 +98,14 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (*User, error)
 	CreateUsStock(ctx context.Context, input CreateUsStockInput) (*UsStock, error)
+	CreateCrypto(ctx context.Context, input CreateCryptoInput) (*Crypto, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context) (*User, error)
 	GetCurrentUsdJpy(ctx context.Context) (float64, error)
 	GetMarketPrices(ctx context.Context, tickerList []*string) ([]*MarketPrice, error)
 	UsStocks(ctx context.Context) ([]*UsStock, error)
+	Cryptos(ctx context.Context) ([]*Crypto, error)
 }
 
 type executableSchema struct {
@@ -114,6 +126,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Crypto.code":
+		if e.complexity.Crypto.Code == nil {
+			break
+		}
+
+		return e.complexity.Crypto.Code(childComplexity), true
+
+	case "Crypto.currentPrice":
+		if e.complexity.Crypto.CurrentPrice == nil {
+			break
+		}
+
+		return e.complexity.Crypto.CurrentPrice(childComplexity), true
+
+	case "Crypto.getPrice":
+		if e.complexity.Crypto.GetPrice == nil {
+			break
+		}
+
+		return e.complexity.Crypto.GetPrice(childComplexity), true
+
+	case "Crypto.id":
+		if e.complexity.Crypto.ID == nil {
+			break
+		}
+
+		return e.complexity.Crypto.ID(childComplexity), true
+
+	case "Crypto.quantity":
+		if e.complexity.Crypto.Quantity == nil {
+			break
+		}
+
+		return e.complexity.Crypto.Quantity(childComplexity), true
 
 	case "MarketPrice.currentPrice":
 		if e.complexity.MarketPrice.CurrentPrice == nil {
@@ -143,6 +190,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MarketPrice.Ticker(childComplexity), true
 
+	case "Mutation.createCrypto":
+		if e.complexity.Mutation.CreateCrypto == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCrypto_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCrypto(childComplexity, args["input"].(CreateCryptoInput)), true
+
 	case "Mutation.createUsStock":
 		if e.complexity.Mutation.CreateUsStock == nil {
 			break
@@ -166,6 +225,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(CreateUserInput)), true
+
+	case "Query.cryptos":
+		if e.complexity.Query.Cryptos == nil {
+			break
+		}
+
+		return e.complexity.Query.Cryptos(childComplexity), true
 
 	case "Query.getCurrentUsdJpy":
 		if e.complexity.Query.GetCurrentUsdJpy == nil {
@@ -306,6 +372,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateCryptoInput,
 		ec.unmarshalInputCreateUsStockInput,
 		ec.unmarshalInputCreateUserInput,
 	)
@@ -413,11 +480,13 @@ type Query {
   getCurrentUsdJpy: Float!
   getMarketPrices(tickerList: [String]!): [MarketPrice!]!
   usStocks: [UsStock!]
+  cryptos: [Crypto!]
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
+  createCrypto(input: CreateCryptoInput!): Crypto!
 }
 
 # ユーザー情報を表す型
@@ -460,6 +529,24 @@ input CreateUsStockInput {
   購入時為替
   """
   usdJpy: Float!
+}
+
+# 仮想通貨作成時の入力型
+input CreateCryptoInput {
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
 }
 
 # マーケットの価格情報を表す型
@@ -534,6 +621,31 @@ type UsStock {
   """
   currentRate: Float!
 }
+
+# 仮想通貨情報を表す型
+type Crypto {
+  id: ID!
+
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
+
+  """
+  現在価格
+  """
+  currentPrice: Float!
+}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -541,6 +653,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createCrypto_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateCryptoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateCryptoInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateCryptoInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createUsStock_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -639,6 +766,226 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Crypto_id(ctx context.Context, field graphql.CollectedField, obj *Crypto) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Crypto_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Crypto_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Crypto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Crypto_code(ctx context.Context, field graphql.CollectedField, obj *Crypto) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Crypto_code(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Crypto_code(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Crypto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Crypto_getPrice(ctx context.Context, field graphql.CollectedField, obj *Crypto) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Crypto_getPrice(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GetPrice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Crypto_getPrice(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Crypto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Crypto_quantity(ctx context.Context, field graphql.CollectedField, obj *Crypto) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Crypto_quantity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Quantity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Crypto_quantity(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Crypto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Crypto_currentPrice(ctx context.Context, field graphql.CollectedField, obj *Crypto) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Crypto_currentPrice(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentPrice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Crypto_currentPrice(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Crypto",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _MarketPrice_ticker(ctx context.Context, field graphql.CollectedField, obj *MarketPrice) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MarketPrice_ticker(ctx, field)
@@ -955,6 +1302,73 @@ func (ec *executionContext) fieldContext_Mutation_createUsStock(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createCrypto(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCrypto(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCrypto(rctx, fc.Args["input"].(CreateCryptoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*Crypto)
+	fc.Result = res
+	return ec.marshalNCrypto2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCrypto(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCrypto(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Crypto_id(ctx, field)
+			case "code":
+				return ec.fieldContext_Crypto_code(ctx, field)
+			case "getPrice":
+				return ec.fieldContext_Crypto_getPrice(ctx, field)
+			case "quantity":
+				return ec.fieldContext_Crypto_quantity(ctx, field)
+			case "currentPrice":
+				return ec.fieldContext_Crypto_currentPrice(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Crypto", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCrypto_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_user(ctx, field)
 	if err != nil {
@@ -1173,6 +1587,59 @@ func (ec *executionContext) fieldContext_Query_usStocks(ctx context.Context, fie
 				return ec.fieldContext_UsStock_currentRate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UsStock", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_cryptos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_cryptos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Cryptos(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*Crypto)
+	fc.Result = res
+	return ec.marshalOCrypto2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCryptoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_cryptos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Crypto_id(ctx, field)
+			case "code":
+				return ec.fieldContext_Crypto_code(ctx, field)
+			case "getPrice":
+				return ec.fieldContext_Crypto_getPrice(ctx, field)
+			case "quantity":
+				return ec.fieldContext_Crypto_quantity(ctx, field)
+			case "currentPrice":
+				return ec.fieldContext_Crypto_currentPrice(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Crypto", field.Name)
 		},
 	}
 	return fc, nil
@@ -3696,6 +4163,47 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateCryptoInput(ctx context.Context, obj interface{}) (CreateCryptoInput, error) {
+	var it CreateCryptoInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"code", "getPrice", "quantity"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "code":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Code = data
+		case "getPrice":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("getPrice"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GetPrice = data
+		case "quantity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantity"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Quantity = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUsStockInput(ctx context.Context, obj interface{}) (CreateUsStockInput, error) {
 	var it CreateUsStockInput
 	asMap := map[string]interface{}{}
@@ -3793,6 +4301,65 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 
 // region    **************************** object.gotpl ****************************
 
+var cryptoImplementors = []string{"Crypto"}
+
+func (ec *executionContext) _Crypto(ctx context.Context, sel ast.SelectionSet, obj *Crypto) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cryptoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Crypto")
+		case "id":
+			out.Values[i] = ec._Crypto_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "code":
+			out.Values[i] = ec._Crypto_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "getPrice":
+			out.Values[i] = ec._Crypto_getPrice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "quantity":
+			out.Values[i] = ec._Crypto_quantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "currentPrice":
+			out.Values[i] = ec._Crypto_currentPrice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var marketPriceImplementors = []string{"MarketPrice"}
 
 func (ec *executionContext) _MarketPrice(ctx context.Context, sel ast.SelectionSet, obj *MarketPrice) graphql.Marshaler {
@@ -3873,6 +4440,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createUsStock":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUsStock(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createCrypto":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCrypto(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3992,6 +4566,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_usStocks(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "cryptos":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_cryptos(ctx, field)
 				return res
 			}
 
@@ -4511,6 +5104,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateCryptoInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateCryptoInput(ctx context.Context, v interface{}) (CreateCryptoInput, error) {
+	res, err := ec.unmarshalInputCreateCryptoInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateUsStockInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUsStockInput(ctx context.Context, v interface{}) (CreateUsStockInput, error) {
 	res, err := ec.unmarshalInputCreateUsStockInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4519,6 +5117,20 @@ func (ec *executionContext) unmarshalNCreateUsStockInput2myᚑusᚑstockᚑbacke
 func (ec *executionContext) unmarshalNCreateUserInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCreateUserInput(ctx context.Context, v interface{}) (CreateUserInput, error) {
 	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCrypto2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCrypto(ctx context.Context, sel ast.SelectionSet, v Crypto) graphql.Marshaler {
+	return ec._Crypto(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCrypto2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCrypto(ctx context.Context, sel ast.SelectionSet, v *Crypto) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Crypto(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
@@ -4937,6 +5549,53 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOCrypto2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCryptoᚄ(ctx context.Context, sel ast.SelectionSet, v []*Crypto) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCrypto2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐCrypto(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

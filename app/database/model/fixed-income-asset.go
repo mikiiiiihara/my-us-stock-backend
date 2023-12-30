@@ -1,8 +1,7 @@
 package model
 
 import (
-	"time"
-
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -13,6 +12,6 @@ type FixedIncomeAsset struct {
 	GetPriceTotal float64 `gorm:"type:float"`
 	DividendRate float64 `gorm:"type:float"`
 	UsdJpy   float64 `gorm:"type:float"`
-	PaymentDate time.Time  `gorm:"type:timestamp"`
+	PaymentMonth  pq.Int64Array `gorm:"type:int[]"`
 	UserId uint `gorm:"not null"`
 }
