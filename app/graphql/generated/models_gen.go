@@ -11,6 +11,19 @@ type CreateCryptoInput struct {
 	Quantity float64 `json:"quantity"`
 }
 
+type CreateFixedIncomeAssetInput struct {
+	// 資産名称
+	Code string `json:"code"`
+	// 取得価格合計
+	GetPriceTotal float64 `json:"getPriceTotal"`
+	// １年当たり配当利回り
+	DividendRate float64 `json:"dividendRate"`
+	// 購入時為替
+	UsdJpy *float64 `json:"usdJpy,omitempty"`
+	// 配当支払い月
+	PaymentMonth []int `json:"paymentMonth"`
+}
+
 type CreateUsStockInput struct {
 	// ティッカーシンボル
 	Code string `json:"code"`
@@ -39,6 +52,20 @@ type Crypto struct {
 	Quantity float64 `json:"quantity"`
 	// 現在価格
 	CurrentPrice float64 `json:"currentPrice"`
+}
+
+type FixedIncomeAsset struct {
+	ID string `json:"id"`
+	// 資産名称
+	Code string `json:"code"`
+	// 取得価格合計
+	GetPriceTotal float64 `json:"getPriceTotal"`
+	// １年当たり配当利回り
+	DividendRate float64 `json:"dividendRate"`
+	// 購入時為替
+	UsdJpy *float64 `json:"usdJpy,omitempty"`
+	// 配当支払い月
+	PaymentMonth []int `json:"paymentMonth"`
 }
 
 type MarketPrice struct {

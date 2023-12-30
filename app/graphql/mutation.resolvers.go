@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"my-us-stock-backend/app/graphql/crypto"
+	FixedIncomeAsset "my-us-stock-backend/app/graphql/fixed-income-asset"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/stock"
 	"my-us-stock-backend/app/graphql/user"
@@ -13,6 +14,7 @@ type CustomMutationResolver struct {
 	UserResolver     *user.Resolver
 	UsStockResolver *stock.Resolver
 	CryptoResolver *crypto.Resolver
+	FIxedIncomeAssetResolver *FixedIncomeAsset.Resolver
 }
 
 // Mutationメソッドの実装
@@ -30,4 +32,8 @@ func (r *CustomMutationResolver) CreateUsStock(ctx context.Context, input genera
 
 func (r *CustomMutationResolver) CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error) {
 	return r.CryptoResolver.CreateCrypto(ctx, input)
+}
+
+func (r *CustomMutationResolver) CreateFixedIncomeAsset(ctx context.Context, input generated.CreateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
+	return r.FIxedIncomeAssetResolver.CreateFixedIncomeAsset(ctx, input)
 }
