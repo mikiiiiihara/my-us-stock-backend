@@ -2,13 +2,13 @@ package stock
 
 import (
 	"context"
+	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/repository/assets/stock"
 	marketPrice "my-us-stock-backend/app/repository/market-price"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -38,40 +38,11 @@ func (m *MockUsStockRepository) DeleteUsStock(ctx context.Context, id uint) erro
 	return args.Error(1)
 }
 
-// MockAuthService は AuthService のモックです。
-type MockAuthService struct {
-	mock.Mock
-}
-
-func (m *MockAuthService) FetchUserIdAccessToken(ctx context.Context) (uint, error) {
-	args := m.Called(ctx)
-	return args.Get(0).(uint), args.Error(1)
-}
-
-func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
-    args := m.Called(c)
-    return args.String(0), args.Error(1)
-}
-
-func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*model.User, error) {
-    args := m.Called(ctx, c)
-    return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockAuthService) SignUp(ctx context.Context, c *gin.Context) (*model.User, error) {
-    args := m.Called(ctx, c)
-    return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, user *model.User, code int) {
-    m.Called(ctx, c, user, code)
-}
-
 // TestUsStocks は UsStocks メソッドのテストです。
 func TestUsStocksService(t *testing.T) {
 	mockStockRepo := new(MockUsStockRepository)
     mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
-	mockAuth := new(MockAuthService)
+	mockAuth := auth.NewMockAuthService()
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
 
 	// モックの期待値設定
@@ -117,7 +88,7 @@ func TestUsStocksService(t *testing.T) {
 func TestCreateUsStockService(t *testing.T) {
 	mockStockRepo := new(MockUsStockRepository)
     mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
-	mockAuth := new(MockAuthService)
+	mockAuth := auth.NewMockAuthService()
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
 
 	// モックの期待値設定

@@ -12,39 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockAuthService struct {
-    mock.Mock
-}
-
-func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*model.User, error) {
-    args := m.Called(ctx, c)
-    return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockAuthService) SignUp(ctx context.Context, c *gin.Context) (*model.User, error) {
-    args := m.Called(ctx, c)
-    return args.Get(0).(*model.User), args.Error(1)
-}
-
-func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, user *model.User, code int) {
-    m.Called(ctx, c, user, code)
-}
-
-func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
-    args := m.Called(c)
-    return args.String(0), args.Error(1)
-}
-
-// FetchUserIdAccessTokenのモックメソッド
-func (m *MockAuthService) FetchUserIdAccessToken(ctx context.Context) (uint, error) {
-    args := m.Called(ctx)
-    return args.Get(0).(uint), args.Error(1)
-}
-
-var _ auth.AuthService = (*MockAuthService)(nil)
-
 func TestAuthController_SignIn(t *testing.T) {
-    mockAuthService := new(MockAuthService)
+    mockAuthService := auth.NewMockAuthService()
     controller := NewAuthController(mockAuthService)
 
     mockUser := &model.User{Name: "Test User", Email: "test@example.com"}
@@ -59,7 +28,7 @@ func TestAuthController_SignIn(t *testing.T) {
 }
 
 func TestAuthController_SignUp(t *testing.T) {
-    mockAuthService := new(MockAuthService)
+    mockAuthService := auth.NewMockAuthService()
     controller := NewAuthController(mockAuthService)
 
     mockUser := &model.User{Name: "New User", Email: "newuser@example.com"}
@@ -74,7 +43,7 @@ func TestAuthController_SignUp(t *testing.T) {
 
 func TestAuthController_RefreshAccessToken(t *testing.T) {
     // MockAuthServiceのインスタンスを作成
-    mockAuthService := new(MockAuthService)
+    mockAuthService := auth.NewMockAuthService()
     controller := NewAuthController(mockAuthService)
 
     // モックのリフレッシュトークン

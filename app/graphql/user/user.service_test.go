@@ -2,47 +2,17 @@ package user
 
 import (
 	"context"
+	"my-us-stock-backend/app/common/auth"
 	userModel "my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 )
-
-// MockAuthServiceの定義
-type MockAuthService struct {
-    mock.Mock
-}
-
-func (m *MockAuthService) SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error) {
-    args := m.Called(ctx, c)
-    return args.Get(0).(*userModel.User), args.Error(1)
-}
-
-func (m *MockAuthService) SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error) {
-    args := m.Called(ctx, c)
-    return args.Get(0).(*userModel.User), args.Error(1)
-}
-
-func (m *MockAuthService) SendAuthResponse(ctx context.Context, c *gin.Context, user *userModel.User, code int) {
-    m.Called(ctx, c, user, code)
-}
-
-func (m *MockAuthService) RefreshAccessToken(c *gin.Context) (string, error) {
-    args := m.Called(c)
-    return args.String(0), args.Error(1)
-}
-
-// FetchUserIdAccessTokenのモックメソッド
-func (m *MockAuthService) FetchUserIdAccessToken(ctx context.Context) (uint, error) {
-    args := m.Called(ctx)
-    return args.Get(0).(uint), args.Error(1)
-}
 
 // MockUserRepository は UserRepository のモックです。
 type MockUserRepository struct {
@@ -83,7 +53,7 @@ var _ repoUser.UserRepository = (*MockUserRepository)(nil)
 // TestGetUserByID は GetUserByID メソッドのテストです。
 func TestGetUserByID(t *testing.T) {
     mockRepo := new(MockUserRepository)
-    mockAuth := new(MockAuthService)
+	mockAuth := auth.NewMockAuthService()
     service := NewUserService(mockRepo, mockAuth)
 
     // モックの期待値設定
@@ -117,7 +87,7 @@ func TestGetUserByID(t *testing.T) {
 // TestCreateUserService は CreateUser メソッドのテストです。
 func TestCreateUserService(t *testing.T) {
     mockRepo := new(MockUserRepository)
-    mockAuth := new(MockAuthService)
+	mockAuth := auth.NewMockAuthService()
     service := NewUserService(mockRepo, mockAuth)
 
     createUserInput := generated.CreateUserInput{
