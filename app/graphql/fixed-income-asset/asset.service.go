@@ -54,7 +54,7 @@ func (s *DefaultAssetService) FixedIncomeAssets(ctx context.Context) ([]*generat
 			Code: modelAsset.Code,
 			GetPriceTotal: modelAsset.GetPriceTotal,
 			DividendRate: modelAsset.DividendRate,
-			UsdJpy: &modelAsset.UsdJpy,
+			UsdJpy: modelAsset.UsdJpy,
 			PaymentMonth: paymentMonths, // Updated field
 		})
 	}
@@ -64,7 +64,12 @@ func (s *DefaultAssetService) FixedIncomeAssets(ctx context.Context) ([]*generat
 
 // CreateUser は新しいユーザーを作成します
 func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input generated.CreateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
-    // pq.Int64Array to []int conversion
+		// アクセストークンの検証
+		userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+		if userId == 0 {
+			return nil, utils.UnauthenticatedError("Invalid user ID")
+		}
+		// pq.Int64Array to []int conversion
 		paymentMonths := make([]int64, len(input.PaymentMonth))
 		for i, month := range input.PaymentMonth {
 			paymentMonths[i] = int64(month)
@@ -74,8 +79,9 @@ func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input 
         Code: input.Code,
 		GetPriceTotal: input.GetPriceTotal,
 		DividendRate: input.DividendRate,
-		UsdJpy: *input.UsdJpy,
+		UsdJpy: input.UsdJpy,
 		PaymentMonth: paymentMonths,
+		UserId: userId,
     }
     modelAsset, err := s.Repo.CreateFixedIncomeAsset(ctx, createDto)
     if err != nil {
@@ -91,7 +97,7 @@ func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input 
 		Code: modelAsset.Code,
 		GetPriceTotal: modelAsset.GetPriceTotal,
 		DividendRate: modelAsset.DividendRate,
-		UsdJpy: &modelAsset.UsdJpy,
+		UsdJpy: modelAsset.UsdJpy,
 		PaymentMonth: newPaymentMonths, // Updated field
 	}, nil
 }
