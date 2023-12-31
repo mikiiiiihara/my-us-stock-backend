@@ -29,7 +29,7 @@ func TestGetCurrentUsdJpy(t *testing.T) {
     mockService.On("FetchCurrentUsdJpy", mock.Anything).Return(expectedUsdJpy, nil)
 
     // テストの実行
-    result, err := resolver.GetCurrentUsdJpy(context.Background())
+    result, err := resolver.CurrentUsdJpy(context.Background())
 
     // アサーション
     assert.NoError(t, err)

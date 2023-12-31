@@ -13,6 +13,6 @@ func NewResolver(marketPriceService MarketPriceService) *Resolver {
     return &Resolver{MarketPriceService: marketPriceService}
 }
 
-func (r *Resolver) GetMarketPrices(ctx context.Context, tickers []string) ([]*generated.MarketPrice, error) {
+func (r *Resolver) MarketPrices(ctx context.Context, tickers []string) ([]*generated.MarketPrice, error) {
     return r.MarketPriceService.FetchMarketPriceList(ctx, tickers)
 }

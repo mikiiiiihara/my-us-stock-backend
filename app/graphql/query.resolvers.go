@@ -32,11 +32,11 @@ func (r *CustomQueryResolver) User(ctx context.Context) (*generated.User, error)
 	return r.UserResolver.User(ctx)
 }
 
-func (r *CustomQueryResolver) GetCurrentUsdJpy(ctx context.Context) (float64, error) {
-	return r.CurrencyResolver.GetCurrentUsdJpy(ctx)
+func (r *CustomQueryResolver) CurrentUsdJpy(ctx context.Context) (float64, error) {
+	return r.CurrencyResolver.CurrentUsdJpy(ctx)
 }
 
-func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*string) ([]*generated.MarketPrice, error) {
+func (r *CustomQueryResolver) MarketPrices(ctx context.Context, tickers []*string) ([]*generated.MarketPrice, error) {
     // 文字列スライスに変換
     tickerStrs := make([]string, len(tickers))
     for i, t := range tickers {
@@ -44,7 +44,7 @@ func (r *CustomQueryResolver) GetMarketPrices(ctx context.Context, tickers []*st
     }
 
     // サービスを呼び出して結果を取得
-    return r.MarketPriceResolver.GetMarketPrices(ctx, tickerStrs)
+    return r.MarketPriceResolver.MarketPrices(ctx, tickerStrs)
 }
 
 func (r *CustomQueryResolver) UsStocks(ctx context.Context) ([]*generated.UsStock, error) {

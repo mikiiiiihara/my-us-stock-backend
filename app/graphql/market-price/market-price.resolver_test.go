@@ -31,7 +31,7 @@ func TestGetMarketPrices(t *testing.T) {
     tickers := []string{"AAPL", "KO"}
     mockService.On("FetchMarketPriceList", mock.Anything, tickers).Return(mockMarketPrices, nil)
 
-    result, err := resolver.GetMarketPrices(context.Background(), tickers)
+    result, err := resolver.MarketPrices(context.Background(), tickers)
     
     assert.NoError(t, err)
     assert.Equal(t, mockMarketPrices, result)

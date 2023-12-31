@@ -3,8 +3,8 @@
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
   user: User
-  getCurrentUsdJpy: Float!
-  getMarketPrices(tickerList: [String]!): [MarketPrice!]!
+  currentUsdJpy: Float!
+  marketPrices(tickerList: [String]!): [MarketPrice!]!
   usStocks: [UsStock!]
   cryptos: [Crypto!]
   fixedIncomeAssets: [FixedIncomeAsset!]

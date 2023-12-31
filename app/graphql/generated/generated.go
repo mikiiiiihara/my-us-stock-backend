@@ -88,10 +88,10 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Cryptos           func(childComplexity int) int
+		CurrentUsdJpy     func(childComplexity int) int
 		FixedIncomeAssets func(childComplexity int) int
-		GetCurrentUsdJpy  func(childComplexity int) int
-		GetMarketPrices   func(childComplexity int, tickerList []*string) int
 		JapanFunds        func(childComplexity int) int
+		MarketPrices      func(childComplexity int, tickerList []*string) int
 		UsStocks          func(childComplexity int) int
 		User              func(childComplexity int) int
 	}
@@ -126,8 +126,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	User(ctx context.Context) (*User, error)
-	GetCurrentUsdJpy(ctx context.Context) (float64, error)
-	GetMarketPrices(ctx context.Context, tickerList []*string) ([]*MarketPrice, error)
+	CurrentUsdJpy(ctx context.Context) (float64, error)
+	MarketPrices(ctx context.Context, tickerList []*string) ([]*MarketPrice, error)
 	UsStocks(ctx context.Context) ([]*UsStock, error)
 	Cryptos(ctx context.Context) ([]*Crypto, error)
 	FixedIncomeAssets(ctx context.Context) ([]*FixedIncomeAsset, error)
@@ -367,6 +367,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Cryptos(childComplexity), true
 
+	case "Query.currentUsdJpy":
+		if e.complexity.Query.CurrentUsdJpy == nil {
+			break
+		}
+
+		return e.complexity.Query.CurrentUsdJpy(childComplexity), true
+
 	case "Query.fixedIncomeAssets":
 		if e.complexity.Query.FixedIncomeAssets == nil {
 			break
@@ -374,31 +381,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FixedIncomeAssets(childComplexity), true
 
-	case "Query.getCurrentUsdJpy":
-		if e.complexity.Query.GetCurrentUsdJpy == nil {
-			break
-		}
-
-		return e.complexity.Query.GetCurrentUsdJpy(childComplexity), true
-
-	case "Query.getMarketPrices":
-		if e.complexity.Query.GetMarketPrices == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getMarketPrices_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetMarketPrices(childComplexity, args["tickerList"].([]*string)), true
-
 	case "Query.japanFunds":
 		if e.complexity.Query.JapanFunds == nil {
 			break
 		}
 
 		return e.complexity.Query.JapanFunds(childComplexity), true
+
+	case "Query.marketPrices":
+		if e.complexity.Query.MarketPrices == nil {
+			break
+		}
+
+		args, err := ec.field_Query_marketPrices_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MarketPrices(childComplexity, args["tickerList"].([]*string)), true
 
 	case "Query.usStocks":
 		if e.complexity.Query.UsStocks == nil {
@@ -627,8 +627,8 @@ var sources = []*ast.Source{
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
   user: User
-  getCurrentUsdJpy: Float!
-  getMarketPrices(tickerList: [String]!): [MarketPrice!]!
+  currentUsdJpy: Float!
+  marketPrices(tickerList: [String]!): [MarketPrice!]!
   usStocks: [UsStock!]
   cryptos: [Crypto!]
   fixedIncomeAssets: [FixedIncomeAsset!]
@@ -1009,7 +1009,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getMarketPrices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_marketPrices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 []*string
@@ -2378,8 +2378,8 @@ func (ec *executionContext) fieldContext_Query_user(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getCurrentUsdJpy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getCurrentUsdJpy(ctx, field)
+func (ec *executionContext) _Query_currentUsdJpy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_currentUsdJpy(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2392,7 +2392,7 @@ func (ec *executionContext) _Query_getCurrentUsdJpy(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCurrentUsdJpy(rctx)
+		return ec.resolvers.Query().CurrentUsdJpy(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2409,7 +2409,7 @@ func (ec *executionContext) _Query_getCurrentUsdJpy(ctx context.Context, field g
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_getCurrentUsdJpy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_currentUsdJpy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2422,8 +2422,8 @@ func (ec *executionContext) fieldContext_Query_getCurrentUsdJpy(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getMarketPrices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getMarketPrices(ctx, field)
+func (ec *executionContext) _Query_marketPrices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_marketPrices(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2436,7 +2436,7 @@ func (ec *executionContext) _Query_getMarketPrices(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetMarketPrices(rctx, fc.Args["tickerList"].([]*string))
+		return ec.resolvers.Query().MarketPrices(rctx, fc.Args["tickerList"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2453,7 +2453,7 @@ func (ec *executionContext) _Query_getMarketPrices(ctx context.Context, field gr
 	return ec.marshalNMarketPrice2ᚕᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐMarketPriceᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_getMarketPrices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_marketPrices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2480,7 +2480,7 @@ func (ec *executionContext) fieldContext_Query_getMarketPrices(ctx context.Conte
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getMarketPrices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_marketPrices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5822,7 +5822,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getCurrentUsdJpy":
+		case "currentUsdJpy":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -5831,7 +5831,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getCurrentUsdJpy(ctx, field)
+				res = ec._Query_currentUsdJpy(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -5844,7 +5844,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getMarketPrices":
+		case "marketPrices":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -5853,7 +5853,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getMarketPrices(ctx, field)
+				res = ec._Query_marketPrices(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

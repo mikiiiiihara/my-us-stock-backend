@@ -76,7 +76,7 @@ func TestMarketPriceE2E(t *testing.T) {
 
 	// GraphQLリクエストの実行
 	query := `query {
-		getMarketPrices(tickerList: ["AAPL","KO"]){
+		marketPrices(tickerList: ["AAPL","KO"]){
 		  ticker
 		  currentPrice
 		  currentRate
@@ -96,7 +96,7 @@ func TestMarketPriceE2E(t *testing.T) {
                 CurrentPrice float64 `json:"currentPrice"`
                 PriceGets float64 `json:"priceGets"`
                 CurrentRate float64 `json:"currentRate"`
-            } `json:"getMarketPrices"`
+            } `json:"marketPrices"`
         } `json:"data"`
     }
 
