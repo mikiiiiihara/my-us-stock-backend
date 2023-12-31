@@ -8,6 +8,7 @@ import (
 
 	"my-us-stock-backend/app/database"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -31,6 +32,16 @@ func main() {
 
     // Gin HTTPサーバーの初期化
     r := gin.Default() // gin.Engineのインスタンスを初期化
+
+    clientURL := os.Getenv("CLIENT_URL")
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{clientURL},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:  86400,
+      }))
 
     // REST APIの設定
     rest.SetupREST(r, db)
