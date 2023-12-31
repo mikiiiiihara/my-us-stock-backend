@@ -8,11 +8,13 @@ import (
 	"my-us-stock-backend/app/graphql/crypto"
 	serviceCurrency "my-us-stock-backend/app/graphql/currency"
 	serviceFixedIncomeAsset "my-us-stock-backend/app/graphql/fixed-income-asset"
+	serviceJapanFund "my-us-stock-backend/app/graphql/japan-fund"
 	serviceMarketPrice "my-us-stock-backend/app/graphql/market-price"
 	serviceStock "my-us-stock-backend/app/graphql/stock"
 	serviceUser "my-us-stock-backend/app/graphql/user"
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
 	repoFixedIncome "my-us-stock-backend/app/repository/assets/fixed-income"
+	repoJapanFund "my-us-stock-backend/app/repository/assets/fund"
 	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
@@ -34,6 +36,7 @@ type SetupOptions struct {
     UsStockRepo   repoStock.UsStockRepository
     CryptoRepo   repoCrypto.CryptoRepository
     FixedIncomeAssetRepo repoFixedIncome.FixedIncomeRepository
+    JapanFundRepo repoJapanFund.JapanFundRepository
 }
 
 // SetupGraphQLServer - GraphQLサーバーのセットアップ
@@ -45,6 +48,7 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     var usStockRepo repoStock.UsStockRepository
     var cryptoRepo repoCrypto.CryptoRepository
     var fixedIncomeAssetRepo repoFixedIncome.FixedIncomeRepository
+    var japanFundRepo repoJapanFund.JapanFundRepository
 
     // optsがnilでない場合にのみ、各リポジトリを設定
     if opts != nil {
@@ -54,6 +58,7 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
         usStockRepo = opts.UsStockRepo
         cryptoRepo = opts.CryptoRepo
         fixedIncomeAssetRepo = opts.FixedIncomeAssetRepo
+        japanFundRepo = opts.JapanFundRepo
     }
 
     // 各リポジトリがまだnilの場合、デフォルトのリポジトリを使用
@@ -73,6 +78,10 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
 
     if fixedIncomeAssetRepo == nil {
         fixedIncomeAssetRepo = repoFixedIncome.NewFixedIncomeRepository(db)
+    }
+
+    if japanFundRepo == nil {
+        japanFundRepo = repoJapanFund.NewJapanFundRepository(db)
     }
 
     if marketPriceRepo == nil {
@@ -119,11 +128,14 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     fixedIncomeAssetService := serviceFixedIncomeAsset.NewAssetService(fixedIncomeAssetRepo, authService)
     fixedIncomeAssetResolver := serviceFixedIncomeAsset.NewResolver(fixedIncomeAssetService)
 
+    japanFundService := serviceJapanFund.NewJapanFundService(japanFundRepo, authService)
+    japanFundResolver := serviceJapanFund.NewResolver(japanFundService)
+
   
     // Ginのルーターを初期化
     r := gin.Default()
     // GraphQLのエンドポイントを設定
-    r.POST("/graphql", graphql.GinContextToGraphQLMiddleware(), graphql.Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver, cryptoResolver,fixedIncomeAssetResolver))
+    r.POST("/graphql", graphql.GinContextToGraphQLMiddleware(), graphql.Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver, cryptoResolver,fixedIncomeAssetResolver,japanFundResolver))
 
     return r
 }

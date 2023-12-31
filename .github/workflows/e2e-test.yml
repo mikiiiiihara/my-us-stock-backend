@@ -1,0 +1,17 @@
+name: Execute Go E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e_test:
+    name: Execute Go E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Go E2E Tests
+        run: go test ./test/...

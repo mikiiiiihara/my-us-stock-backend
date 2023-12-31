@@ -8,6 +8,7 @@ type Query {
   usStocks: [UsStock!]
   cryptos: [Crypto!]
   fixedIncomeAssets: [FixedIncomeAsset!]
+  japanFunds: [JapanFund!]
 }
 
 type Mutation {
@@ -15,6 +16,7 @@ type Mutation {
   createUsStock(input: CreateUsStockInput!): UsStock!
   createCrypto(input: CreateCryptoInput!): Crypto!
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
+  createJapanFund(input: CreateJapanFundInput!): JapanFund!
 }
 
 # ユーザー情報を表す型
@@ -103,6 +105,29 @@ input CreateFixedIncomeAssetInput {
   配当支払い月
   """
   paymentMonth: [Int!]!
+}
+
+# 日本投資信託情報作成時の入力型
+input CreateJapanFundInput {
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  銘柄名
+  """
+  name: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  取得価格総額
+  """
+  getPriceTotal: Float!
 }
 
 # マーケットの価格情報を表す型
@@ -231,4 +256,34 @@ type FixedIncomeAsset {
   配当支払い月
   """
   paymentMonth: [Int!]!
+}
+
+# 日本投資信託情報作成時の入力型
+type JapanFund {
+  id: ID!
+
+  """
+  ティッカーシンボル
+  """
+  code: String!
+
+  """
+  銘柄名
+  """
+  name: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  取得価格総額
+  """
+  getPriceTotal: Float!
+
+  """
+  現在価格
+  """
+  currentPrice: Float!
 }

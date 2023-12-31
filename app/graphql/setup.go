@@ -8,12 +8,14 @@ import (
 	"my-us-stock-backend/app/graphql/currency"
 	fixedIncomeAsset "my-us-stock-backend/app/graphql/fixed-income-asset"
 	"my-us-stock-backend/app/graphql/generated"
+	japanFund "my-us-stock-backend/app/graphql/japan-fund"
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
 	"my-us-stock-backend/app/graphql/stock"
 	"my-us-stock-backend/app/graphql/user"
 
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
 	repoFixedIncome "my-us-stock-backend/app/repository/assets/fixed-income"
+	repoJapanFund "my-us-stock-backend/app/repository/assets/fund"
 	repoStock "my-us-stock-backend/app/repository/assets/stock"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
@@ -34,7 +36,7 @@ type CombinedResolver struct {
 
 
 // Handler は GraphQL ハンドラをセットアップし、gin.HandlerFunc を返します
-func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver, usStockResolver *stock.Resolver, cryptoResolver *crypto.Resolver, fixedIncomeAssetResolver *fixedIncomeAsset.Resolver) gin.HandlerFunc {
+func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,marketPriceResolver *marketPrice.Resolver, usStockResolver *stock.Resolver, cryptoResolver *crypto.Resolver, fixedIncomeAssetResolver *fixedIncomeAsset.Resolver, japanFundResolver *japanFund.Resolver) gin.HandlerFunc {
     queryResolver := &CustomQueryResolver{
         UserResolver:     userResolver,
         CurrencyResolver: currencyResolver,
@@ -42,12 +44,14 @@ func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,ma
         UsStockResolver: usStockResolver,
         CryptoResolver: cryptoResolver,
         FIxedIncomeAssetResolver: fixedIncomeAssetResolver,
+        JapanFundResolver: japanFundResolver,
     }
     mutationResolver := &CustomMutationResolver{
         UserResolver: userResolver,
         UsStockResolver: usStockResolver,
         CryptoResolver: cryptoResolver,
         FIxedIncomeAssetResolver: fixedIncomeAssetResolver,
+        JapanFundResolver: japanFundResolver,
     }
     combinedResolver := &CombinedResolver{
         CustomQueryResolver: queryResolver,
@@ -72,6 +76,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     marketCryptoRepo := repoMarketCrypto.NewCryptoRepository(nil)
     usStockRepo := repoStock.NewUsStockRepository(db)
     cryptoRepo := repoCrypto.NewCryptoRepository(db)
+    japanFundRepo := repoJapanFund.NewJapanFundRepository(db)
     fixedIncomeAssetRepo := repoFixedIncome.NewFixedIncomeRepository(db)
 
     // 認証機能
@@ -102,8 +107,11 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     fixedIncomeAssetService := fixedIncomeAsset.NewAssetService(fixedIncomeAssetRepo, authService)
     fixedIncomeAssetResolver := fixedIncomeAsset.NewResolver(fixedIncomeAssetService)
 
+    japanFundService := japanFund.NewJapanFundService(japanFundRepo, authService)
+    japanFundResolver := japanFund.NewResolver(japanFundService)
+
     // GraphQLエンドポイントへのルート設定
-    r.POST("/graphql", GinContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver, cryptoResolver,fixedIncomeAssetResolver))
+    r.POST("/graphql", GinContextToGraphQLMiddleware(), Handler(userResolver, currencyResolver, marketPriceResolver,usStockResolver, cryptoResolver,fixedIncomeAssetResolver, japanFundResolver))
     r.GET("/graphql", PlaygroundHandler())
 }
 // Playgroundハンドラ関数
