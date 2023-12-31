@@ -134,17 +134,52 @@ func (as *DefaultAuthService) SendAuthResponse(ctx context.Context, c *gin.Conte
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create refresh token"})
         return
     }
+    // 環境変数NODE_ENVを読み込む
+    env := os.Getenv("ENV")
 
-    // UserModelをUserResponseに変換する
-    userResponse := convertToUserResponse(user)
+    // 開発環境かどうかを判定
+    isDev := env == "development"
+  secure := !isDev
+  sameSiteValue := "Lax"
+  if !isDev {
+      sameSiteValue = "None"
+  }
 
-    // レスポンスにアクセストークンとリフレッシュトークンを含める
-    response := model.AuthResponse{
-        User:         userResponse,
-    }
-    // アクセストークンとリフレッシュトークンをクッキーとしてセット
-    c.SetCookie("access_token", accessToken, 0, "/", "", false, true)
-    c.SetCookie("refresh_token", refreshToken, 0, "/", "", false, true)
+  // アクセストークンとリフレッシュトークンをクッキーとしてセット
+  accessTokenCookie := &http.Cookie{
+      Name:     "access_token",
+      Value:    accessToken,
+      Path:     "/",
+      MaxAge:   3600,
+      Secure:   secure,
+      HttpOnly: true,
+      SameSite: http.SameSiteLaxMode,
+  }
+  refreshTokenCookie := &http.Cookie{
+      Name:     "refresh_token",
+      Value:    refreshToken,
+      Path:     "/",
+      MaxAge:   3600*24*30,
+      Secure:   secure,
+      HttpOnly: true,
+      SameSite: http.SameSiteLaxMode,
+  }
+
+  // Cookieをヘッダーに追加
+  http.SetCookie(c.Writer, accessTokenCookie)
+  http.SetCookie(c.Writer, refreshTokenCookie)
+
+  // SameSite属性をヘッダーに追加
+  c.Header("Set-Cookie", fmt.Sprintf("%s; SameSite=%s", accessTokenCookie.String(), sameSiteValue))
+  c.Header("Set-Cookie", fmt.Sprintf("%s; SameSite=%s", refreshTokenCookie.String(), sameSiteValue))
+
+        // UserModelをUserResponseに変換する
+        userResponse := convertToUserResponse(user)
+
+        // レスポンスにアクセストークンとリフレッシュトークンを含める
+        response := model.AuthResponse{
+            User:         userResponse,
+        }
     c.JSON(code, response)
 }
 
