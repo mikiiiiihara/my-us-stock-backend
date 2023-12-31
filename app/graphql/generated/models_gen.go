@@ -24,6 +24,17 @@ type CreateFixedIncomeAssetInput struct {
 	PaymentMonth []int `json:"paymentMonth"`
 }
 
+type CreateJapanFundInput struct {
+	// ティッカーシンボル
+	Code string `json:"code"`
+	// 銘柄名
+	Name string `json:"name"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 取得価格総額
+	GetPriceTotal float64 `json:"getPriceTotal"`
+}
+
 type CreateUsStockInput struct {
 	// ティッカーシンボル
 	Code string `json:"code"`
@@ -66,6 +77,20 @@ type FixedIncomeAsset struct {
 	UsdJpy *float64 `json:"usdJpy,omitempty"`
 	// 配当支払い月
 	PaymentMonth []int `json:"paymentMonth"`
+}
+
+type JapanFund struct {
+	ID string `json:"id"`
+	// ティッカーシンボル
+	Code string `json:"code"`
+	// 銘柄名
+	Name string `json:"name"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 取得価格総額
+	GetPriceTotal float64 `json:"getPriceTotal"`
+	// 現在価格
+	CurrentPrice float64 `json:"currentPrice"`
 }
 
 type MarketPrice struct {
