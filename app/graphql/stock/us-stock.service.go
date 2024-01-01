@@ -40,6 +40,10 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
+    // modelStocksが空の場合は空の配列を返却する
+	if len(modelStocks) == 0 {
+		return []*generated.UsStock{}, nil
+	}
     // 米国株の市場価格情報取得
     // (本来はfor文内で呼びたいが、外部APIコール数削減のため一度に呼んでいる)
     usStockCodes := make([]string, 0)

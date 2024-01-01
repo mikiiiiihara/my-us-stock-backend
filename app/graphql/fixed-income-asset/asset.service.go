@@ -36,7 +36,7 @@ func (s *DefaultAssetService) FixedIncomeAssets(ctx context.Context) ([]*generat
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
-	// modelCryptosが空の場合は空の配列を返却する
+	// modelAssetsが空の場合は空の配列を返却する
 	if len(modelAssets) == 0 {
 		return []*generated.FixedIncomeAsset{}, nil
 	}

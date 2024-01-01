@@ -36,7 +36,7 @@ func (s *DefaultJapanFundService) JapanFunds(ctx context.Context) ([]*generated.
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
-	// modelCryptosが空の場合は空の配列を返却する
+	// modelFundsが空の場合は空の配列を返却する
 	if len(modelFunds) == 0 {
 		return []*generated.JapanFund{}, nil
 	}
