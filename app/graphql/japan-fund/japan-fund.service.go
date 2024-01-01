@@ -94,7 +94,7 @@ func getFundMarketPrice(code string) float64 {
 	case "全世界株":
 		return 21084.0
 	default:
-		return 20000.0
+		return 18905.0
 	
 	}
 }

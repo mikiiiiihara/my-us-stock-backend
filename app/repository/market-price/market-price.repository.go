@@ -110,8 +110,15 @@ func (repo *DefaultMarketPriceRepository) FetchDividend(ctx context.Context, tic
 
 // FetchDividend は指定された銘柄の配当情報を取得します。
 func (repo *DefaultMarketPriceRepository) fetchDividendApi(ctx context.Context, token string, ticker string) (*DividendResponse, error) {
-    // url := fmt.Sprintf("%s/v3/historical-price-full/stock_dividend/%s?apikey=%s", "http://localhost:8080/api", ticker, token)
-    url := fmt.Sprintf("%s/v3/historical-price-full/stock_dividend/%s?apikey=%s", repo.baseURL, ticker, token)
+    // 環境変数NODE_ENVを読み込む
+    env := os.Getenv("ENV")
+    // 開発環境かどうかを判定
+    isDev := env == "development"
+    baseURL := repo.baseURL
+    if isDev {
+        baseURL = "http://localhost:8080/api"
+    }
+    url := fmt.Sprintf("%s/v3/historical-price-full/stock_dividend/%s?apikey=%s", baseURL, ticker, token)
     resp, err := repo.httpClient.Get(url)
     if err != nil {
         return nil, err
