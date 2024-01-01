@@ -210,9 +210,30 @@ func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context) (string, error)
     if err != nil {
         return "", err
     }
+    // 環境変数NODE_ENVを読み込む
+    env := os.Getenv("ENV")
+
+    // 開発環境かどうかを判定
+    isDev := env == "development"
+    secure := !isDev
+    sameSiteValue := "Lax"
+    if !isDev {
+        sameSiteValue = "None"
+    }
+    accessTokenCookie := &http.Cookie{
+        Name:     "access_token",
+        Value:    newAccessToken,
+        Path:     "/",
+        MaxAge:   3600,
+        Secure:   secure,
+        HttpOnly: true,
+        SameSite: http.SameSiteLaxMode,
+    }
+      // Cookieをヘッダーに追加
+    http.SetCookie(c.Writer, accessTokenCookie)
 
     // 新たなaccessTokenをcookieにセット
-    c.SetCookie("access_token", newAccessToken, 0, "/", "", false, true)
+    c.Header("Set-Cookie", fmt.Sprintf("%s; SameSite=%s", accessTokenCookie.String(), sameSiteValue))
     return newAccessToken, nil
 }
 
