@@ -36,7 +36,7 @@ func (s *DefaultUserService) GetUserByID(ctx context.Context) (*generated.User, 
     }
     modelUser, err := s.Repo.FindUserByID(ctx, userId)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     return convertModelUserToGeneratedUser(modelUser), nil
 }
@@ -50,7 +50,7 @@ func (s *DefaultUserService) CreateUser(ctx context.Context, input generated.Cre
     }
     modelUser, err := s.Repo.CreateUser(ctx, createDto)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     return convertModelUserToGeneratedUser(modelUser), nil
 }

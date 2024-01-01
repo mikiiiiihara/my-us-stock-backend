@@ -38,7 +38,7 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
 
     modelStocks, err := s.StockRepo.FetchUsStockListById(ctx, userId)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     // 米国株の市場価格情報取得
     // (本来はfor文内で呼びたいが、外部APIコール数削減のため一度に呼んでいる)
@@ -48,7 +48,7 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
     }
     marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx,usStockCodes)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 
     type stockWithMarketPrice struct {
@@ -66,7 +66,7 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
         go func(ms *model.UsStock) {
             dividend, err := s.MarketPriceRepo.FetchDividend(ctx, ms.Code)
             if err != nil {
-                errChan <- err
+                errChan <- utils.DefaultGraphQLError(err.Error())
                 return
             }
 
@@ -103,7 +103,7 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
                 CurrentRate:  result.marketPrice.CurrentRate,
             })
         case err := <-errChan:
-            return nil, err
+            return nil, utils.DefaultGraphQLError(err.Error())
         }
     }
 
@@ -130,18 +130,18 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
 
     modelStock, err := s.StockRepo.CreateUsStock(ctx, createDto)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     // 配当情報取得
     dividend, err := s.MarketPriceRepo.FetchDividend(ctx, createDto.Code)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     // 市場価格取得
     var codeInput = []string{createDto.Code}
     marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, codeInput)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 	// 市場情報を追加して返却
 	return &generated.UsStock{

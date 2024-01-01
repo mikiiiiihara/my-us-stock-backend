@@ -3,6 +3,7 @@ package marketprice
 import (
 	"context"
 	"my-us-stock-backend/app/graphql/generated"
+	"my-us-stock-backend/app/graphql/utils"
 	repository "my-us-stock-backend/app/repository/market-price"
 )
 
@@ -21,7 +22,7 @@ func NewMarketPriceService(marketPriceRepo repository.MarketPriceRepository) Mar
 func (s *DefaultMarketPriceService) FetchMarketPriceList(ctx context.Context, tickers []string) ([]*generated.MarketPrice, error) {
     dtos, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, tickers)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 
     marketPrices := make([]*generated.MarketPrice,0)

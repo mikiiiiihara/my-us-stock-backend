@@ -34,7 +34,7 @@ func (s *DefaultJapanFundService) JapanFunds(ctx context.Context) ([]*generated.
     }
     modelFunds, err := s.Repo.FetchJapanFundListById(ctx, userId)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 	// modelCryptosが空の場合は空の配列を返却する
 	if len(modelFunds) == 0 {
@@ -74,7 +74,7 @@ func (s *DefaultJapanFundService) CreateJapanFund(ctx context.Context, input gen
     }
     modelFund, err := s.Repo.CreateJapanFund(ctx, createDto)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     return  &generated.JapanFund{
 		ID: utils.ConvertIdToString(modelFund.ID),

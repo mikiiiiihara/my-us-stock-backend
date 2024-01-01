@@ -24,3 +24,13 @@ func UnauthenticatedError(message string) *gqlerror.Error {
         },
     }
 }
+
+// GraphQLのデフォルトエラーレスポンス
+func DefaultGraphQLError(message string) *gqlerror.Error {
+    return &gqlerror.Error{
+        Message: message,
+        Extensions: map[string]interface{}{
+            "code": "INTERNAL_SERVER_ERROR",
+        },
+    }
+}

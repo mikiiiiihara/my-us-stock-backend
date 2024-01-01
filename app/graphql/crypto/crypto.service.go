@@ -38,7 +38,7 @@ func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.Crypto
 
     modelCryptos, err := s.Repo.FetchCryptoListById(ctx, userId)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 
     // modelCryptosが空の場合は空の配列を返却する
@@ -83,7 +83,7 @@ func (s *DefaultCryptoService) Cryptos(ctx context.Context) ([]*generated.Crypto
                 CurrentPrice: result.marketPrice.Price, // 外部APIから取得
             })
         case err := <-errChan:
-            return nil, err
+            return nil, utils.DefaultGraphQLError(err.Error())
         }
     }
 
@@ -108,12 +108,12 @@ func (s *DefaultCryptoService) CreateCrypto(ctx context.Context, input generated
 
     modelStock, err := s.Repo.CreateCrypto(ctx, createDto)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
     // 市場価格取得
     marketPrice, err := s.MarketPriceRepo.FetchCryptoPrice(createDto.Code)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 	// 市場情報を追加して返却
 	return &generated.Crypto{

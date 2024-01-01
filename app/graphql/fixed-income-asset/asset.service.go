@@ -34,7 +34,7 @@ func (s *DefaultAssetService) FixedIncomeAssets(ctx context.Context) ([]*generat
     }
     modelAssets, err := s.Repo.FetchFixedIncomeAssetListById(ctx, userId)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 	// modelCryptosが空の場合は空の配列を返却する
 	if len(modelAssets) == 0 {
@@ -85,7 +85,7 @@ func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input 
     }
     modelAsset, err := s.Repo.CreateFixedIncomeAsset(ctx, createDto)
     if err != nil {
-        return nil, err
+        return nil, utils.DefaultGraphQLError(err.Error())
     }
 	// pq.Int64Array to []int conversion
 	var newPaymentMonths = make([]int, len(modelAsset.PaymentMonth))
