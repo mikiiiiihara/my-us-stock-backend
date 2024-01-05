@@ -69,7 +69,7 @@ func TestJapanFundsService(t *testing.T) {
 	mockAuth.AssertExpectations(t)
 }
 
-// TestCreateUsStockService は TestCreateUsStock メソッドのテストです。
+// TestCreateJapanFundService は TestCreateJapanFund メソッドのテストです。
 func TestCreateJapanFundService(t *testing.T) {
 	mockRepo := new(MockJapanFundRepository)
 	mockAuth := auth.NewMockAuthService()
