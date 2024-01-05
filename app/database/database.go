@@ -22,6 +22,7 @@ func Connect() *gorm.DB {
 // モデルに基づいてテーブルを作成または更新
 func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&model.Crypto{})
+	db.AutoMigrate(&model.TotalAsset{})
 	db.AutoMigrate(&model.FixedIncomeAsset{})
 	db.AutoMigrate(&model.JapanFund{})
 	db.AutoMigrate(&model.UsStock{})
