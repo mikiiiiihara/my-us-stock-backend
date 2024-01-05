@@ -133,6 +133,7 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
 	}
 
     modelStock, err := s.StockRepo.CreateUsStock(ctx, createDto)
+    // すでに登録されていますの時はキャッチして、repo.updateを呼び出す
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
