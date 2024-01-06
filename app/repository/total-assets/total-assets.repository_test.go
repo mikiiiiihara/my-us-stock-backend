@@ -49,14 +49,20 @@ func TestFetchTotalAssetListById(t *testing.T) {
 }
 
 func TestFindTodayTotalAsset(t *testing.T) {
+    // テスト実行前にタイムゾーンをUTCに設定
+    time.Local = time.UTC
     db := setupTestDB()
     repo := NewTotalAssetRepository(db)
 
-    // 今日の日付を取得
-    today := time.Now().UTC().Format("2006-01-02")
-
     // テストデータの作成
-    asset := model.TotalAsset{UserId: 1, CashUsd: 1000}
+    currentUTC := time.Now().UTC()
+    asset := model.TotalAsset{
+        Model: gorm.Model{
+            CreatedAt: currentUTC,
+        },
+        UserId:  1,
+        CashUsd: 1000,
+    }
     db.Create(&asset)
 
     // 当日の資産総額を取得
@@ -64,7 +70,7 @@ func TestFindTodayTotalAsset(t *testing.T) {
     assert.NoError(t, err)
     assert.NotNil(t, foundAsset)
     assert.Equal(t, asset.UserId, foundAsset.UserId)
-    assert.Equal(t, today, foundAsset.CreatedAt.Format("2006-01-02"))
+    assert.Equal(t, currentUTC, foundAsset.CreatedAt)
 
     // 存在しないユーザーIDで検索
     _, err = repo.FindTodayTotalAsset(context.Background(), 999)
@@ -76,6 +82,8 @@ func TestFindTodayTotalAsset(t *testing.T) {
 
 // UpdateTotalAssetのテスト
 func TestUpdateTotalAsset(t *testing.T) {
+    // テスト実行前にタイムゾーンをUTCに設定
+    time.Local = time.UTC
     db := setupTestDB()
     repo := NewTotalAssetRepository(db)
 
@@ -104,6 +112,8 @@ func TestUpdateTotalAsset(t *testing.T) {
 
 // CreateTodayTotalAssetのテスト
 func TestCreateTodayTotalAsset(t *testing.T) {
+    // テスト実行前にタイムゾーンをUTCに設定
+    time.Local = time.UTC
     db := setupTestDB()
     repo := NewTotalAssetRepository(db)
 

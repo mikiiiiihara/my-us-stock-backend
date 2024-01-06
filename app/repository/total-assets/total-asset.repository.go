@@ -51,10 +51,13 @@ func (r *DefaultTotalAssetRepository) FetchTotalAssetListById(ctx context.Contex
 
 // 指定したuserIdのユーザーが保有する当日の資産総額を取得する
 func (r *DefaultTotalAssetRepository) FindTodayTotalAsset(ctx context.Context, userId uint) (*model.TotalAsset, error) {
-    // 現在の日付を取得
-    today := time.Now().UTC().Format("2006-01-02")
+    // 現在の日付の始まりと終わりをUTCで取得
+    now := time.Now().UTC()
+    todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+    todayEnd := todayStart.Add(24 * time.Hour)
+
     var asset model.TotalAsset
-    err := r.DB.Where("user_id = ? AND DATE(created_at) = ?", userId, today).First(&asset).Error
+    err := r.DB.Where("user_id = ? AND created_at >= ? AND created_at < ?", userId, todayStart, todayEnd).First(&asset).Error
     if err != nil {
         return nil, err
     }
