@@ -1,4 +1,4 @@
-package model
+package auth
 
 // SignInRequest ログインパラメータ
 type SignInRequest struct {

@@ -3,7 +3,6 @@ package graphql
 import (
 	authService "my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/common/auth/logic"
-	"my-us-stock-backend/app/common/auth/validation"
 	"my-us-stock-backend/app/graphql/crypto"
 	"my-us-stock-backend/app/graphql/currency"
 	fixedIncomeAsset "my-us-stock-backend/app/graphql/fixed-income-asset"
@@ -87,7 +86,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     userLogic := logic.NewUserLogic()
     responseLogic := logic.NewResponseLogic()
     jwtLogic := logic.NewJWTLogic()
-    authValidation := validation.NewAuthValidation()
+    authValidation := authService.NewAuthValidation()
 
     // 認証サービスの初期化
     authService := authService.NewAuthService(userRepo, userLogic, responseLogic, jwtLogic, authValidation)

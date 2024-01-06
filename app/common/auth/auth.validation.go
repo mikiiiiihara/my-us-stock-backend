@@ -1,15 +1,13 @@
-package validation
+package auth
 
 import (
-	"my-us-stock-backend/app/common/auth/model"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 type AuthValidation interface {
-	SignInValidate(signInRequest model.SignInRequest) error
-	SignUpValidate(signUpRequest model.SignUpRequest) error
+	SignInValidate(signInRequest SignInRequest) error
+	SignUpValidate(signUpRequest SignUpRequest) error
 }
 
 type authValidation struct{}
@@ -19,7 +17,7 @@ func NewAuthValidation() AuthValidation {
 }
 
 // SignInValidate ログインパラメータのバリデーション
-func (av *authValidation) SignInValidate(signInRequest model.SignInRequest) error {
+func (av *authValidation) SignInValidate(signInRequest SignInRequest) error {
 	return validation.ValidateStruct(&signInRequest,
 		validation.Field(
 			&signInRequest.Email,
@@ -37,7 +35,7 @@ func (av *authValidation) SignInValidate(signInRequest model.SignInRequest) erro
 }
 
 // SignUpValidate 会員登録パラメータのバリデーション
-func (av *authValidation) SignUpValidate(signUpRequest model.SignUpRequest) error {
+func (av *authValidation) SignUpValidate(signUpRequest SignUpRequest) error {
 	return validation.ValidateStruct(&signUpRequest,
 		validation.Field(
 			&signUpRequest.Name,

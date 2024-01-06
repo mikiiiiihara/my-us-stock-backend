@@ -24,14 +24,14 @@ type TotalAssetService interface {
 
 // DefaultTotalAssetService 構造体の定義
 type DefaultTotalAssetService struct {
-	totalAssetRepository repoTotalAsset.TotalAssetRepository
+	TotalAssetRepo repoTotalAsset.TotalAssetRepository
 	StockRepo stock.UsStockRepository // インターフェースを利用
 	MarketPriceRepo marketPrice.MarketPriceRepository
-	CurrencyRepository repoCurrency.CurrencyRepository
-	JapanFundRepository repoJapanFund.JapanFundRepository
-	CryptoRepository repoCrypto.CryptoRepository
-	FixedIncomeRepository repoFixedIncome.FixedIncomeRepository
-	MarketCryptoRepository repoMarketCrypto.CryptoRepository
+	CurrencyRepo repoCurrency.CurrencyRepository
+	JapanFundRepo repoJapanFund.JapanFundRepository
+	CryptoRepo repoCrypto.CryptoRepository
+	FixedIncomeRepo repoFixedIncome.FixedIncomeRepository
+	MarketCryptoRepo repoMarketCrypto.CryptoRepository
 }
 
 // DefaultTotalAssetService の新しいインスタンスを作成します
@@ -68,7 +68,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 			return "Internal Server Error", err
 		}
 		// 現在のドル円を取得
-		currentUsdJpy, err := ts.CurrencyRepository.FetchCurrentUsdJpy(ctx)
+		currentUsdJpy, err := ts.CurrencyRepo.FetchCurrentUsdJpy(ctx)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return "Internal Server Error", err
@@ -88,7 +88,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	}
 	// 日本投資信託の評価額を取得
 	var amountOfFund = 0.0
-	modelFunds, err := ts.JapanFundRepository.FetchJapanFundListById(ctx, uint(requestParam.UserId))
+	modelFunds, err := ts.JapanFundRepo.FetchJapanFundListById(ctx, uint(requestParam.UserId))
 	if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
@@ -103,7 +103,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 
 	// 仮想通貨の評価額を取得
 	var amountOfCrypto = 0.0
-	modelCryptos, err := ts.CryptoRepository.FetchCryptoListById(ctx, uint(requestParam.UserId))
+	modelCryptos, err := ts.CryptoRepo.FetchCryptoListById(ctx, uint(requestParam.UserId))
 	if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
@@ -113,7 +113,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 		// 仮想通貨の評価総額を計算
 		for _, modelCrypto := range modelCryptos {
 			// 現在価格を取得
-			cryptoPrice, err := ts.MarketCryptoRepository.FetchCryptoPrice(modelCrypto.Code)
+			cryptoPrice, err := ts.MarketCryptoRepo.FetchCryptoPrice(modelCrypto.Code)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return "Internal Server Error", err
@@ -124,7 +124,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 
 	// 固定利回り資産の評価額を取得
 	var amountOfFixedIncomeAsset= 0.0
-	modelAssets, err := ts.FixedIncomeRepository.FetchFixedIncomeAssetListById(ctx, uint(requestParam.UserId))
+	modelAssets, err := ts.FixedIncomeRepo.FetchFixedIncomeAssetListById(ctx, uint(requestParam.UserId))
 	if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
@@ -137,7 +137,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 		}
 	}
 	// 登録処理を行うか、すでに資産が登録されているか確認
-    totalAsset, err := ts.totalAssetRepository.FetchTotalAssetListById(ctx, uint(requestParam.UserId),1)
+    totalAsset, err := ts.TotalAssetRepo.FetchTotalAssetListById(ctx, uint(requestParam.UserId),1)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return  "Bad Request", err
@@ -154,7 +154,7 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 		}
 
 	// 当日分の資産総額を新規登録
-	_, err = ts.totalAssetRepository.CreateTodayTotalAsset(ctx, createDto)
+	_, err = ts.TotalAssetRepo.CreateTodayTotalAsset(ctx, createDto)
 	if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"my-us-stock-backend/app/common/auth/logic"
-	"my-us-stock-backend/app/common/auth/model"
-	"my-us-stock-backend/app/common/auth/validation"
 	userModel "my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/user"
@@ -34,17 +32,17 @@ type DefaultAuthService struct {
 	userLogic logic.UserLogic
 	responseLogic logic.ResponseLogic
 	jwtLogic logic.JWTLogic
-	authValidation validation.AuthValidation
+	authValidation AuthValidation
 }
 
 // NewAuthService は DefaultAuthService の新しいインスタンスを作成します
-func NewAuthService(ur user.UserRepository, ul logic.UserLogic, rl logic.ResponseLogic, jl logic.JWTLogic, av validation.AuthValidation) AuthService {
+func NewAuthService(ur user.UserRepository, ul logic.UserLogic, rl logic.ResponseLogic, jl logic.JWTLogic, av AuthValidation) AuthService {
 	return &DefaultAuthService{ur, ul, rl, jl, av}
 }
 
 // SignIn ログイン処理
 func (as *DefaultAuthService) SignIn(ctx context.Context, c *gin.Context) (*userModel.User, error) {
-    var signInRequestParam model.SignInRequest
+    var signInRequestParam SignInRequest
     if err := c.BindJSON(&signInRequestParam); err != nil {
         // JSONパースエラーが発生した場合、400 Bad Requestを返す
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -76,7 +74,7 @@ func (as *DefaultAuthService) SignIn(ctx context.Context, c *gin.Context) (*user
 
 // SignUp 会員登録処理
 func (as *DefaultAuthService) SignUp(ctx context.Context, c *gin.Context) (*userModel.User, error) {
-	var signUpRequestParam model.SignUpRequest
+	var signUpRequestParam SignUpRequest
     if err := c.BindJSON(&signUpRequestParam); err != nil {
         // JSONパースエラーが発生した場合、400 Bad Requestを返す
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -177,7 +175,7 @@ func (as *DefaultAuthService) SendAuthResponse(ctx context.Context, c *gin.Conte
         userResponse := convertToUserResponse(user)
 
         // レスポンスにアクセストークンとリフレッシュトークンを含める
-        response := model.AuthResponse{
+        response := AuthResponse{
             User:         userResponse,
         }
     c.JSON(code, response)
@@ -239,8 +237,8 @@ func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context) (string, error)
 
 
 // convertToUserResponse はUserModelをUserResponseに変換します
-func convertToUserResponse(user *userModel.User) model.UserResponse {
-    return model.UserResponse{
+func convertToUserResponse(user *userModel.User) UserResponse {
+    return UserResponse{
         Name:  user.Name,
         Email: user.Email,
         // 必要に応じて他のフィールドもマッピング

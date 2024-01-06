@@ -3,7 +3,6 @@ package rest
 import (
 	authService "my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/common/auth/logic"
-	"my-us-stock-backend/app/common/auth/validation"
 	repoUser "my-us-stock-backend/app/repository/user"
 
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
@@ -40,7 +39,7 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     userLogic := logic.NewUserLogic()
     responseLogic := logic.NewResponseLogic()
     jwtLogic := logic.NewJWTLogic()
-    authValidation := validation.NewAuthValidation()
+    authValidation := authService.NewAuthValidation()
 
     // RESTサービス、コントローラの初期化
     userRestService := user.NewUserService(userRepo)
