@@ -2,6 +2,7 @@ package totalassets
 
 import (
 	"context"
+	"math"
 	"net/http"
 
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
@@ -145,9 +146,9 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 		createDto := repoTotalAsset.CreateTotalAssetDto{
 			CashJpy: totalAsset[0].CashJpy,
 			CashUsd: totalAsset[0].CashUsd,
-		 	Stock: amountOfStock,
-			Fund: amountOfFund,
-			Crypto: amountOfCrypto,
+			Stock: math.Round(amountOfStock),
+			Fund: math.Round(amountOfFund),
+			Crypto: math.Round(amountOfCrypto),
 			FixedIncomeAsset: amountOfFixedIncomeAsset,
 			UserId: uint(requestParam.UserId),
 		}
