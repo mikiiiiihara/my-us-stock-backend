@@ -11,7 +11,8 @@ import (
 
 // TotalAssetRepository インターフェースの定義
 type TotalAssetRepository interface {
-	FetchTotalAssetListById(ctx context.Context, userId uint) ([]model.TotalAsset, error)
+	FetchTotalAssetListById(ctx context.Context, userId uint, day int) ([]model.TotalAsset, error)
+    FindTodayTotalAsset(ctx context.Context, userId uint) (*model.TotalAsset, error)
     UpdateTotalAsset(ctx context.Context, dto UpdateTotalAssetDto) (*model.TotalAsset, error)
 	CreateTodayTotalAsset(ctx context.Context, dto CreateTotalAssetDto) (*model.TotalAsset, error)
 }
@@ -27,13 +28,37 @@ func NewTotalAssetRepository(db *gorm.DB) TotalAssetRepository {
 }
 
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
-func (r *DefaultTotalAssetRepository) FetchTotalAssetListById(ctx context.Context, userId uint) ([]model.TotalAsset, error) {
+func (r *DefaultTotalAssetRepository) FetchTotalAssetListById(ctx context.Context, userId uint, day int) ([]model.TotalAsset, error) {
     var assets []model.TotalAsset
-    err := r.DB.Where("user_id = ?", userId).Find(&assets).Error
+
+    // クエリビルダーの作成
+    query := r.DB.Where("user_id = ?", userId).Order("created_at desc")
+
+    // dayが0でなければLimitを設定
+    if day != 0 {
+        query = query.Limit(day)
+    }
+
+    // クエリの実行
+    err := query.Find(&assets).Error
     if err != nil {
         return nil, err
     }
+
     return assets, nil
+}
+
+
+// 指定したuserIdのユーザーが保有する当日の資産総額を取得する
+func (r *DefaultTotalAssetRepository) FindTodayTotalAsset(ctx context.Context, userId uint) (*model.TotalAsset, error) {
+    // 現在の日付を取得
+    today := time.Now().UTC().Format("2006-01-02")
+    var asset model.TotalAsset
+    err := r.DB.Where("user_id = ? AND DATE(created_at) = ?", userId, today).First(&asset).Error
+    if err != nil {
+        return nil, err
+    }
+    return &asset, nil
 }
 
 // 米国株式情報を更新します
@@ -54,6 +79,9 @@ func (r *DefaultTotalAssetRepository) UpdateTotalAsset(ctx context.Context, dto 
     }
     if dto.Stock != nil {
         newAsset["stock"] = dto.Stock
+    }
+    if dto.Fund != nil {
+        newAsset["fund"] = dto.Fund
     }
     if dto.Crypto != nil {
         newAsset["crypto"] = dto.Crypto
@@ -77,26 +105,22 @@ func (r *DefaultTotalAssetRepository) UpdateTotalAsset(ctx context.Context, dto 
     return &asset, nil
 }
 
-// 米国株式情報を作成します
+// 当日の資産総額情報を作成します
 func (r *DefaultTotalAssetRepository) CreateTodayTotalAsset(ctx context.Context, dto CreateTotalAssetDto) (*model.TotalAsset, error) {
-    // 現在の日付を取得
-    today := time.Now().UTC().Format("2006-01-02")
-
-    // 同じ日付で同じユーザーのレコードが存在するか確認
-    var existingAsset model.TotalAsset
-    if err := r.DB.Where("user_id = ? AND DATE(created_at) = ?", dto.UserId, today).First(&existingAsset).Error; err == nil {
+    // FindTodayTotalAssetメソッドを使用して、同じ日付で同じユーザーのレコードが存在するか確認
+    if existingAsset, err := r.FindTodayTotalAsset(ctx, dto.UserId); err == nil && existingAsset != nil {
         // レコードが存在する場合、エラーを返す
         return nil, errors.New("既に資産が登録されています。新規追加ではなく更新を行ってください。")
-    } else if !errors.Is(err, gorm.ErrRecordNotFound) {
-        // 他のエラーが発生した場合
+    } else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+        // GORMのErrRecordNotFound以外のエラーが発生した場合
         return nil, err
     }
-
 
     newAsset := &model.TotalAsset{
         CashJpy:   dto.CashJpy,
         CashUsd:   dto.CashUsd,
         Stock:   dto.Stock,
+        Fund: dto.Fund,
         Crypto:   dto.Crypto,
         FixedIncomeAsset: dto.FixedIncomeAsset,
         UserId:   dto.UserId,

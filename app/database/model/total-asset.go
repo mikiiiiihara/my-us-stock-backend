@@ -10,6 +10,7 @@ type TotalAsset struct {
 	CashJpy float64 `gorm:"type:float"`// 円ベースで登録
 	CashUsd float64 `gorm:"type:float"` // ドルベースで登録
 	Stock float64 `gorm:"type:float"`// 円ベースで登録
+	Fund float64 `gorm:"type:float"`// 円ベースで登録
 	Crypto float64 `gorm:"type:float"`// 円ベースで登録
 	FixedIncomeAsset float64 `gorm:"type:float"`// 円ベースで登録
 	UserId uint `gorm:"not null"`

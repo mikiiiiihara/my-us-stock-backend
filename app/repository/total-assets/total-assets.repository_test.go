@@ -4,6 +4,7 @@ import (
 	"context"
 	"my-us-stock-backend/app/database/model"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
@@ -33,18 +34,44 @@ func TestFetchTotalAssetListById(t *testing.T) {
     db.Create(&asset)
 
     // 正常に取得できることを確認
-    assets, err := repo.FetchTotalAssetListById(context.Background(), asset.UserId)
+    assets, err := repo.FetchTotalAssetListById(context.Background(), asset.UserId, 7)
     assert.NoError(t, err)
     assert.NotEmpty(t, assets)
     assert.Equal(t, asset.UserId, assets[0].UserId)
     assert.Equal(t, asset.CashUsd, assets[0].CashUsd)
 
     // 存在しないユーザーIDで検索
-    emptyAssets, err := repo.FetchTotalAssetListById(context.Background(), 999)
+    emptyAssets, err := repo.FetchTotalAssetListById(context.Background(), 999, 7)
     assert.NoError(t, err)
     assert.Empty(t, emptyAssets)
 	// DB初期化
 	db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
+}
+
+func TestFindTodayTotalAsset(t *testing.T) {
+    db := setupTestDB()
+    repo := NewTotalAssetRepository(db)
+
+    // 今日の日付を取得
+    today := time.Now().UTC().Format("2006-01-02")
+
+    // テストデータの作成
+    asset := model.TotalAsset{UserId: 1, CashUsd: 1000}
+    db.Create(&asset)
+
+    // 当日の資産総額を取得
+    foundAsset, err := repo.FindTodayTotalAsset(context.Background(), asset.UserId)
+    assert.NoError(t, err)
+    assert.NotNil(t, foundAsset)
+    assert.Equal(t, asset.UserId, foundAsset.UserId)
+    assert.Equal(t, today, foundAsset.CreatedAt.Format("2006-01-02"))
+
+    // 存在しないユーザーIDで検索
+    _, err = repo.FindTodayTotalAsset(context.Background(), 999)
+    assert.Error(t, err)
+
+    // DB初期化
+    db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
 }
 
 // UpdateTotalAssetのテスト

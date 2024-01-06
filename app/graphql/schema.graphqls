@@ -1,4 +1,5 @@
 # GraphQLスキーマ定義 - graphql/schema.graphqls
+scalar Date
 
 type Query {
   # ユーザー情報をIDに基づいて取得するクエリ
@@ -9,12 +10,13 @@ type Query {
   cryptos: [Crypto!]
   fixedIncomeAssets: [FixedIncomeAsset!]
   japanFunds: [JapanFund!]
+  totalAssets(day: Int!): [TotalAsset!]
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
-  updateUsStock(input: UpdateUsStockInput!): UsStock!
+  # updateUsStock(input: UpdateUsStockInput!): UsStock!
   createCrypto(input: CreateCryptoInput!): Crypto!
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
   createJapanFund(input: CreateJapanFundInput!): JapanFund!
@@ -325,4 +327,44 @@ type JapanFund {
   現在価格
   """
   currentPrice: Float!
+}
+
+# 資産総額情報を表す型
+type TotalAsset {
+  id: ID!
+
+  """
+  保有円
+  """
+  cashJpy: Float!
+
+  """
+  保有ドル
+  """
+  cashUsd: Float!
+
+  """
+  保有株式
+  """
+  stock: Float!
+
+  """
+  保有投資信託
+  """
+  fund: Float!
+
+  """
+  保有仮想通貨
+  """
+  crypto: Float!
+
+  """
+  保有固定利回り資産
+  """
+  fixedIncomeAsset: Float!
+
+  """
+  登録日時
+  """
+  createdAt: Date!
 }

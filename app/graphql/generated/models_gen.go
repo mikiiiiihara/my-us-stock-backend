@@ -104,6 +104,41 @@ type MarketPrice struct {
 	CurrentRate float64 `json:"currentRate"`
 }
 
+type TotalAsset struct {
+	ID string `json:"id"`
+	// 保有円
+	CashJpy float64 `json:"cashJpy"`
+	// 保有ドル
+	CashUsd float64 `json:"cashUsd"`
+	// 保有株式
+	Stock float64 `json:"stock"`
+	// 保有投資信託
+	Fund float64 `json:"fund"`
+	// 保有仮想通貨
+	Crypto float64 `json:"crypto"`
+	// 保有固定利回り資産
+	FixedIncomeAsset float64 `json:"fixedIncomeAsset"`
+	// 登録日時
+	CreatedAt string `json:"createdAt"`
+}
+
+type UpdateUsStockInput struct {
+	// id
+	ID string `json:"id"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 保有株数
+	Quantity float64 `json:"quantity"`
+	// 購入時為替
+	UsdJpy float64 `json:"usdJpy"`
+	// 現在価格
+	CurrentPrice float64 `json:"currentPrice"`
+	// 変化額
+	PriceGets float64 `json:"priceGets"`
+	// 変化率
+	CurrentRate float64 `json:"currentRate"`
+}
+
 type UsStock struct {
 	ID string `json:"id"`
 	// ティッカーシンボル

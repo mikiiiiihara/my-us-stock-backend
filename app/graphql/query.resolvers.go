@@ -9,6 +9,7 @@ import (
 	JapanFund "my-us-stock-backend/app/graphql/japan-fund"
 	marketPrice "my-us-stock-backend/app/graphql/market-price"
 	"my-us-stock-backend/app/graphql/stock"
+	TotalAsset "my-us-stock-backend/app/graphql/total-asset"
 	"my-us-stock-backend/app/graphql/user"
 )
 
@@ -21,6 +22,7 @@ type CustomQueryResolver struct {
 	CryptoResolver *crypto.Resolver
 	FIxedIncomeAssetResolver *FixedIncomeAsset.Resolver
 	JapanFundResolver *JapanFund.Resolver
+	TotalAssetResolver *TotalAsset.Resolver
 }
 
 // Queryメソッドの実装
@@ -61,4 +63,8 @@ func (r *CustomQueryResolver) FixedIncomeAssets(ctx context.Context) ([]*generat
 
 func (r *CustomQueryResolver) JapanFunds(ctx context.Context) ([]*generated.JapanFund, error) {
 	return r.JapanFundResolver.JapanFunds (ctx)
+}
+
+func (r *CustomQueryResolver) TotalAssets(ctx context.Context, day int) ([]*generated.TotalAsset, error) {
+	return r.TotalAssetResolver.TotalAssets (ctx, day)
 }

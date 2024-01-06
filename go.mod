@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/99designs/gqlgen v0.17.41
+	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.4
@@ -15,7 +16,6 @@ require (
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
-	github.com/gin-contrib/cors v1.5.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 )
 
