@@ -2,6 +2,7 @@ package totalassets
 
 import (
 	"context"
+	"errors"
 	"my-us-stock-backend/app/database/model"
 	"testing"
 	"time"
@@ -57,6 +58,7 @@ func TestFindTodayTotalAsset(t *testing.T) {
     testBoundaryValues := []time.Time{
         utcNow.Add(-time.Hour),   // UTCの日付変更直前
         utcNow.Add(time.Hour),    // UTCの日付変更直後
+        time.Date(utcNow.Year(), utcNow.Month(), utcNow.Day(), 14, 59, 0, 0, time.UTC), // UTCで14時59分(JSTとUTCで日付が同一)
     }
 
     for _, testTime := range testBoundaryValues {
@@ -79,7 +81,7 @@ func TestFindTodayTotalAsset(t *testing.T) {
         db.Unscoped().Delete(&asset)
     }
 
-    // 過去日付と未来日付でのテスト
+    // JSTとUTCとで日付が変わってしまう場合でのテスト
     pastAsset := model.TotalAsset{
         Model: gorm.Model{
             CreatedAt: utcNow.AddDate(0, 0, -1), // 昨日
@@ -105,42 +107,39 @@ func TestFindTodayTotalAsset(t *testing.T) {
     // DB初期化
     db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
 }
-func TestFindTodayTotalAssetInJST(t *testing.T) {
-    // テスト実行前にタイムゾーンをUTCに設定
-    time.Local = time.UTC
+
+func TestFindTodayTotalAssetNotFoundAtJST(t *testing.T) {
     db := setupTestDB()
     repo := NewTotalAssetRepository(db)
 
-    // JSTタイムゾーンの作成 (+9時間)
-    jst := time.FixedZone("JST", 9*60*60)
+    // UTCで15時00分の時刻を設定((JSTとUTCで日付がズレる))
+    utcNow := time.Now().UTC()
+    utc1501 := time.Date(utcNow.Year(), utcNow.Month(), utcNow.Day(), 15, 0, 0, 0, time.UTC)
 
-    // JSTでの現在時刻
-    jstNow := time.Now().In(jst)
-
-    // JSTでのテストデータ作成
-    jstAsset := model.TotalAsset{
+    // レコードを作成
+    asset := model.TotalAsset{
         Model: gorm.Model{
-            CreatedAt: jstNow, // JSTでの現在時刻
+            CreatedAt: utc1501,
         },
         UserId:  1,
         CashUsd: 1000,
     }
-    db.Create(&jstAsset)
+    db.Create(&asset)
 
-    // UTC基準でデータ取得を試みる
-    foundAsset, err := repo.FindTodayTotalAsset(context.Background(), jstAsset.UserId)
-    assert.NoError(t, err)
-    assert.NotNil(t, foundAsset)
-    assert.Equal(t, jstAsset.UserId, foundAsset.UserId)
+    // 当日の資産総額を取得し、NotFoundエラーが発生することを確認
+    _, err := repo.FindTodayTotalAsset(context.Background(), asset.UserId)
+    assert.Error(t, err)
 
-    // JSTのデータがUTC日付として正しく扱われているかを確認
-    jstDay := jstNow.Format("2006-01-02")
-    utcDay := foundAsset.CreatedAt.UTC().Format("2006-01-02")
-    assert.Equal(t, jstDay, utcDay)
+    // エラーの種類が `record not found` であることを確認
+    assert.True(t, errors.Is(err, gorm.ErrRecordNotFound))
+
+    // テストデータをクリーンアップ
+    db.Unscoped().Delete(&asset)
 
     // DB初期化
     db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
 }
+
 
 // UpdateTotalAssetのテスト
 func TestUpdateTotalAsset(t *testing.T) {
