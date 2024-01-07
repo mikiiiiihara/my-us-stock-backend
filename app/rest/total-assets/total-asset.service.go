@@ -3,7 +3,6 @@ package totalassets
 import (
 	"context"
 	"math"
-	"net/http"
 
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
 	repoFixedIncome "my-us-stock-backend/app/repository/assets/fixed-income"
@@ -44,14 +43,18 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
     var requestParam CreateTotalAssetRequest
     if err := c.BindJSON(&requestParam); err != nil {
         // JSONパースエラーが発生した場合、400 Bad Requestを返す
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return "Bad Request", err
+    }
+
+	// 当日分の資産が登録されているか確認
+	latestTotalAsset, err  := ts.TotalAssetRepo.FindTodayTotalAsset(ctx, uint(requestParam.UserId))
+	if err == nil && latestTotalAsset != nil {
+        return "すでに資産が登録されています。", nil
     }
 	// 保有株式を取得
 	var amountOfStock = 0.0
 	modelStocks, err := ts.StockRepo.FetchUsStockListById(ctx, uint(requestParam.UserId))
 	if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
     }
     // modelStocksが空の場合は計算処理をスキップする
@@ -64,13 +67,11 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 		}
 		marketPrices, err := ts.MarketPriceRepo.FetchMarketPriceList(ctx,usStockCodes)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return "Internal Server Error", err
 		}
 		// 現在のドル円を取得
 		currentUsdJpy, err := ts.CurrencyRepo.FetchCurrentUsdJpy(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return "Internal Server Error", err
 		}
 		// 株式の評価総額を計算
@@ -90,7 +91,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	var amountOfFund = 0.0
 	modelFunds, err := ts.JapanFundRepo.FetchJapanFundListById(ctx, uint(requestParam.UserId))
 	if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
     }
 	// modelFundsが空の場合は計算処理をスキップする
@@ -105,7 +105,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	var amountOfCrypto = 0.0
 	modelCryptos, err := ts.CryptoRepo.FetchCryptoListById(ctx, uint(requestParam.UserId))
 	if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
     }
 	// 空の場合は計算処理をスキップする
@@ -115,7 +114,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 			// 現在価格を取得
 			cryptoPrice, err := ts.MarketCryptoRepo.FetchCryptoPrice(modelCrypto.Code)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return "Internal Server Error", err
 			}
 			amountOfCrypto += modelCrypto.Quantity*cryptoPrice.Price
@@ -126,7 +124,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	var amountOfFixedIncomeAsset= 0.0
 	modelAssets, err := ts.FixedIncomeRepo.FetchFixedIncomeAssetListById(ctx, uint(requestParam.UserId))
 	if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
     }
 	// 空の場合は計算処理をスキップする
@@ -139,7 +136,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	// 登録処理を行うか、すでに資産が登録されているか確認
     totalAsset, err := ts.TotalAssetRepo.FetchTotalAssetListById(ctx, uint(requestParam.UserId),1)
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return  "Bad Request", err
     }
 		// 登録内容準備
@@ -156,7 +152,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	// 当日分の資産総額を新規登録
 	_, err = ts.TotalAssetRepo.CreateTodayTotalAsset(ctx, createDto)
 	if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return "Internal Server Error", err
     }
 
