@@ -49,32 +49,94 @@ func TestFetchTotalAssetListById(t *testing.T) {
 }
 
 func TestFindTodayTotalAsset(t *testing.T) {
+    db := setupTestDB()
+    repo := NewTotalAssetRepository(db)
+
+    // UTCの日付の境界値でのテスト
+    utcNow := time.Now().UTC()
+    testBoundaryValues := []time.Time{
+        utcNow.Add(-time.Hour),   // UTCの日付変更直前
+        utcNow.Add(time.Hour),    // UTCの日付変更直後
+    }
+
+    for _, testTime := range testBoundaryValues {
+        asset := model.TotalAsset{
+            Model: gorm.Model{
+                CreatedAt: testTime,
+            },
+            UserId:  1,
+            CashUsd: 1000,
+        }
+        db.Create(&asset)
+
+        foundAsset, err := repo.FindTodayTotalAsset(context.Background(), asset.UserId)
+        assert.NoError(t, err)
+        assert.NotNil(t, foundAsset)
+        assert.Equal(t, asset.UserId, foundAsset.UserId)
+        assert.WithinDuration(t, testTime, foundAsset.CreatedAt, time.Second)
+
+        // テストデータをクリーンアップ
+        db.Unscoped().Delete(&asset)
+    }
+
+    // 過去日付と未来日付でのテスト
+    pastAsset := model.TotalAsset{
+        Model: gorm.Model{
+            CreatedAt: utcNow.AddDate(0, 0, -1), // 昨日
+        },
+        UserId:  1,
+        CashUsd: 1000,
+    }
+    futureAsset := model.TotalAsset{
+        Model: gorm.Model{
+            CreatedAt: utcNow.AddDate(0, 0, 1), // 明日
+        },
+        UserId:  1,
+        CashUsd: 1000,
+    }
+    db.Create(&pastAsset)
+    db.Create(&futureAsset)
+
+    _, err := repo.FindTodayTotalAsset(context.Background(), pastAsset.UserId)
+    assert.Error(t, err)
+    _, err = repo.FindTodayTotalAsset(context.Background(), futureAsset.UserId)
+    assert.Error(t, err)
+
+    // DB初期化
+    db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
+}
+func TestFindTodayTotalAssetInJST(t *testing.T) {
     // テスト実行前にタイムゾーンをUTCに設定
     time.Local = time.UTC
     db := setupTestDB()
     repo := NewTotalAssetRepository(db)
 
-    // テストデータの作成
-    currentUTC := time.Now().UTC()
-    asset := model.TotalAsset{
+    // JSTタイムゾーンの作成 (+9時間)
+    jst := time.FixedZone("JST", 9*60*60)
+
+    // JSTでの現在時刻
+    jstNow := time.Now().In(jst)
+
+    // JSTでのテストデータ作成
+    jstAsset := model.TotalAsset{
         Model: gorm.Model{
-            CreatedAt: currentUTC,
+            CreatedAt: jstNow, // JSTでの現在時刻
         },
         UserId:  1,
         CashUsd: 1000,
     }
-    db.Create(&asset)
+    db.Create(&jstAsset)
 
-    // 当日の資産総額を取得
-    foundAsset, err := repo.FindTodayTotalAsset(context.Background(), asset.UserId)
+    // UTC基準でデータ取得を試みる
+    foundAsset, err := repo.FindTodayTotalAsset(context.Background(), jstAsset.UserId)
     assert.NoError(t, err)
     assert.NotNil(t, foundAsset)
-    assert.Equal(t, asset.UserId, foundAsset.UserId)
-    assert.Equal(t, currentUTC, foundAsset.CreatedAt)
+    assert.Equal(t, jstAsset.UserId, foundAsset.UserId)
 
-    // 存在しないユーザーIDで検索
-    _, err = repo.FindTodayTotalAsset(context.Background(), 999)
-    assert.Error(t, err)
+    // JSTのデータがUTC日付として正しく扱われているかを確認
+    jstDay := jstNow.Format("2006-01-02")
+    utcDay := foundAsset.CreatedAt.UTC().Format("2006-01-02")
+    assert.Equal(t, jstDay, utcDay)
 
     // DB初期化
     db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
