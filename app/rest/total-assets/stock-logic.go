@@ -21,12 +21,16 @@ func calculateStockTotal(ctx context.Context, ts *DefaultTotalAssetService, mode
 	if err != nil {
 		return 0, err
 	}
+	for _, mp := range marketPrices {
+		fmt.Println(mp.Ticker, mp.CurrentPrice)
+	}
 
 	// マーケットプライスデータをマップに変換
 	priceMap := make(map[string]*marketPrice.MarketPriceDto)
 	for _, mp := range marketPrices {
 		priceMap[mp.Ticker] = &mp
 	}
+	fmt.Println(priceMap)
 
 	// 現在のドル円を取得
 	currentUsdJpy, err := ts.CurrencyRepo.FetchCurrentUsdJpy(ctx)
