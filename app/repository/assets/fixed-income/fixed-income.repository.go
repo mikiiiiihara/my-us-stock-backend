@@ -21,6 +21,11 @@ type DefaultFixedIncomeRepository struct {
     DB *gorm.DB
 }
 
+// 共通フィールドを選択するためのヘルパー関数です。
+func selectBaseQuery(db *gorm.DB) *gorm.DB {
+    return db.Select("id", "get_price_total", "dividend_rate", "code", "usd_jpy", "payment_month", "user_id")
+}
+
 // NewCryptoRepository は DefaultStrategyRepository の新しいインスタンスを作成します
 func NewFixedIncomeRepository(db *gorm.DB) FixedIncomeRepository {
     return &DefaultFixedIncomeRepository{DB: db}
@@ -28,12 +33,12 @@ func NewFixedIncomeRepository(db *gorm.DB) FixedIncomeRepository {
 
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
 func (r *DefaultFixedIncomeRepository) FetchFixedIncomeAssetListById(ctx context.Context, userId uint) ([]model.FixedIncomeAsset, error) {
-    var usStocks []model.FixedIncomeAsset
-    err := r.DB.Where("user_id = ?", userId).Find(&usStocks).Error
+    var fixedIncomeAssets []model.FixedIncomeAsset
+    err := selectBaseQuery(r.DB).Where("user_id = ?", userId).Find(&fixedIncomeAssets).Error
     if err != nil {
         return nil, err
     }
-    return usStocks, nil
+    return fixedIncomeAssets, nil
 }
 
 // 米国株式情報を更新します
@@ -69,7 +74,7 @@ func (r *DefaultFixedIncomeRepository) UpdateFixedIncomeAsset(ctx context.Contex
 func (r *DefaultFixedIncomeRepository) CreateFixedIncomeAsset(ctx context.Context, dto CreateFixedIncomeDto) (*model.FixedIncomeAsset, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.FixedIncomeAsset
-    if err := r.DB.Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
+    if err := selectBaseQuery(r.DB).Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
         return nil, fmt.Errorf("この銘柄は既に登録されています")
     }
 

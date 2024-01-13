@@ -21,6 +21,11 @@ type DefaultCryptoRepository struct {
     DB *gorm.DB
 }
 
+// 共通フィールドを選択するためのヘルパー関数です。
+func selectBaseQuery(db *gorm.DB) *gorm.DB {
+    return db.Select("id", "get_price", "quantity", "code", "user_id")
+}
+
 // NewCryptoRepository は DefaultStrategyRepository の新しいインスタンスを作成します
 func NewCryptoRepository(db *gorm.DB) CryptoRepository {
     return &DefaultCryptoRepository{DB: db}
@@ -29,7 +34,7 @@ func NewCryptoRepository(db *gorm.DB) CryptoRepository {
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
 func (r *DefaultCryptoRepository) FetchCryptoListById(ctx context.Context, userId uint) ([]model.Crypto, error) {
     var cryptos []model.Crypto
-    err := r.DB.Where("user_id = ?", userId).Find(&cryptos).Error
+    err := selectBaseQuery(r.DB).Where("user_id = ?", userId).Find(&cryptos).Error
     if err != nil {
         return nil, err
     }
@@ -55,7 +60,7 @@ func (r *DefaultCryptoRepository) UpdateCrypto(ctx context.Context, dto UpdateCr
 
     // 更新された情報を取得します
     var crypto model.Crypto
-    if err := r.DB.Where("id = ?", dto.ID).Find(&crypto).Error; err != nil {
+    if err := selectBaseQuery(r.DB).Where("id = ?", dto.ID).Find(&crypto).Error; err != nil {
         return nil, err
     }
 
@@ -66,7 +71,7 @@ func (r *DefaultCryptoRepository) UpdateCrypto(ctx context.Context, dto UpdateCr
 func (r *DefaultCryptoRepository) CreateCrypto(ctx context.Context, dto CreateCryptDto) (*model.Crypto, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.Crypto
-    if err := r.DB.Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
+    if err := selectBaseQuery(r.DB).Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
         return nil, fmt.Errorf("この銘柄は既に登録されています")
     }
 

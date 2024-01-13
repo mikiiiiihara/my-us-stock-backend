@@ -22,6 +22,11 @@ type DefaultTotalAssetRepository struct {
     DB *gorm.DB
 }
 
+// 共通フィールドを選択するためのヘルパー関数です。
+func selectBaseQuery(db *gorm.DB) *gorm.DB {
+    return db.Select("id", "cash_jpy", "cash_usd", "stock", "fund", "crypto", "fixed_income_asset", "user_id", "created_at")
+}
+
 // NewTotalAssetRepository は DefaultTotalAssetRepository の新しいインスタンスを作成します
 func NewTotalAssetRepository(db *gorm.DB) TotalAssetRepository {
     return &DefaultTotalAssetRepository{DB: db}
@@ -32,7 +37,7 @@ func (r *DefaultTotalAssetRepository) FetchTotalAssetListById(ctx context.Contex
     var assets []model.TotalAsset
 
     // クエリビルダーの作成
-    query := r.DB.Where("user_id = ?", userId).Order("created_at desc")
+    query := selectBaseQuery(r.DB).Where("user_id = ?", userId).Order("created_at desc")
 
     // dayが0でなければLimitを設定
     if day != 0 {
@@ -68,7 +73,7 @@ func (r *DefaultTotalAssetRepository) FindTodayTotalAsset(ctx context.Context, u
     todayEndUTC := todayEndLocal.Add(time.Duration(-offsetHours) * time.Hour)
 
     var asset model.TotalAsset
-    err := r.DB.Where("user_id = ? AND created_at >= ? AND created_at < ?", userId, todayStartUTC, todayEndUTC).First(&asset).Error
+    err := selectBaseQuery(r.DB).Where("user_id = ? AND created_at >= ? AND created_at < ?", userId, todayStartUTC, todayEndUTC).First(&asset).Error
     if err != nil {
         return nil, err
     }
@@ -112,7 +117,7 @@ func (r *DefaultTotalAssetRepository) UpdateTotalAsset(ctx context.Context, dto 
 
     // 更新された情報を取得します
     var asset model.TotalAsset
-    if err := r.DB.Where("id = ?", dto.ID).Find(&asset).Error; err != nil {
+    if err := selectBaseQuery(r.DB).Where("id = ?", dto.ID).Find(&asset).Error; err != nil {
         return nil, err
     }
 

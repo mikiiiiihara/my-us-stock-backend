@@ -21,6 +21,11 @@ type DefaultUsStockRepository struct {
     DB *gorm.DB
 }
 
+// 共通フィールドを選択するためのヘルパー関数です。
+func selectBaseQuery(db *gorm.DB) *gorm.DB {
+    return db.Select("id", "sector", "quantity", "get_price", "code", "usd_jpy", "user_id")
+}
+
 // NewUsStockRepository は DefaultStrategyRepository の新しいインスタンスを作成します
 func NewUsStockRepository(db *gorm.DB) UsStockRepository {
     return &DefaultUsStockRepository{DB: db}
@@ -29,7 +34,7 @@ func NewUsStockRepository(db *gorm.DB) UsStockRepository {
 // 指定したuserIdのユーザーが保有する米国株式のリストを取得する
 func (r *DefaultUsStockRepository) FetchUsStockListById(ctx context.Context, userId uint) ([]model.UsStock, error) {
     var usStocks []model.UsStock
-    err := r.DB.Where("user_id = ?", userId).Find(&usStocks).Error
+    err := selectBaseQuery(r.DB).Where("user_id = ?", userId).Find(&usStocks).Error
     if err != nil {
         return nil, err
     }
@@ -58,7 +63,7 @@ func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto Update
 
     // 更新された情報を取得します
     var usStock model.UsStock
-    if err := r.DB.Where("id = ?", dto.ID).Find(&usStock).Error; err != nil {
+    if err := selectBaseQuery(r.DB).Where("id = ?", dto.ID).Find(&usStock).Error; err != nil {
         return nil, err
     }
 
@@ -69,7 +74,7 @@ func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto Update
 func (r *DefaultUsStockRepository) CreateUsStock(ctx context.Context, dto CreateUsStockDto) (*model.UsStock, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.UsStock
-    if err := r.DB.Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
+    if err := selectBaseQuery(r.DB).Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
         return nil, fmt.Errorf("この銘柄は既に登録されています")
     }
 

@@ -19,6 +19,11 @@ type DefaultStrategyRepository struct {
     DB *gorm.DB
 }
 
+// 共通フィールドを選択するためのヘルパー関数です。
+func selectBaseQuery(db *gorm.DB) *gorm.DB {
+    return db.Select("id", "text", "user_id")
+}
+
 // NewStrategyRepository は DefaultStrategyRepository の新しいインスタンスを作成します
 func NewStrategyRepository(db *gorm.DB) StrategyRepository {
     return &DefaultStrategyRepository{DB: db}
@@ -26,7 +31,7 @@ func NewStrategyRepository(db *gorm.DB) StrategyRepository {
 
 func (r *DefaultStrategyRepository) FindStrategy(ctx context.Context, userId uint) (*model.Strategy, error) {
     strategy := new(model.Strategy)  // ポインタとしてオブジェクトを作成
-    err := r.DB.Where("user_id = ?", userId).First(&strategy).Error
+    err := selectBaseQuery(r.DB).Where("user_id = ?", userId).First(&strategy).Error
     if err != nil {
         return nil, err
     }
