@@ -13,5 +13,5 @@ type TotalAsset struct {
 	Fund float64 `gorm:"type:float"`// 円ベースで登録
 	Crypto float64 `gorm:"type:float"`// 円ベースで登録
 	FixedIncomeAsset float64 `gorm:"type:float"`// 円ベースで登録
-	UserId uint `gorm:"not null"`
+	UserId uint `gorm:"not null;index"`
 }

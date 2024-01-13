@@ -12,5 +12,5 @@ type UsStock struct {
 	Quantity float64 `gorm:"type:float"`
 	Sector   string  `gorm:"size:255;not null"`
 	UsdJpy   float64 `gorm:"type:float"`
-	UserId uint `gorm:"not null"`
+	UserId uint `gorm:"not null;index"`
 }

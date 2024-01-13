@@ -13,5 +13,5 @@ type FixedIncomeAsset struct {
 	DividendRate float64 `gorm:"type:float"`
 	UsdJpy   *float64 `gorm:"type:float"`
 	PaymentMonth  pq.Int64Array `gorm:"type:int[]"`
-	UserId uint `gorm:"not null"`
+	UserId uint `gorm:"not null;index"`
 }
