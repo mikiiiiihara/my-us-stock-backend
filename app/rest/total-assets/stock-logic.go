@@ -28,7 +28,8 @@ func calculateStockTotal(ctx context.Context, ts *DefaultTotalAssetService, mode
 	// マーケットプライスデータをマップに変換
 	priceMap := make(map[string]*marketPrice.MarketPriceDto)
 	for _, mp := range marketPrices {
-		priceMap[mp.Ticker] = &mp
+		mpCopy := mp // 各反復で新しい変数に値をコピー
+		priceMap[mp.Ticker] = &mpCopy
 	}
 	for _, mp := range priceMap {
 		fmt.Println(mp.Ticker, mp.CurrentPrice)
