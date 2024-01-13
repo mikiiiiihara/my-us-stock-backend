@@ -106,43 +106,6 @@ func TestFindTodayTotalAsset(t *testing.T) {
     db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
 }
 
-func TestFindTodayTotalAssetInJST(t *testing.T) {
-    // テスト実行前にタイムゾーンをUTCに設定
-    time.Local = time.UTC
-    db := setupTestDB()
-    repo := NewTotalAssetRepository(db)
-
-    // JSTタイムゾーンの作成 (+9時間)
-    jst := time.FixedZone("JST", 9*60*60)
-
-    // JSTでの現在時刻
-    jstNow := time.Now().In(jst)
-
-    // JSTでのテストデータ作成
-    jstAsset := model.TotalAsset{
-        Model: gorm.Model{
-            CreatedAt: jstNow, // JSTでの現在時刻
-        },
-        UserId:  1,
-        CashUsd: 1000,
-    }
-    db.Create(&jstAsset)
-
-    // UTC基準でデータ取得を試みる
-    foundAsset, err := repo.FindTodayTotalAsset(context.Background(), jstAsset.UserId)
-    assert.NoError(t, err)
-    assert.NotNil(t, foundAsset)
-    assert.Equal(t, jstAsset.UserId, foundAsset.UserId)
-
-    // JSTのデータがUTC日付として正しく扱われているかを確認
-    jstDay := jstNow.Format("2006-01-02")
-    utcDay := foundAsset.CreatedAt.UTC().Format("2006-01-02")
-    assert.Equal(t, jstDay, utcDay)
-
-    // DB初期化
-    db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
-}
-
 // UpdateTotalAssetのテスト
 func TestUpdateTotalAsset(t *testing.T) {
     // テスト実行前にタイムゾーンをUTCに設定

@@ -56,21 +56,9 @@ func (r *DefaultTotalAssetRepository) FetchTotalAssetListById(ctx context.Contex
 
 // 指定したuserIdのユーザーが保有する当日の資産総額を取得する
 func (r *DefaultTotalAssetRepository) FindTodayTotalAsset(ctx context.Context, userId uint) (*model.TotalAsset, error) {
-    // 現在の日付の始まりと終わりをUTCで取得
     nowUTC := time.Now().UTC()
-    // ①ローカルタイムゾーンのオフセット(時)を取得
-    _, offsetSec := time.Now().Zone()
-    offsetHours := offsetSec / 3600
-
-    // ②ローカルタイムゾーンでの現在の日付を計算
-    localNow := nowUTC.Add(time.Duration(offsetHours) * time.Hour)
-    // ③ローカルタイムゾーンでの現在の日付の範囲を取得
-    //  ②で求めた日付での0:00~23:59を変数として作成
-    todayStartLocal := time.Date(localNow.Year(), localNow.Month(), localNow.Day(), 0, 0, 0, 0, localNow.Location())
-    todayEndLocal := todayStartLocal.Add(24 * time.Hour)
-    // ④③で求めた２つの日付をUTCに戻して(JSTの場合、-9時間する)、それをtodayStart, todayEndとしてdbのselectの条件として用いる
-    todayStartUTC := todayStartLocal.Add(time.Duration(-offsetHours) * time.Hour)
-    todayEndUTC := todayEndLocal.Add(time.Duration(-offsetHours) * time.Hour)
+    todayStartUTC := time.Date(nowUTC.Year(), nowUTC.Month(), nowUTC.Day(), 0, 0, 0, 0, time.UTC)
+    todayEndUTC := todayStartUTC.Add(24 * time.Hour)
 
     var asset model.TotalAsset
     err := selectBaseQuery(r.DB).Where("user_id = ? AND created_at >= ? AND created_at < ?", userId, todayStartUTC, todayEndUTC).First(&asset).Error
@@ -79,6 +67,7 @@ func (r *DefaultTotalAssetRepository) FindTodayTotalAsset(ctx context.Context, u
     }
     return &asset, nil
 }
+
 
 // 米国株式情報を更新します
 func (r *DefaultTotalAssetRepository) UpdateTotalAsset(ctx context.Context, dto UpdateTotalAssetDto) (*model.TotalAsset, error) {
