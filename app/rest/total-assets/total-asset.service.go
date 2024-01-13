@@ -2,7 +2,6 @@ package totalassets
 
 import (
 	"context"
-	"fmt"
 	"math"
 
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
@@ -68,8 +67,6 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 		// 資産総額に加算
 		amountOfStock += stockTotal
 	}
-	fmt.Println("ただいまの保有株式評価総額")
-	fmt.Println(amountOfStock)
 	// 日本投資信託の評価額を取得
 	var amountOfFund = 0.0
 	modelFunds, err := ts.JapanFundRepo.FetchJapanFundListById(ctx, uint(requestParam.UserId))
