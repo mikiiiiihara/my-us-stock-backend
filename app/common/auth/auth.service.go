@@ -186,6 +186,8 @@ func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context) (string, error)
         // クッキーからrefresh_tokenを取得
         refreshToken, err := c.Cookie("refresh_token")
         if err != nil {
+            // リフレッシュトークンが無効または存在しない場合のエラーレスポンス
+		    c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
             return "", errors.New("access_token not found in cookie")
         }
     // refreshToken の検証ロジックを実装
@@ -232,6 +234,8 @@ func (as *DefaultAuthService) RefreshAccessToken(c *gin.Context) (string, error)
 
     // 新たなaccessTokenをcookieにセット
     c.Header("Set-Cookie", fmt.Sprintf("%s; SameSite=%s", accessTokenCookie.String(), sameSiteValue))
+    // 新しい accessToken をレスポンスとして返す
+    c.JSON(http.StatusOK, gin.H{"message": "Refreshed completely"})
     return newAccessToken, nil
 }
 

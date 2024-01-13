@@ -36,7 +36,4 @@ func (ac *AuthController) SignUp(c *gin.Context) {
 func (ac *AuthController) RefreshAccessToken(c *gin.Context) {
     // refreshToken を使用して新しい accessToken を取得
     ac.AuthService.RefreshAccessToken(c)
-
-    // 新しい accessToken をレスポンスとして返す
-    c.JSON(http.StatusOK, gin.H{"message": "Refreshed completely"})
 }
