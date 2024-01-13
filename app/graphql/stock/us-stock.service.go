@@ -46,9 +46,9 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
 	}
     // 米国株の市場価格情報取得
     // (本来はfor文内で呼びたいが、外部APIコール数削減のため一度に呼んでいる)
-    usStockCodes := make([]string, 0)
-    for _, modelStock := range modelStocks {
-        usStockCodes = append(usStockCodes, modelStock.Code)
+    usStockCodes := make([]string, len(modelStocks))
+    for i, modelStock := range modelStocks {
+        usStockCodes[i] = modelStock.Code
     }
     marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx,usStockCodes)
     if err != nil {
@@ -90,11 +90,11 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
         }(&modelStockCopy)
     }
 
-    var usStocks []*generated.UsStock
+    usStocks := make([]*generated.UsStock, len(modelStocks))
     for i := 0; i < len(modelStocks); i++ {
         select {
         case result := <-results:
-            usStocks = append(usStocks, &generated.UsStock{
+            usStocks[i] = &generated.UsStock{
                 ID: utils.ConvertIdToString(result.stock.ID),
                 Code:         result.stock.Code,
                 GetPrice:     result.stock.GetPrice,
@@ -105,7 +105,7 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
                 CurrentPrice: result.marketPrice.CurrentPrice, 
                 PriceGets:    result.marketPrice.PriceGets,
                 CurrentRate:  result.marketPrice.CurrentRate,
-            })
+            }
         case err := <-errChan:
             return nil, utils.DefaultGraphQLError(err.Error())
         }

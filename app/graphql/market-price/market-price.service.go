@@ -25,15 +25,14 @@ func (s *DefaultMarketPriceService) FetchMarketPriceList(ctx context.Context, ti
         return nil, utils.DefaultGraphQLError(err.Error())
     }
 
-    marketPrices := make([]*generated.MarketPrice,0)
-    for _, dto := range dtos {
-        marketPrice := &generated.MarketPrice{
+    marketPrices := make([]*generated.MarketPrice, len(dtos))
+    for i, dto := range dtos {
+        marketPrices[i] = &generated.MarketPrice{
             Ticker:       dto.Ticker,
             CurrentPrice: dto.CurrentPrice,
             PriceGets:    dto.PriceGets,
             CurrentRate:  dto.CurrentRate,
         }
-        marketPrices = append(marketPrices, marketPrice)
-    }
+    }    
     return marketPrices, nil
 }

@@ -37,7 +37,7 @@ func (repo *DefaultMarketPriceRepository) createDividendEntity(res *DividendResp
 // filterDividends は直近1年の配当記録をフィルタリングします。
 func filterDividends(dividends []Historical) []Historical {
     oneYearAgo := time.Now().AddDate(-1, 0, 0)
-    filteredDividends := make([]Historical, 0)
+    filteredDividends := make([]Historical, 0, len(dividends))
     for _, dividend := range dividends {
         payDate, _ := time.Parse("2006-01-02", dividend.PaymentDate)
         if payDate.After(oneYearAgo) {

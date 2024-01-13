@@ -41,18 +41,18 @@ func (s *DefaultJapanFundService) JapanFunds(ctx context.Context) ([]*generated.
 		return []*generated.JapanFund{}, nil
 	}
 
-	funds := make([]*generated.JapanFund, 0)
-	for _, modelFund := range modelFunds {
-
-		funds = append(funds, &generated.JapanFund{
+	funds := make([]*generated.JapanFund, len(modelFunds))
+	for i, modelFund := range modelFunds {
+		funds[i] = &generated.JapanFund{
 			ID: utils.ConvertIdToString(modelFund.ID),
 			Code: modelFund.Code,
 			Name: modelFund.Name,
 			GetPrice: modelFund.GetPrice,
 			GetPriceTotal: modelFund.GetPriceTotal,
 			CurrentPrice: getFundMarketPrice(modelFund.Code), // TODO: 三菱UFJのAPI復旧したらrepository実装してそこから取得するようにする
-		})
+		}
 	}
+	
 
     return funds, nil
 }

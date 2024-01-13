@@ -41,22 +41,22 @@ func (s *DefaultAssetService) FixedIncomeAssets(ctx context.Context) ([]*generat
 		return []*generated.FixedIncomeAsset{}, nil
 	}
 
-	assets := make([]*generated.FixedIncomeAsset, 0)
-	for _, modelAsset := range modelAssets {
+	assets := make([]*generated.FixedIncomeAsset, len(modelAssets))
+	for i, modelAsset := range modelAssets {
 		// pq.Int64Array to []int conversion
 		paymentMonths := make([]int, len(modelAsset.PaymentMonth))
 		for i, month := range modelAsset.PaymentMonth {
 			paymentMonths[i] = int(month)
 		}
 
-		assets = append(assets, &generated.FixedIncomeAsset{
+		assets[i] = &generated.FixedIncomeAsset{
 			ID: utils.ConvertIdToString(modelAsset.ID),
 			Code: modelAsset.Code,
 			GetPriceTotal: modelAsset.GetPriceTotal,
 			DividendRate: modelAsset.DividendRate,
 			UsdJpy: modelAsset.UsdJpy,
 			PaymentMonth: paymentMonths, // Updated field
-		})
+		}
 	}
 
     return assets, nil
@@ -69,10 +69,10 @@ func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input 
 		if userId == 0 {
 			return nil, utils.UnauthenticatedError("Invalid user ID")
 		}
-		// pq.Int64Array to []int conversion
-		paymentMonths := make([]int64, len(input.PaymentMonth))
-		for i, month := range input.PaymentMonth {
-			paymentMonths[i] = int64(month)
+		// pq.Int64Array to []int conversion (without using append)
+		paymentMonths := make([]int64, 0, len(input.PaymentMonth))
+		for _, month := range input.PaymentMonth {
+			paymentMonths = append(paymentMonths, int64(month))
 		}
 	// 更新用DTOの作成
     createDto := FixedIncome.CreateFixedIncomeDto{

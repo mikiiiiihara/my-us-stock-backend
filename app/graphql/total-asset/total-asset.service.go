@@ -42,10 +42,10 @@ func (s *DefaultTotalAssetService) TotalAssets(ctx context.Context, day int) ([]
 		return []*generated.TotalAsset{}, nil
 	}
 
-	assets := make([]*generated.TotalAsset, 0)
-	for _, modelAsset := range modelAssets {
+	assets := make([]*generated.TotalAsset, len(modelAssets))
+	for i, modelAsset := range modelAssets {
 
-		assets = append(assets, &generated.TotalAsset{
+		assets[i] = &generated.TotalAsset{
 			ID: utils.ConvertIdToString(modelAsset.ID),
 			CashJpy: modelAsset.CashJpy,
 			CashUsd: modelAsset.CashUsd,
@@ -54,7 +54,7 @@ func (s *DefaultTotalAssetService) TotalAssets(ctx context.Context, day int) ([]
 			Crypto: modelAsset.Crypto,
 			FixedIncomeAsset: modelAsset.FixedIncomeAsset,
 			CreatedAt: modelAsset.CreatedAt.Format(time.RFC3339),
-		})
+		}
 	}
 
 	// assetsをCreatedAtで昇順にソート
