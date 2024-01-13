@@ -24,7 +24,7 @@ type TotalAssetService interface {
 // DefaultTotalAssetService 構造体の定義
 type DefaultTotalAssetService struct {
 	TotalAssetRepo repoTotalAsset.TotalAssetRepository
-	StockRepo stock.UsStockRepository // インターフェースを利用
+	StockRepo stock.UsStockRepository
 	MarketPriceRepo marketPrice.MarketPriceRepository
 	CurrencyRepo repoCurrency.CurrencyRepository
 	JapanFundRepo repoJapanFund.JapanFundRepository
@@ -60,32 +60,12 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
     // modelStocksが空の場合は計算処理をスキップする
 	if len(modelStocks) != 0 {
 		// 米国株の市場価格情報取得
-		// (本来はfor文内で呼びたいが、外部APIコール数削減のため一度に呼んでいる)
-		usStockCodes := make([]string, 0)
-		for _, modelStock := range modelStocks {
-			usStockCodes = append(usStockCodes, modelStock.Code)
-		}
-		marketPrices, err := ts.MarketPriceRepo.FetchMarketPriceList(ctx,usStockCodes)
+		stockTotal,err := calculateStockTotal(ctx, ts, modelStocks)
 		if err != nil {
 			return "Internal Server Error", err
 		}
-		// 現在のドル円を取得
-		currentUsdJpy, err := ts.CurrencyRepo.FetchCurrentUsdJpy(ctx)
-		if err != nil {
-			return "Internal Server Error", err
-		}
-		// 株式の評価総額を計算
-		for _, modelStock := range modelStocks {
-			var marketPrice *marketPrice.MarketPriceDto
-            for _, mp := range marketPrices {
-                if mp.Ticker == modelStock.Code {
-                    marketPrice = &mp
-                    break
-                }
-            }
-			// 株式評価総額に加算
-			amountOfStock += modelStock.Quantity * marketPrice.CurrentPrice*currentUsdJpy
-		}
+		// 資産総額に加算
+		amountOfStock += stockTotal
 	}
 	// 日本投資信託の評価額を取得
 	var amountOfFund = 0.0
@@ -110,14 +90,12 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
 	// 空の場合は計算処理をスキップする
 	if len(modelCryptos) != 0 {
 		// 仮想通貨の評価総額を計算
-		for _, modelCrypto := range modelCryptos {
-			// 現在価格を取得
-			cryptoPrice, err := ts.MarketCryptoRepo.FetchCryptoPrice(modelCrypto.Code)
-			if err != nil {
-				return "Internal Server Error", err
-			}
-			amountOfCrypto += modelCrypto.Quantity*cryptoPrice.Price
+		cryptoTotal,err := calculateCryptoTotal(ctx, ts, modelCryptos)
+		if err != nil {
+			return "Internal Server Error", err
 		}
+		// 資産総額に加算
+		amountOfCrypto += cryptoTotal
 	}
 
 	// 固定利回り資産の評価額を取得
