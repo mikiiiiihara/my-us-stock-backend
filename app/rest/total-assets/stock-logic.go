@@ -30,7 +30,9 @@ func calculateStockTotal(ctx context.Context, ts *DefaultTotalAssetService, mode
 	for _, mp := range marketPrices {
 		priceMap[mp.Ticker] = &mp
 	}
-	fmt.Println(priceMap)
+	for _, mp := range priceMap {
+		fmt.Println(mp.Ticker, mp.CurrentPrice)
+	}
 
 	// 現在のドル円を取得
 	currentUsdJpy, err := ts.CurrencyRepo.FetchCurrentUsdJpy(ctx)
