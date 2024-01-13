@@ -44,8 +44,9 @@ func calculateStockTotal(ctx context.Context, ts *DefaultTotalAssetService, mode
 			return 0, fmt.Errorf("market price not found for stock code: %s", modelStock.Code)
 		}
 
-		// 株式評価総額に加算
-		amountOfStock += modelStock.Quantity * marketPrice.CurrentPrice * currentUsdJpy
+		stockValue := modelStock.Quantity * marketPrice.CurrentPrice * currentUsdJpy
+		fmt.Printf("Stock Code: %s, Quantity: %f, Market Price: %f, USD/JPY: %f, Value: %f\n", modelStock.Code, modelStock.Quantity, marketPrice.CurrentPrice, currentUsdJpy, stockValue)
+		amountOfStock += stockValue
 	}
 
 	return amountOfStock, nil
