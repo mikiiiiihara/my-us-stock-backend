@@ -26,7 +26,7 @@ func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error)
 }
 
 func TestUsStocksE2E(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
 
 	// モックの HTTP レスポンスを設定
 	mockStockPrice := `[
@@ -146,7 +146,7 @@ func TestUsStocksE2E(t *testing.T) {
     db.Create(&model.UsStock{Code: "AAPL", UserId: 1, Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9})
 
 	// ダミーのアクセストークンを生成
-	token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}
@@ -198,7 +198,7 @@ func TestUsStocksE2E(t *testing.T) {
 
 
 func TestCreateUsStockE2E(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
 
 	// モックの HTTP レスポンスを設定
 	mockStockPrice := `[
@@ -324,7 +324,7 @@ func TestCreateUsStockE2E(t *testing.T) {
     defer ts.Close()
 
 	// ダミーのアクセストークンを生成
-	token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}

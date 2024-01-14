@@ -26,7 +26,7 @@ func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error)
 }
 
 func TestCryptosE2E(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
 
 	// モックの HTTP レスポンスを設定
 	mockCryptoPrice := `{
@@ -73,7 +73,7 @@ func TestCryptosE2E(t *testing.T) {
     db.Create(&model.Crypto{Code: "btc", UserId: 1, Quantity: 0.05, GetPrice: 5047113.0})
 
 	// ダミーのアクセストークンを生成
-	token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}
@@ -115,7 +115,7 @@ func TestCryptosE2E(t *testing.T) {
 
 
 func TestCreateCryptoE2E(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
 
 	// モックの HTTP レスポンスを設定
 	mockCryptoPrice := `{
@@ -160,7 +160,7 @@ func TestCreateCryptoE2E(t *testing.T) {
     defer ts.Close()
 
 	// ダミーのアクセストークンを生成
-	token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}

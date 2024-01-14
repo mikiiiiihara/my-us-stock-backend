@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"strconv"
-	"testing"
 	"time"
 
 	"github.com/form3tech-oss/jwt-go"
@@ -58,7 +57,7 @@ func ExecuteGraphQLRequestWithToken(url, query, token string) *httptest.Response
 }
 
 // 任意のuserIdを含むアクセストークンを作成する
-func GenerateTestAccessTokenForUserId(t *testing.T,userId uint) (string, error) {
+func GenerateTestAccessTokenForUserId(userId uint) (string, error) {
     // JWTの構造を準備
     token := jwt.New(jwt.SigningMethodHS256)
     claims := token.Claims.(jwt.MapClaims)

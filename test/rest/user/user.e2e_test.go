@@ -26,7 +26,7 @@ func setupUserController(db *gorm.DB) *user.UserController {
 
 // GetUserのe2eテスト
 func TestGetUserE2E(t *testing.T) {
-    db := test.SetupTestDB(t)
+    db := test.SetupTestDB()
     controller := setupUserController(db)
 
     // テスト用のユーザーを作成
@@ -65,7 +65,7 @@ func TestGetUserE2E(t *testing.T) {
 
 // CreateUserのe2eテスト
 func TestCreateUserE2E(t *testing.T) {
-    db := test.SetupTestDB(t)
+    db := test.SetupTestDB()
     controller := setupUserController(db)
 
     // テスト用のユーザーを作成

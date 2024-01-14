@@ -23,7 +23,7 @@ func (m *MockHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error)
 }
 
 func TestJapanFunds(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
     router := graphql.SetupGraphQLServer(db, nil)
 
     // テスト用HTTPサーバーのセットアップ
@@ -34,7 +34,7 @@ func TestJapanFunds(t *testing.T) {
     db.Create(&model.JapanFund{Code: "SP500", Name:"ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", GetPrice: 15523.81, GetPriceTotal: 761157.0,UserId: 1})
 
 	// ダミーのアクセストークンを生成
-	token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestJapanFunds(t *testing.T) {
 }
 
 func TestCreateUsStockE2E(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
     router := graphql.SetupGraphQLServer(db, nil)
 
     // テスト用HTTPサーバーのセットアップ
@@ -86,7 +86,7 @@ func TestCreateUsStockE2E(t *testing.T) {
     defer ts.Close()
 
 	// ダミーのアクセストークンを生成
-	token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}

@@ -13,7 +13,7 @@ import (
 )
 
 func TestUserE2E(t *testing.T) {
-    db := test.SetupTestDB(t)
+    db := test.SetupTestDB()
     router := graphql.SetupGraphQLServer(db, nil)
 
     // テスト用HTTPサーバーのセットアップ
@@ -24,7 +24,7 @@ func TestUserE2E(t *testing.T) {
     db.Create(&model.User{Name: "Test User", Email: "test@example.com", Password: "abc123"})
 
     // ダミーのアクセストークンを生成
-    token, err := graphql.GenerateTestAccessTokenForUserId(t, 1)
+    token, err := graphql.GenerateTestAccessTokenForUserId(1)
     if err != nil {
         t.Fatalf("Failed to generate test access token: %v", err)
     }
@@ -58,7 +58,7 @@ func TestUserE2E(t *testing.T) {
 }
 
 func TestCreateUserE2E(t *testing.T) {
-	db := test.SetupTestDB(t)
+	db := test.SetupTestDB()
     graphqlServer := graphql.SetupGraphQLServer(db,nil)
 
 	// GraphQLミューテーションの実行
