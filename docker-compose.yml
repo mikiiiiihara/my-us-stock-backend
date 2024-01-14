@@ -1,6 +1,26 @@
 version: "3.8"
 
 services:
+  golang-server:
+    build:
+      context: . # ビルドコンテキストをプロジェクトのルートに設定
+      dockerfile: Dockerfile # プロジェクトのルートにあるDockerfileを指定
+    container_name: my_golang_server
+    ports:
+      - "8081:8081" # ホストマシンのポート:
+    env_file: # .envファイルを指定
+      - .env # プロジェクトディレクトリにある.envファイルを指定
+    environment: # DB接続先をコンテナ用に上書き
+      - DATABASE_URL=postgresql://myuser:mypassword@postgres:5432/mydbname?sslmode=disable&TimeZone=Asia%2FTokyo
+      - PORT=8081
+      - MARKET_PRICE_URL=http://my_mock_server:8080/api
+      - MARKET_PRICE_TICKER_TOKEN=xxxxxx
+      - MARKET_PRICE_DIVIDEND_MAIN_TOKEN=xxxxxx
+      - MARKET_PRICE_DIVIDEND_SUB_TOKEN=xxxxxx
+    depends_on:
+      - postgres
+      - mockserver
+
   postgres:
     image: postgres:13
     container_name: my_postgres

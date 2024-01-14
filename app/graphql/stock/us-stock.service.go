@@ -54,7 +54,6 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
-
     type stockWithMarketPrice struct {
         stock      *model.UsStock
         marketPrice *marketPrice.MarketPriceDto
@@ -94,22 +93,36 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
     for i := 0; i < len(modelStocks); i++ {
         select {
         case result := <-results:
+    
+            // marketPriceがnilかどうかをチェック
+            var currentPrice, priceGets, currentRate float64
+            if result.marketPrice != nil {
+                currentPrice = result.marketPrice.CurrentPrice
+                priceGets = result.marketPrice.PriceGets
+                currentRate = result.marketPrice.CurrentRate
+            } else {
+                currentPrice = result.stock.GetPrice
+                priceGets = 0.0
+                currentRate = 0.0
+            }
+    
             usStocks[i] = &generated.UsStock{
-                ID: utils.ConvertIdToString(result.stock.ID),
+                ID:           utils.ConvertIdToString(result.stock.ID),
                 Code:         result.stock.Code,
                 GetPrice:     result.stock.GetPrice,
                 Dividend:     result.dividend.DividendTotal,
                 Quantity:     result.stock.Quantity,
                 Sector:       result.stock.Sector,
                 UsdJpy:       result.stock.UsdJpy,
-                CurrentPrice: result.marketPrice.CurrentPrice, 
-                PriceGets:    result.marketPrice.PriceGets,
-                CurrentRate:  result.marketPrice.CurrentRate,
+                CurrentPrice: currentPrice,
+                PriceGets:    priceGets,
+                CurrentRate:  currentRate,
             }
         case err := <-errChan:
             return nil, utils.DefaultGraphQLError(err.Error())
         }
     }
+    
 
     return usStocks, nil
 }
