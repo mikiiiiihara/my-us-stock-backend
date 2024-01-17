@@ -90,11 +90,11 @@ func (s *DefaultJapanFundService) CreateJapanFund(ctx context.Context, input gen
 func getFundMarketPrice(code string) float64 {
 	switch code {
 	case "SP500":
-		return 24639.0
+		return 25160.0
 	case "全世界株":
-		return 21270.0
+		return 21505.0
 	default:
-		return 18774.0
+		return 18755.0
 	
 	}
 }
