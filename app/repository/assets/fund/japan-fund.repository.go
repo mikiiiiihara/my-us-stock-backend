@@ -71,7 +71,7 @@ func (r *DefaultJapanFundRepository) UpdateJapanFund(ctx context.Context, dto Up
 func (r *DefaultJapanFundRepository) CreateJapanFund(ctx context.Context, dto CreateJapanFundDto) (*model.JapanFund, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingJapanFund model.JapanFund
-    if err := selectBaseQuery(r.DB).Where("code = ?", dto.Code).First(&existingJapanFund).Error; err == nil {
+    if err := selectBaseQuery(r.DB).Where("code = ? AND user_id = ?", dto.Code, dto.UserId).First(&existingJapanFund).Error; err == nil {
         return nil, fmt.Errorf("この銘柄は既に登録されています")
     }
 

@@ -74,7 +74,7 @@ func (r *DefaultFixedIncomeRepository) UpdateFixedIncomeAsset(ctx context.Contex
 func (r *DefaultFixedIncomeRepository) CreateFixedIncomeAsset(ctx context.Context, dto CreateFixedIncomeDto) (*model.FixedIncomeAsset, error) {
     // 既に同じ銘柄が存在するかを確認
     var existingUsStock model.FixedIncomeAsset
-    if err := selectBaseQuery(r.DB).Where("code = ?", dto.Code).First(&existingUsStock).Error; err == nil {
+    if err := selectBaseQuery(r.DB).Where("code = ? AND user_id = ?", dto.Code, dto.UserId).First(&existingUsStock).Error; err == nil {
         return nil, fmt.Errorf("この銘柄は既に登録されています")
     }
 
