@@ -35,7 +35,7 @@ func (m *MockUsStockRepository) CreateUsStock(ctx context.Context, dto stock.Cre
 
 func (m *MockUsStockRepository) DeleteUsStock(ctx context.Context, id uint) error{
 	args := m.Called(ctx, id)
-	return args.Error(1)
+	return args.Error(0)
 }
 
 // TestUsStocks は UsStocks メソッドのテストです。
@@ -140,5 +140,30 @@ func TestCreateUsStockService(t *testing.T) {
 	// モックの呼び出しを検証
 	mockStockRepo.AssertExpectations(t)
 	mockMarketPriceRepo.AssertExpectations(t)
+	mockAuth.AssertExpectations(t)
+}
+
+// TestDeleteUsStockService は DeleteUsStock メソッドのテストです。
+func TestDeleteUsStockService(t *testing.T) {
+	mockStockRepo := new(MockUsStockRepository)
+    mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
+	mockAuth := auth.NewMockAuthService()
+	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
+
+	// モックの期待値設定
+	userId := uint(1)
+	mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+	// 成功時のテスト
+	stockID := uint(1)
+	mockStockRepo.On("DeleteUsStock", mock.Anything, stockID).Return(nil)
+
+	// テスト対象メソッドの実行
+	result, err := service.DeleteUsStock(context.Background(), "1")
+	assert.NoError(t, err)
+	assert.True(t, result)
+
+	// モックの呼び出しを検証
+	mockStockRepo.AssertExpectations(t)
 	mockAuth.AssertExpectations(t)
 }

@@ -24,6 +24,11 @@ func (m *MockCryptoService) CreateCrypto(ctx context.Context, input generated.Cr
     return args.Get(0).(*generated.Crypto), args.Error(1)
 }
 
+func (m *MockCryptoService) DeleteCrypto(ctx context.Context, id string) (bool, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(bool), args.Error(1)
+}
+
 func TestCryptos(t *testing.T) {
     mockService := new(MockCryptoService)
     resolver := NewResolver(mockService)
@@ -64,6 +69,20 @@ func TestCreateCrypto(t *testing.T) {
     
     assert.NoError(t, err)
     assert.Equal(t, mockResponse, result)
+
+    mockService.AssertExpectations(t)
+}
+
+func TestDeleteCrypto(t *testing.T) {
+    mockService := new(MockCryptoService)
+    resolver := NewResolver(mockService)
+
+    mockService.On("DeleteCrypto", mock.Anything, "1").Return(true, nil)
+
+    result, err := resolver.DeleteCrypto(context.Background(), "1")
+    
+    assert.NoError(t, err)
+    assert.True(t, result)
 
     mockService.AssertExpectations(t)
 }

@@ -14,6 +14,7 @@ import (
 type CryptoService interface {
     Cryptos(ctx context.Context) ([]*generated.Crypto, error)
 	CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error)
+    DeleteCrypto(ctx context.Context, id string) (bool, error)
 }
 
 // DefaultCryptoService 構造体の定義
@@ -123,4 +124,25 @@ func (s *DefaultCryptoService) CreateCrypto(ctx context.Context, input generated
 		Quantity:     modelStock.Quantity,
 		CurrentPrice: marketPrice.Price,
 	}, err
+}
+
+// 削除
+func (s *DefaultCryptoService) DeleteCrypto(ctx context.Context, id string) (bool, error) {
+    // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+    if userId == 0 {
+        return false, utils.UnauthenticatedError("Invalid user ID")
+    }
+
+    // 削除対象id変換
+    deleteId, convertError := utils.ConvertIdToUint(id)
+    if convertError != nil || deleteId == 0 {
+        return false, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+    var err = s.Repo.DeleteCrypto(ctx, deleteId)
+	// 市場情報を追加して返却
+    if err != nil {
+     return false, utils.DefaultGraphQLError(err.Error())
+    }
+	return true, nil
 }

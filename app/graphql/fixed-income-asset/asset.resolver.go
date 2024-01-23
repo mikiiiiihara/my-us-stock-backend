@@ -25,3 +25,7 @@ func (r *Resolver) CreateFixedIncomeAsset(ctx context.Context, input generated.C
 
     return newUsStock, nil
 }
+
+func (r *Resolver) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
+    return r.AssetService.DeleteFixedIncomeAsset(ctx, id)
+}

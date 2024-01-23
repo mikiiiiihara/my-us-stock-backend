@@ -12,6 +12,7 @@ import (
 type AssetService interface {
     FixedIncomeAssets(ctx context.Context) ([]*generated.FixedIncomeAsset, error)
     CreateFixedIncomeAsset(ctx context.Context, input generated.CreateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error)
+	DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error)
 }
 
 // DefaultAssetService 構造体の定義
@@ -100,4 +101,25 @@ func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input 
 		UsdJpy: modelAsset.UsdJpy,
 		PaymentMonth: newPaymentMonths, // Updated field
 	}, nil
+}
+
+// 削除
+func (s *DefaultAssetService) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
+    // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+    if userId == 0 {
+        return false, utils.UnauthenticatedError("Invalid user ID")
+    }
+
+    // 削除対象id変換
+    deleteId, convertError := utils.ConvertIdToUint(id)
+    if convertError != nil || deleteId == 0 {
+        return false, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+    var err = s.Repo.DeleteFixedIncomeAsset(ctx, deleteId)
+	// 市場情報を追加して返却
+    if err != nil {
+     return false, utils.DefaultGraphQLError(err.Error())
+    }
+	return true, nil
 }

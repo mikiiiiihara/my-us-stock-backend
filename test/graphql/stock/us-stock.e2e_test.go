@@ -3,6 +3,7 @@ package stock
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"my-us-stock-backend/app/database/model"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
@@ -10,9 +11,11 @@ import (
 	"my-us-stock-backend/test/graphql"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 // MockHTTPTransport は http.RoundTripper のインターフェースを満たすモック実装です。
@@ -387,4 +390,55 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, 238.55, response.Data.CreateUsStock.CurrentPrice)
 	assert.Equal(t, 0.3, response.Data.CreateUsStock.PriceGets)
 	assert.Equal(t, 0.1259, response.Data.CreateUsStock.CurrentRate)
+}
+
+func TestDeleteUsStockE2E(t *testing.T) {
+	db := test.SetupTestDB()
+	router := graphql.SetupGraphQLServer(db, nil)
+
+	// テスト用HTTPサーバーのセットアップ
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// テスト用データの追加
+	usStock := model.UsStock{Code: "AAPL", UserId: 1, Quantity: 10, GetPrice: 100, Sector: "IT", UsdJpy: 133.9}
+	db.Create(&usStock)
+
+	// 作成されたレコードのIDを取得
+	createdUsStockID := usStock.ID
+
+	// ダミーのアクセストークンを生成
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
+	if err != nil {
+		t.Fatalf("Failed to generate test access token: %v", err)
+	}
+
+	// createdUsStockIDを文字列に変換
+	createdUsStockIDStr := strconv.FormatUint(uint64(createdUsStockID), 10)
+
+	// GraphQLリクエストの実行
+	query := fmt.Sprintf(`mutation {
+		deleteUsStock(id: "%s")
+	}`, createdUsStockIDStr)
+	w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, query, token)
+
+	// レスポンスボディの解析
+	var response struct {
+		Data struct {
+			DeleteUsStock bool `json:"deleteUsStock"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf("Failed to parse response body: %v", err)
+	}
+
+	// レスポンスボディの内容の検証
+	assert.True(t, response.Data.DeleteUsStock)
+
+	// データベースから削除されたことを確認
+	var stockAfterDelete model.UsStock
+	result := db.First(&stockAfterDelete, "id = ?", createdUsStockID)
+	assert.ErrorIs(t, result.Error, gorm.ErrRecordNotFound)
 }

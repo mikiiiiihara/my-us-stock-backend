@@ -25,3 +25,7 @@ func (r *Resolver) CreateJapanFund(ctx context.Context, input generated.CreateJa
 
     return newFund, nil
 }
+
+func (r *Resolver) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
+    return r.JapanFundService.DeleteJapanFund(ctx, id)
+}

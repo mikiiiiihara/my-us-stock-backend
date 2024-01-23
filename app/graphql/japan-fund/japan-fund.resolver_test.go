@@ -24,6 +24,11 @@ func (m *MockJapanFundService) CreateJapanFund(ctx context.Context, input genera
     return args.Get(0).(*generated.JapanFund), args.Error(1)
 }
 
+func (m *MockJapanFundService) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(bool), args.Error(1)
+}
+
 // UsStocks メソッドのテスト
 func TestJapanFunds(t *testing.T) {
     mockService := new(MockJapanFundService)
@@ -68,6 +73,20 @@ func TestCreateJapanFund(t *testing.T) {
     
     assert.NoError(t, err)
     assert.Equal(t, mockResponse, result)
+
+    mockService.AssertExpectations(t)
+}
+
+func TestDeleteJapanFund(t *testing.T) {
+    mockService := new(MockJapanFundService)
+    resolver := NewResolver(mockService)
+
+    mockService.On("DeleteJapanFund", mock.Anything, "1").Return(true, nil)
+
+    result, err := resolver.DeleteJapanFund(context.Background(), "1")
+    
+    assert.NoError(t, err)
+    assert.True(t, result)
 
     mockService.AssertExpectations(t)
 }
