@@ -3,6 +3,7 @@ package crypto
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"my-us-stock-backend/app/database/model"
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price/crypto"
@@ -10,9 +11,11 @@ import (
 	"my-us-stock-backend/test/graphql"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 // MockHTTPTransport は http.RoundTripper のインターフェースを満たすモック実装です。
@@ -111,6 +114,8 @@ func TestCryptosE2E(t *testing.T) {
     } else {
         t.Fatalf("Expected non-empty MarketPrice array")
     }
+	// DB初期化
+	db.Unscoped().Where("1=1").Delete(&model.Crypto{})
 }
 
 
@@ -206,4 +211,59 @@ func TestCreateCryptoE2E(t *testing.T) {
 	assert.Equal(t, 88.0, response.Data.CreateCrypto.GetPrice)
 	assert.Equal(t, 1.0, response.Data.CreateCrypto.Quantity)
 	assert.Equal(t, 88.242, response.Data.CreateCrypto.CurrentPrice)
+	// DB初期化
+	db.Unscoped().Where("1=1").Delete(&model.Crypto{})
+}
+
+func TestDeleteCryptoE2E(t *testing.T) {
+	db := test.SetupTestDB()
+
+	// テスト用データの追加
+	crypto := model.Crypto{Code: "eth", UserId: 1, Quantity: 0.1, GetPrice: 200000.0}
+	db.Create(&crypto)
+
+	// 作成されたレコードのIDを取得
+	createdCryptoID := crypto.ID
+
+	// GraphQLサーバーのセットアップ
+	router := graphql.SetupGraphQLServer(db, nil)
+
+	// テスト用HTTPサーバーのセットアップ
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// ダミーのアクセストークンを生成
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
+	if err != nil {
+		t.Fatalf("Failed to generate test access token: %v", err)
+	}
+	// createdCryptoIDを文字列に変換
+	createdCryptoIDStr := strconv.FormatUint(uint64(createdCryptoID), 10)
+
+	// GraphQLリクエストの実行
+	query := fmt.Sprintf(`mutation {
+		deleteCrypto(id: "%s")
+	}`, createdCryptoIDStr)
+
+	w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, query, token)
+
+	// レスポンスボディの解析
+	var response struct {
+		Data struct {
+			DeleteCrypto bool `json:"deleteCrypto"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf("Failed to parse response body: %v", err)
+	}
+
+	// レスポンスボディの内容の検証
+	assert.True(t, response.Data.DeleteCrypto)
+
+	// データベースから削除されたことを確認
+	var cryptoAfterDelete model.Crypto
+	result := db.First(&cryptoAfterDelete, "id = ?", crypto.ID)
+	assert.ErrorIs(t, result.Error, gorm.ErrRecordNotFound)
 }

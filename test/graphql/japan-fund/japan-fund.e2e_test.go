@@ -2,14 +2,17 @@ package japanfund
 
 import (
 	"encoding/json"
+	"fmt"
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/test"
 	"my-us-stock-backend/test/graphql"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 // MockHTTPTransport は http.RoundTripper のインターフェースを満たすモック実装です。
@@ -138,4 +141,55 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, 18609.0, response.Data.CreateJapanFund.GetPrice)
 	assert.Equal(t, 400004.0, response.Data.CreateJapanFund.GetPriceTotal)
 	assert.Equal(t, 21682.0, response.Data.CreateJapanFund.CurrentPrice)
+}
+
+func TestDeleteJapanFundE2E(t *testing.T) {
+	db := test.SetupTestDB()
+	router := graphql.SetupGraphQLServer(db, nil)
+
+	// テスト用HTTPサーバーのセットアップ
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// テスト用データの追加
+	japanFund := model.JapanFund{Code: "JPX400", Name: "日経400", GetPrice: 12345.67, GetPriceTotal: 234567.89, UserId: 1}
+	db.Create(&japanFund)
+
+	// 作成されたレコードのIDを取得
+	createdJapanFundID := japanFund.ID
+
+	// ダミーのアクセストークンを生成
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
+	if err != nil {
+		t.Fatalf("Failed to generate test access token: %v", err)
+	}
+
+	// createdJapanFundIDを文字列に変換
+	createdJapanFundIDStr := strconv.FormatUint(uint64(createdJapanFundID), 10)
+
+	// GraphQLリクエストの実行
+	query := fmt.Sprintf(`mutation {
+		deleteJapanFund(id: "%s")
+	}`, createdJapanFundIDStr)
+	w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, query, token)
+
+	// レスポンスボディの解析
+	var response struct {
+		Data struct {
+			DeleteJapanFund bool `json:"deleteJapanFund"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf("Failed to parse response body: %v", err)
+	}
+
+	// レスポンスボディの内容の検証
+	assert.True(t, response.Data.DeleteJapanFund)
+
+	// データベースから削除されたことを確認
+	var fundAfterDelete model.JapanFund
+	result := db.First(&fundAfterDelete, "id = ?", createdJapanFundID)
+	assert.ErrorIs(t, result.Error, gorm.ErrRecordNotFound)
 }

@@ -2,15 +2,18 @@ package fixedincomeasset
 
 import (
 	"encoding/json"
+	"fmt"
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/test"
 	"my-us-stock-backend/test/graphql"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 // MockHTTPTransport は http.RoundTripper のインターフェースを満たすモック実装です。
@@ -139,4 +142,55 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, 1.8, response.Data.CreateFixedIncomeAsset.DividendRate)
 	assert.Equal(t, 0.0, response.Data.CreateFixedIncomeAsset.UsdJpy)
 	assert.Equal(t, []int{3}, response.Data.CreateFixedIncomeAsset.PaymentMonth)
+}
+
+func TestDeleteFixedIncomeAssetE2E(t *testing.T) {
+	db := test.SetupTestDB()
+	router := graphql.SetupGraphQLServer(db, nil)
+
+	// テスト用HTTPサーバーのセットアップ
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// テスト用データの追加
+	fixedIncomeAsset := model.FixedIncomeAsset{Code: "Bonds", UserId: 1, DividendRate: 2.5, GetPriceTotal: 50000.0, PaymentMonth: pq.Int64Array{3, 9}}
+	db.Create(&fixedIncomeAsset)
+
+	// 作成されたレコードのIDを取得
+	createdFixedIncomeAssetID := fixedIncomeAsset.ID
+
+	// ダミーのアクセストークンを生成
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
+	if err != nil {
+		t.Fatalf("Failed to generate test access token: %v", err)
+	}
+
+	// createdFixedIncomeAssetIDを文字列に変換
+	createdFixedIncomeAssetIDStr := strconv.FormatUint(uint64(createdFixedIncomeAssetID), 10)
+
+	// GraphQLリクエストの実行
+	query := fmt.Sprintf(`mutation {
+		deleteFixedIncomeAsset(id: "%s")
+	}`, createdFixedIncomeAssetIDStr)
+	w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, query, token)
+
+	// レスポンスボディの解析
+	var response struct {
+		Data struct {
+			DeleteFixedIncomeAsset bool `json:"deleteFixedIncomeAsset"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf("Failed to parse response body: %v", err)
+	}
+
+	// レスポンスボディの内容の検証
+	assert.True(t, response.Data.DeleteFixedIncomeAsset)
+
+	// データベースから削除されたことを確認
+	var assetAfterDelete model.FixedIncomeAsset
+	result := db.First(&assetAfterDelete, "id = ?", createdFixedIncomeAssetID)
+	assert.ErrorIs(t, result.Error, gorm.ErrRecordNotFound)
 }
