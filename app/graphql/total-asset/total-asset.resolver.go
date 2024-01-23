@@ -16,3 +16,7 @@ func NewResolver(totalAssetService TotalAssetService) *Resolver {
 func (r *Resolver) TotalAssets(ctx context.Context, day int) ([]*generated.TotalAsset, error) {
     return r.TotalAssetService.TotalAssets(ctx, day)
 }
+
+func (r *Resolver) UpdateTotalAsset(ctx context.Context, input generated.UpdateTotalAssetInput) (*generated.TotalAsset, error) {
+    return r.TotalAssetService.UpdateTotalAsset(ctx,input)
+}

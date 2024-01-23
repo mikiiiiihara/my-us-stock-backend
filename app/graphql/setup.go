@@ -54,6 +54,7 @@ func Handler(userResolver *user.Resolver, currencyResolver *currency.Resolver,ma
         CryptoResolver: cryptoResolver,
         FIxedIncomeAssetResolver: fixedIncomeAssetResolver,
         JapanFundResolver: japanFundResolver,
+        TotalAssetResolver: totalAssetResolver,
     }
     combinedResolver := &CombinedResolver{
         CustomQueryResolver: queryResolver,
