@@ -24,6 +24,7 @@ type Mutation {
   deleteFixedIncomeAsset(id: ID!): Boolean!
   createJapanFund(input: CreateJapanFundInput!): JapanFund!
   deleteJapanFund(id: ID!): Boolean!
+  updateTotalAsset(input: UpdateTotalAssetInput!): TotalAsset!
 }
 
 # ユーザー情報を表す型
@@ -371,4 +372,18 @@ type TotalAsset {
   登録日時
   """
   createdAt: Date!
+}
+
+input UpdateTotalAssetInput {
+  id: ID!
+
+  """
+  保有円
+  """
+  cashJpy: Float!
+
+  """
+  保有ドル
+  """
+  cashUsd: Float!
 }

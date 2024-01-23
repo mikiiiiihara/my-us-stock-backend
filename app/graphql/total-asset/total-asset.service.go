@@ -13,6 +13,7 @@ import (
 // TotalAssetService インターフェースの定義
 type TotalAssetService interface {
     TotalAssets(ctx context.Context, day int) ([]*generated.TotalAsset, error)
+	UpdateTotalAsset(ctx context.Context, input generated.UpdateTotalAssetInput) (*generated.TotalAsset, error)
 }
 
 // DefaultTotalAssetService 構造体の定義
@@ -63,4 +64,35 @@ func (s *DefaultTotalAssetService) TotalAssets(ctx context.Context, day int) ([]
 	})
 
     return assets, nil
+}
+
+func (s *DefaultTotalAssetService) UpdateTotalAsset(ctx context.Context, input generated.UpdateTotalAssetInput) (*generated.TotalAsset, error) {
+    // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+    if userId == 0 {
+        return nil, utils.UnauthenticatedError("Invalid user ID")
+    }
+	updateId, convertError := utils.ConvertIdToUint(input.ID)
+	if convertError != nil || updateId == 0 {
+        return nil, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+	updateDto := Repo.UpdateTotalAssetDto{
+		ID: updateId,
+		CashUsd: &input.CashUsd,
+		CashJpy: &input.CashJpy,
+	}
+	updatedAsset, err := s.Repo.UpdateTotalAsset(ctx, updateDto)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+	return &generated.TotalAsset{
+		ID: input.ID,
+		CashJpy: updatedAsset.CashJpy,
+		CashUsd: updatedAsset.CashUsd,
+		Stock: updatedAsset.Stock,
+		Fund: updatedAsset.Fund,
+		Crypto: updatedAsset.Crypto,
+		FixedIncomeAsset: updatedAsset.FixedIncomeAsset,
+		CreatedAt: updatedAsset.CreatedAt.Format(time.RFC3339),
+	}, nil
 }

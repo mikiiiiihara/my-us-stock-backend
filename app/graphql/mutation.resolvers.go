@@ -7,6 +7,7 @@ import (
 	"my-us-stock-backend/app/graphql/generated"
 	JapanFund "my-us-stock-backend/app/graphql/japan-fund"
 	"my-us-stock-backend/app/graphql/stock"
+	TotalAsset "my-us-stock-backend/app/graphql/total-asset"
 	"my-us-stock-backend/app/graphql/user"
 )
 
@@ -17,6 +18,7 @@ type CustomMutationResolver struct {
 	CryptoResolver *crypto.Resolver
 	FIxedIncomeAssetResolver *FixedIncomeAsset.Resolver
 	JapanFundResolver *JapanFund.Resolver
+	TotalAssetResolver *TotalAsset.Resolver
 }
 
 // Mutationメソッドの実装
@@ -58,4 +60,8 @@ func (r *CustomMutationResolver) CreateJapanFund(ctx context.Context, input gene
 
 func (r *CustomMutationResolver) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
 	return r.JapanFundResolver.DeleteJapanFund(ctx, id)
+}
+
+func (r *CustomMutationResolver) UpdateTotalAsset(ctx context.Context, input generated.UpdateTotalAssetInput) (*generated.TotalAsset, error) {
+	return r.TotalAssetResolver.UpdateTotalAsset(ctx, input)
 }
