@@ -4,25 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"my-us-stock-backend/app/repository/market-price/currency"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// MockCurrencyRepository は CurrencyRepository のモックです。
-type MockCurrencyRepository struct {
-    mock.Mock
-}
-
-// FetchCurrentUsdJpy は CurrencyService のモックメソッドです。
-func (m *MockCurrencyRepository) FetchCurrentUsdJpy(ctx context.Context) (float64, error) {
-	args := m.Called(ctx)
-	return args.Get(0).(float64), args.Error(1)
-}
-
 // TestFetchCurrentUsdJpy は FetchCurrentUsdJpy メソッドのテストです。
 func TestFetchCurrentUsdJpy(t *testing.T) {
     // モックの CurrencyService を作成
-	mockRepo := new(MockCurrencyRepository)
+	mockRepo := currency.NewMockCurrencyRepository()
 	service := NewCurrencyService(mockRepo)
 
     expectedUsdJpy := 133.69

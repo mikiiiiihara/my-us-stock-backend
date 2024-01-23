@@ -12,33 +12,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockJapanFundRepository struct {
-	mock.Mock
-}
-
-func (m *MockJapanFundRepository) FetchJapanFundListById(ctx context.Context, userId uint) ([]model.JapanFund, error) {
-    args := m.Called(ctx, userId)
-    return args.Get(0).([]model.JapanFund), args.Error(1)
-}
-
-func (m *MockJapanFundRepository) UpdateJapanFund(ctx context.Context, dto repo.UpdateJapanFundDto) (*model.JapanFund, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.JapanFund), args.Error(1)
-}
-
-func (m *MockJapanFundRepository) CreateJapanFund(ctx context.Context, dto repo.CreateJapanFundDto) (*model.JapanFund, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.JapanFund), args.Error(1)
-}
-
-func (m *MockJapanFundRepository) DeleteJapanFund(ctx context.Context, id uint) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
 // TestUsStocks は UsStocks メソッドのテストです。
 func TestJapanFundsService(t *testing.T) {
-	mockRepo := new(MockJapanFundRepository)
+	mockRepo := repo.NewMockJapanFundRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewJapanFundService(mockRepo, mockAuth)
 
@@ -71,7 +47,7 @@ func TestJapanFundsService(t *testing.T) {
 
 // TestCreateJapanFundService は TestCreateJapanFund メソッドのテストです。
 func TestCreateJapanFundService(t *testing.T) {
-	mockRepo := new(MockJapanFundRepository)
+	mockRepo := repo.NewMockJapanFundRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewJapanFundService(mockRepo, mockAuth)
 
@@ -115,7 +91,7 @@ func TestCreateJapanFundService(t *testing.T) {
 
 // TestDeleteJapanFundService は DeleteJapanFund メソッドのテストです。
 func TestDeleteJapanFundService(t *testing.T) {
-	mockRepo := new(MockJapanFundRepository)
+	mockRepo := repo.NewMockJapanFundRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewJapanFundService(mockRepo, mockAuth)
 

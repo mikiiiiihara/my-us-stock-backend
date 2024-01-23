@@ -13,33 +13,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockFixedIncomeAssetRepository struct {
-	mock.Mock
-}
-
-func (m *MockFixedIncomeAssetRepository) FetchFixedIncomeAssetListById(ctx context.Context, userId uint) ([]model.FixedIncomeAsset, error) {
-    args := m.Called(ctx, userId)
-    return args.Get(0).([]model.FixedIncomeAsset), args.Error(1)
-}
-
-func (m *MockFixedIncomeAssetRepository) UpdateFixedIncomeAsset(ctx context.Context, dto repo.UpdateFixedIncomeDto) (*model.FixedIncomeAsset, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.FixedIncomeAsset), args.Error(1)
-}
-
-func (m *MockFixedIncomeAssetRepository)CreateFixedIncomeAsset(ctx context.Context, dto repo.CreateFixedIncomeDto) (*model.FixedIncomeAsset, error){
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.FixedIncomeAsset), args.Error(1)
-}
-
-func (m *MockFixedIncomeAssetRepository) DeleteFixedIncomeAsset(ctx context.Context, id uint) error{
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
 // TestUsStocks は UsStocks メソッドのテストです。
 func TestFixedIncomeAssetsService(t *testing.T) {
-	mockRepo := new(MockFixedIncomeAssetRepository)
+	mockRepo := repo.NewMockFixedIncomeAssetRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewAssetService(mockRepo, mockAuth)
 
@@ -70,7 +46,7 @@ func TestFixedIncomeAssetsService(t *testing.T) {
 
 // TestCreateUsStockService は TestCreateUsStock メソッドのテストです。
 func TestCreateFixedIncomeAssetService(t *testing.T) {
-	mockRepo := new(MockFixedIncomeAssetRepository)
+	mockRepo := repo.NewMockFixedIncomeAssetRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewAssetService(mockRepo, mockAuth)
 
@@ -116,7 +92,7 @@ func TestCreateFixedIncomeAssetService(t *testing.T) {
 
 // TestDeleteFixedIncomeAssetService は DeleteFixedIncomeAsset メソッドのテストです。
 func TestDeleteFixedIncomeAssetService(t *testing.T) {
-	mockRepo := new(MockFixedIncomeAssetRepository)
+	mockRepo := repo.NewMockFixedIncomeAssetRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewAssetService(mockRepo, mockAuth)
 

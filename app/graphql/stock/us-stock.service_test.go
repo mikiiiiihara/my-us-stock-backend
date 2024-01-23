@@ -13,34 +13,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockUsStockRepository は UsStockRepository のモックです。
-type MockUsStockRepository struct {
-	mock.Mock
-}
-
-func (m *MockUsStockRepository) FetchUsStockListById(ctx context.Context, userId uint) ([]model.UsStock, error) {
-    args := m.Called(ctx, userId)
-    return args.Get(0).([]model.UsStock), args.Error(1)
-}
-
-func (m *MockUsStockRepository) UpdateUsStock(ctx context.Context, dto stock.UpdateUsStockDto) (*model.UsStock, error){
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.UsStock), args.Error(1)
-}
-
-func (m *MockUsStockRepository) CreateUsStock(ctx context.Context, dto stock.CreateUsStockDto) (*model.UsStock, error){
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.UsStock), args.Error(1)
-}
-
-func (m *MockUsStockRepository) DeleteUsStock(ctx context.Context, id uint) error{
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
 // TestUsStocks は UsStocks メソッドのテストです。
 func TestUsStocksService(t *testing.T) {
-	mockStockRepo := new(MockUsStockRepository)
+	mockStockRepo := stock.NewMockUsStockRepository()
     mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
@@ -86,7 +61,7 @@ func TestUsStocksService(t *testing.T) {
 
 // TestCreateUsStockService は TestCreateUsStock メソッドのテストです。
 func TestCreateUsStockService(t *testing.T) {
-	mockStockRepo := new(MockUsStockRepository)
+	mockStockRepo := stock.NewMockUsStockRepository()
     mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)
@@ -145,7 +120,7 @@ func TestCreateUsStockService(t *testing.T) {
 
 // TestDeleteUsStockService は DeleteUsStock メソッドのテストです。
 func TestDeleteUsStockService(t *testing.T) {
-	mockStockRepo := new(MockUsStockRepository)
+	mockStockRepo := stock.NewMockUsStockRepository()
     mockMarketPriceRepo := marketPrice.NewMockMarketPriceRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewUsStockService(mockStockRepo, mockAuth, mockMarketPriceRepo)

@@ -13,32 +13,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockCryptoRepository struct {
-	mock.Mock
-}
-
-func (m *MockCryptoRepository) FetchCryptoListById(ctx context.Context, userId uint) ([]model.Crypto, error) {
-    args := m.Called(ctx, userId)
-    return args.Get(0).([]model.Crypto), args.Error(1)
-}
-
-func (m *MockCryptoRepository) UpdateCrypto(ctx context.Context, dto crypto.UpdateCryptoDto) (*model.Crypto, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.Crypto), args.Error(1)
-}
-
-func (m *MockCryptoRepository) CreateCrypto(ctx context.Context, dto crypto.CreateCryptDto) (*model.Crypto, error){
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.Crypto), args.Error(1)
-}
-
-func (m *MockCryptoRepository) DeleteCrypto(ctx context.Context, id uint) error{
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
 func TestCryptosService(t *testing.T) {
-	mockCryptoRepo := new(MockCryptoRepository)
+	mockCryptoRepo := crypto.NewMockCryptoRepository()
     mockMarkeCryptoRepo := marketPrice.NewMockCryptoRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewCryptoService(mockCryptoRepo, mockAuth, mockMarkeCryptoRepo)
@@ -74,7 +50,7 @@ func TestCryptosService(t *testing.T) {
 }
 
 func TestCreateCryptoService(t *testing.T) {
-	mockCryptoRepo := new(MockCryptoRepository)
+	mockCryptoRepo := crypto.NewMockCryptoRepository()
     mockMarketCryptoRepo := marketPrice.NewMockCryptoRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewCryptoService(mockCryptoRepo, mockAuth, mockMarketCryptoRepo)
@@ -118,7 +94,7 @@ func TestCreateCryptoService(t *testing.T) {
 }
 
 func TestDeleteCryptoService(t *testing.T) {
-	mockCryptoRepo := new(MockCryptoRepository)
+	mockCryptoRepo := crypto.NewMockCryptoRepository()
 	mockMarketCryptoRepo := marketPrice.NewMockCryptoRepository()
 	mockAuth := auth.NewMockAuthService()
 	service := NewCryptoService(mockCryptoRepo, mockAuth, mockMarketCryptoRepo)

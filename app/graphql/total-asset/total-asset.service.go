@@ -5,7 +5,14 @@ import (
 	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
-	Repo "my-us-stock-backend/app/repository/total-assets"
+	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
+	repoFixedIncome "my-us-stock-backend/app/repository/assets/fixed-income"
+	repoJapanFund "my-us-stock-backend/app/repository/assets/fund"
+	"my-us-stock-backend/app/repository/assets/stock"
+	marketPrice "my-us-stock-backend/app/repository/market-price"
+	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
+	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
+	repoTotalAsset "my-us-stock-backend/app/repository/total-assets"
 	"sort"
 	"time"
 )
@@ -18,13 +25,20 @@ type TotalAssetService interface {
 
 // DefaultTotalAssetService 構造体の定義
 type DefaultTotalAssetService struct {
-    Repo Repo.TotalAssetRepository // インターフェースを利用
     Auth auth.AuthService    // 認証サービスのインターフェース
+	TotalAssetRepo repoTotalAsset.TotalAssetRepository
+	StockRepo stock.UsStockRepository
+	MarketPriceRepo marketPrice.MarketPriceRepository
+	CurrencyRepo repoCurrency.CurrencyRepository
+	JapanFundRepo repoJapanFund.JapanFundRepository
+	CryptoRepo repoCrypto.CryptoRepository
+	FixedIncomeRepo repoFixedIncome.FixedIncomeRepository
+	MarketCryptoRepo repoMarketCrypto.CryptoRepository
 }
 
 // NewTotalAssetService は DefaultUserService の新しいインスタンスを作成します
-func NewTotalAssetService(repo Repo.TotalAssetRepository, auth auth.AuthService) TotalAssetService {
-    return &DefaultTotalAssetService{Repo: repo, Auth: auth}
+func NewTotalAssetService(auth auth.AuthService, totalAssetRepo repoTotalAsset.TotalAssetRepository, stockRepo stock.UsStockRepository, marketPriceRepo marketPrice.MarketPriceRepository, currencyRepo repoCurrency.CurrencyRepository, japanFundRepo repoJapanFund.JapanFundRepository,	cryptoRepo repoCrypto.CryptoRepository,fixedIncomeRepo repoFixedIncome.FixedIncomeRepository, marketCryptoRepo repoMarketCrypto.CryptoRepository) TotalAssetService {
+	return &DefaultTotalAssetService{auth, totalAssetRepo, stockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeRepo, marketCryptoRepo}
 }
 
 // GetUserByID はユーザーをIDによって検索します
@@ -34,7 +48,7 @@ func (s *DefaultTotalAssetService) TotalAssets(ctx context.Context, day int) ([]
     if userId == 0 {
         return nil, utils.UnauthenticatedError("Invalid user ID")
     }
-    modelAssets, err := s.Repo.FetchTotalAssetListById(ctx, userId, day)
+    modelAssets, err := s.TotalAssetRepo.FetchTotalAssetListById(ctx, userId, day)
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
@@ -76,12 +90,16 @@ func (s *DefaultTotalAssetService) UpdateTotalAsset(ctx context.Context, input g
 	if convertError != nil || updateId == 0 {
         return nil, utils.DefaultGraphQLError("入力されたidが無効です")
        }
-	updateDto := Repo.UpdateTotalAssetDto{
+	   // TODO: 株式評価額再計算
+	   // TODO: 投資信託評価額再計算
+	   // TODO: 暗号通貨評価額再計算
+	   // TODO: 固定利回り資産評価額再計算
+	updateDto := repoTotalAsset.UpdateTotalAssetDto{
 		ID: updateId,
 		CashUsd: &input.CashUsd,
 		CashJpy: &input.CashJpy,
 	}
-	updatedAsset, err := s.Repo.UpdateTotalAsset(ctx, updateDto)
+	updatedAsset, err := s.TotalAssetRepo.UpdateTotalAsset(ctx, updateDto)
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
