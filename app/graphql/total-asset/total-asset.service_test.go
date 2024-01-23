@@ -7,6 +7,7 @@ import (
 	"my-us-stock-backend/app/graphql/generated"
 	"testing"
 
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -94,10 +95,41 @@ func TestUpdateTotalAssetService(t *testing.T) {
 	userId := uint(1)
 	mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
 
+	mockStocks := []model.UsStock{
+		{Code: "AAPL", GetPrice: 150, Quantity: 10, Sector: "Technology"},
+	}
+	mockStockRepo.On("FetchUsStockListById", mock.Anything, userId).Return(mockStocks, nil)
+
+	mockMarketPrices := []marketPrice.MarketPriceDto{
+		{Ticker: "AAPL", CurrentPrice: 155, PriceGets: 5, CurrentRate: 0.0333},
+	}
+	mockMarketPriceRepo.On("FetchMarketPriceList", mock.Anything, []string{"AAPL"}).Return(mockMarketPrices, nil)
+
+	expectedUsdJpy := 133.69
+    mockCurrencyRepo.On("FetchCurrentUsdJpy", mock.Anything).Return(expectedUsdJpy, nil)
+
+	mockFunds := []model.JapanFund{
+		{Code: "SP500", Name:"ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", GetPrice: 15523.81, GetPriceTotal: 761157.0,UserId: 1},
+	}
+	mockJapanFundRepo.On("FetchJapanFundListById", mock.Anything, userId).Return(mockFunds, nil)
+
+	mockCryptos := []model.Crypto{
+		{Code: "xrp", GetPrice: 88.0, Quantity: 2.0},
+	}
+	mockCryptoRepo.On("FetchCryptoListById", mock.Anything, userId).Return(mockCryptos, nil)
+
+	mockMarketPrice := &marketCryptoRepo.Crypto{Name: "xrp", Price: 88.2}
+	mockMarketCryptoRepo.On("FetchCryptoPrice", "xrp").Return(mockMarketPrice, nil)
+
+	mockAssets := []model.FixedIncomeAsset{
+		{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000.0, PaymentMonth: pq.Int64Array{6, 12}},
+	}
+	mockFixedIncomeAssetRepo.On("FetchFixedIncomeAssetListById", mock.Anything, userId).Return(mockAssets, nil)
+
+	// テスト実行
 	updateInput := generated.UpdateTotalAssetInput{ID: "1", CashJpy: 15000, CashUsd: 150}
-	updateDto := totalAssetRepo.UpdateTotalAssetDto{ID: 1, CashJpy: &updateInput.CashJpy, CashUsd: &updateInput.CashUsd}
-	mockUpdatedAsset := &model.TotalAsset{CashJpy: 15000, CashUsd: 150}
-	mockTotalAssetRepo.On("UpdateTotalAsset", mock.Anything, updateDto).Return(mockUpdatedAsset, nil)
+	mockUpdatedAsset := &model.TotalAsset{CashJpy: 15000, CashUsd: 150, Stock:20000}
+	mockTotalAssetRepo.On("UpdateTotalAsset", mock.Anything, mock.Anything).Return(mockUpdatedAsset, nil)
 
 	// テスト対象メソッドの実行
 	updatedAsset, err := service.UpdateTotalAsset(context.Background(), updateInput)
@@ -105,6 +137,7 @@ func TestUpdateTotalAssetService(t *testing.T) {
 	assert.NotNil(t, updatedAsset)
 	assert.Equal(t, float64(15000), updatedAsset.CashJpy)
 	assert.Equal(t, float64(150), updatedAsset.CashUsd)
+	assert.Equal(t, float64(20000), updatedAsset.Stock)
 
 	// モックの呼び出しを検証
 	mockTotalAssetRepo.AssertExpectations(t)

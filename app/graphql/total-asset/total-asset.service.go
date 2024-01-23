@@ -2,6 +2,8 @@ package totalasset
 
 import (
 	"context"
+	"log"
+	"math"
 	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
@@ -90,15 +92,85 @@ func (s *DefaultTotalAssetService) UpdateTotalAsset(ctx context.Context, input g
 	if convertError != nil || updateId == 0 {
         return nil, utils.DefaultGraphQLError("入力されたidが無効です")
        }
-	   // TODO: 株式評価額再計算
-	   // TODO: 投資信託評価額再計算
-	   // TODO: 暗号通貨評価額再計算
-	   // TODO: 固定利回り資産評価額再計算
-	updateDto := repoTotalAsset.UpdateTotalAssetDto{
-		ID: updateId,
-		CashUsd: &input.CashUsd,
-		CashJpy: &input.CashJpy,
-	}
+	   // 株式評価額再計算
+	   var amountOfStock = 0.0
+	   modelStocks, err := s.StockRepo.FetchUsStockListById(ctx, userId)
+	   if err != nil {
+		log.Fatalf("エラーが発生しました: %v", err)
+		return nil, utils.DefaultGraphQLError("エラーが発生しました")
+	   }
+		// modelStocksが空の場合は計算処理をスキップする
+		if len(modelStocks) != 0 {
+			// 米国株の市場価格情報取得
+			stockTotal,err := calculateStockTotal(ctx, s, modelStocks)
+			if err != nil {
+				log.Fatalf("エラーが発生しました: %v", err)
+				return nil, utils.DefaultGraphQLError("エラーが発生しました")
+			}
+			// 資産総額に加算
+			amountOfStock += stockTotal
+		}
+	   // 投資信託評価額再計算
+	   var amountOfFund = 0.0
+	   modelFunds, err := s.JapanFundRepo.FetchJapanFundListById(ctx, userId)
+	   if err != nil {
+			log.Fatalf("エラーが発生しました: %v", err)
+			return nil, utils.DefaultGraphQLError("エラーが発生しました")
+	   }
+	   // modelFundsが空の場合は計算処理をスキップする
+	   if len(modelFunds) != 0 {
+		   // 投資信託の評価総額を計算
+		   for _, modelFund := range modelFunds {
+			   amountOfFund += calculateFundPriceTotal(modelFund.Code,modelFund.GetPrice,modelFund.GetPriceTotal)
+		   }
+	   }
+	   // 暗号通貨評価額再計算
+	   var amountOfCrypto = 0.0
+	   modelCryptos, err := s.CryptoRepo.FetchCryptoListById(ctx, userId)
+	   if err != nil {
+		log.Fatalf("エラーが発生しました: %v", err)
+		return nil, utils.DefaultGraphQLError("エラーが発生しました")
+	   }
+	   // 空の場合は計算処理をスキップする
+	   if len(modelCryptos) != 0 {
+		   // 仮想通貨の評価総額を計算
+		   cryptoTotal,err := calculateCryptoTotal(ctx, s, modelCryptos)
+		   if err != nil {
+			log.Fatalf("エラーが発生しました: %v", err)
+			return nil, utils.DefaultGraphQLError("エラーが発生しました")
+		   }
+		   // 資産総額に加算
+		   amountOfCrypto += cryptoTotal
+	   }
+	   // 固定利回り資産評価額再計算
+	   var amountOfFixedIncomeAsset= 0.0
+	   modelAssets, err := s.FixedIncomeRepo.FetchFixedIncomeAssetListById(ctx, userId)
+	   if err != nil {
+		log.Fatalf("エラーが発生しました: %v", err)
+		return nil, utils.DefaultGraphQLError("エラーが発生しました")
+	   }
+	   // 空の場合は計算処理をスキップする
+	   if len(modelAssets) != 0 {
+		   // 仮想通貨の評価総額を計算
+		   for _, modelAsset := range modelAssets {
+			   amountOfFixedIncomeAsset += modelAsset.GetPriceTotal
+		   }
+	   }
+	   roundedAmountOfStock := math.Round(amountOfStock)
+	   roundedAmountOfFund := math.Round(amountOfFund)
+	   roundedAmountOfCrypto := math.Round(amountOfCrypto)
+	   roundedAmountOfFixedIncomeAsset := math.Round(amountOfFixedIncomeAsset)
+
+	   updateDto := repoTotalAsset.UpdateTotalAssetDto{
+		   ID: updateId,
+		   CashUsd: &input.CashUsd,
+		   CashJpy: &input.CashJpy,
+		   Stock: &roundedAmountOfStock,
+		   Fund: &roundedAmountOfFund,
+		   Crypto: &roundedAmountOfCrypto,
+		   FixedIncomeAsset: &roundedAmountOfFixedIncomeAsset,
+	   }
+	   
 	updatedAsset, err := s.TotalAssetRepo.UpdateTotalAsset(ctx, updateDto)
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
