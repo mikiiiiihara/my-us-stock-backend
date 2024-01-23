@@ -24,6 +24,11 @@ func (m *MockCryptoService) CreateCrypto(ctx context.Context, input generated.Cr
     return args.Get(0).(*generated.Crypto), args.Error(1)
 }
 
+func (m *MockCryptoService) DeleteCrypto(ctx context.Context, id string) (bool, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(bool), args.Error(1)
+}
+
 func TestCryptos(t *testing.T) {
     mockService := new(MockCryptoService)
     resolver := NewResolver(mockService)

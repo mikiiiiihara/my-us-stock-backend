@@ -24,6 +24,11 @@ func (m *MockUsStockService) CreateUsStock(ctx context.Context, input generated.
     return args.Get(0).(*generated.UsStock), args.Error(1)
 }
 
+func (m *MockUsStockService) DeleteUsStock(ctx context.Context, id string) (bool, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(bool), args.Error(1)
+}
+
 // UsStocks メソッドのテスト
 func TestUsStocks(t *testing.T) {
     mockService := new(MockUsStockService)

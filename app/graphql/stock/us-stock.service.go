@@ -14,6 +14,7 @@ import (
 type UsStockService interface {
     UsStocks(ctx context.Context) ([]*generated.UsStock, error)
 	CreateUsStock(ctx context.Context, input generated.CreateUsStockInput) (*generated.UsStock, error)
+    DeleteUsStock(ctx context.Context, id string) (bool, error)
 }
 
 // DefaultUsStockService 構造体の定義
@@ -174,4 +175,25 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
 		PriceGets:    marketPrices[0].PriceGets,
 		CurrentRate:  marketPrices[0].CurrentRate,
 	}, err
+}
+
+// 削除
+func (s *DefaultUsStockService) DeleteUsStock(ctx context.Context, id string) (bool, error) {
+    // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+    if userId == 0 {
+        return false, utils.UnauthenticatedError("Invalid user ID")
+    }
+
+    // 削除対象id変換
+    deleteId, convertError := utils.ConvertIdToUint(id)
+    if convertError != nil || deleteId == 0 {
+        return false, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+    var err = s.StockRepo.DeleteUsStock(ctx, deleteId)
+	// 市場情報を追加して返却
+    if err != nil {
+     return false, utils.DefaultGraphQLError(err.Error())
+    }
+	return true, nil
 }

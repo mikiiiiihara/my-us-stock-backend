@@ -24,6 +24,11 @@ func (m *MockJapanFundService) CreateJapanFund(ctx context.Context, input genera
     return args.Get(0).(*generated.JapanFund), args.Error(1)
 }
 
+func (m *MockJapanFundService) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(bool), args.Error(1)
+}
+
 // UsStocks メソッドのテスト
 func TestJapanFunds(t *testing.T) {
     mockService := new(MockJapanFundService)

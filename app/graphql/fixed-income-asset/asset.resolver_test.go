@@ -24,6 +24,11 @@ func (m *MockAssetService) CreateFixedIncomeAsset(ctx context.Context, input gen
     return args.Get(0).(*generated.FixedIncomeAsset), args.Error(1)
 }
 
+func (m *MockAssetService) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(bool), args.Error(1)
+}
+
 // UsStocks メソッドのテスト
 func TestFixedIncomeAssets(t *testing.T) {
     mockService := new(MockAssetService)

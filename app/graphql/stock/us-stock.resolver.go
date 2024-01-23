@@ -25,3 +25,7 @@ func (r *Resolver) CreateUsStock(ctx context.Context, input generated.CreateUsSt
 
     return newUsStock, nil
 }
+
+func (r *Resolver) DeleteUsStock(ctx context.Context, id string) (bool, error) {
+    return r.UsStockService.DeleteUsStock(ctx, id)
+}

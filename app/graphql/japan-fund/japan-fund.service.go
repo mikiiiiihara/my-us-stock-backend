@@ -12,6 +12,7 @@ import (
 type JapanFundService interface {
     JapanFunds(ctx context.Context) ([]*generated.JapanFund, error)
 	CreateJapanFund(ctx context.Context, input generated.CreateJapanFundInput) (*generated.JapanFund, error)
+	DeleteJapanFund(ctx context.Context, id string) (bool, error)
 }
 
 // DefaultJapanFundService 構造体の定義
@@ -97,4 +98,25 @@ func getFundMarketPrice(code string) float64 {
 		return 18768.0
 	
 	}
+}
+
+// 削除
+func (s *DefaultJapanFundService) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
+    // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+    if userId == 0 {
+        return false, utils.UnauthenticatedError("Invalid user ID")
+    }
+
+    // 削除対象id変換
+    deleteId, convertError := utils.ConvertIdToUint(id)
+    if convertError != nil || deleteId == 0 {
+        return false, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+    var err = s.Repo.DeleteJapanFund(ctx, deleteId)
+	// 市場情報を追加して返却
+    if err != nil {
+     return false, utils.DefaultGraphQLError(err.Error())
+    }
+	return true, nil
 }

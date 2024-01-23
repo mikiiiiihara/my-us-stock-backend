@@ -32,14 +32,30 @@ func (r *CustomMutationResolver) CreateUsStock(ctx context.Context, input genera
 	return r.UsStockResolver.CreateUsStock(ctx, input)
 }
 
+func (r *CustomMutationResolver) DeleteUsStock(ctx context.Context, id string) (bool, error) {
+	return r.UsStockResolver.DeleteUsStock(ctx, id)
+}
+
 func (r *CustomMutationResolver) CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error) {
 	return r.CryptoResolver.CreateCrypto(ctx, input)
+}
+
+func (r *CustomMutationResolver) DeleteCrypto(ctx context.Context, id string) (bool, error) {
+	return r.CryptoResolver.DeleteCrypto(ctx, id)
 }
 
 func (r *CustomMutationResolver) CreateFixedIncomeAsset(ctx context.Context, input generated.CreateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
 	return r.FIxedIncomeAssetResolver.CreateFixedIncomeAsset(ctx, input)
 }
 
+func (r *CustomMutationResolver) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
+	return r.FIxedIncomeAssetResolver.DeleteFixedIncomeAsset(ctx, id)
+}
+
 func (r *CustomMutationResolver) CreateJapanFund(ctx context.Context, input generated.CreateJapanFundInput) (*generated.JapanFund, error) {
 	return r.JapanFundResolver.CreateJapanFund(ctx, input)
+}
+
+func (r *CustomMutationResolver) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
+	return r.JapanFundResolver.DeleteJapanFund(ctx, id)
 }
