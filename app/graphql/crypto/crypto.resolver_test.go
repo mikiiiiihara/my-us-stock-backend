@@ -72,3 +72,17 @@ func TestCreateCrypto(t *testing.T) {
 
     mockService.AssertExpectations(t)
 }
+
+func TestDeleteCrypto(t *testing.T) {
+    mockService := new(MockCryptoService)
+    resolver := NewResolver(mockService)
+
+    mockService.On("DeleteCrypto", mock.Anything, "1").Return(true, nil)
+
+    result, err := resolver.DeleteCrypto(context.Background(), "1")
+    
+    assert.NoError(t, err)
+    assert.True(t, result)
+
+    mockService.AssertExpectations(t)
+}

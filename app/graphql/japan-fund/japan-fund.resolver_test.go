@@ -76,3 +76,17 @@ func TestCreateJapanFund(t *testing.T) {
 
     mockService.AssertExpectations(t)
 }
+
+func TestDeleteJapanFund(t *testing.T) {
+    mockService := new(MockJapanFundService)
+    resolver := NewResolver(mockService)
+
+    mockService.On("DeleteJapanFund", mock.Anything, "1").Return(true, nil)
+
+    result, err := resolver.DeleteJapanFund(context.Background(), "1")
+    
+    assert.NoError(t, err)
+    assert.True(t, result)
+
+    mockService.AssertExpectations(t)
+}

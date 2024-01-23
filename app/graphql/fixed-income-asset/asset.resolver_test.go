@@ -74,3 +74,17 @@ func TestCreateFixedIncomeAsset(t *testing.T) {
 
     mockService.AssertExpectations(t)
 }
+
+func TestDeleteFixedIncomeAsset(t *testing.T) {
+    mockService := new(MockAssetService)
+    resolver := NewResolver(mockService)
+
+    mockService.On("DeleteFixedIncomeAsset", mock.Anything, "1").Return(true, nil)
+
+    result, err := resolver.DeleteFixedIncomeAsset(context.Background(), "1")
+    
+    assert.NoError(t, err)
+    assert.True(t, result)
+
+    mockService.AssertExpectations(t)
+}

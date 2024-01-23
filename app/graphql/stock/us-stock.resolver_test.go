@@ -82,3 +82,17 @@ func TestCreateUsStock(t *testing.T) {
 
     mockService.AssertExpectations(t)
 }
+
+func TestDeleteUsStock(t *testing.T) {
+    mockService := new(MockUsStockService)
+    resolver := NewResolver(mockService)
+
+    mockService.On("DeleteUsStock", mock.Anything, "1").Return(true, nil)
+
+    result, err := resolver.DeleteUsStock(context.Background(), "1")
+    
+    assert.NoError(t, err)
+    assert.True(t, result)
+
+    mockService.AssertExpectations(t)
+}
