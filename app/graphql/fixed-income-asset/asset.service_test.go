@@ -34,7 +34,7 @@ func (m *MockFixedIncomeAssetRepository)CreateFixedIncomeAsset(ctx context.Conte
 
 func (m *MockFixedIncomeAssetRepository) DeleteFixedIncomeAsset(ctx context.Context, id uint) error{
 	args := m.Called(ctx, id)
-	return args.Error(1)
+	return args.Error(0)
 }
 
 // TestUsStocks は UsStocks メソッドのテストです。
@@ -108,6 +108,29 @@ func TestCreateFixedIncomeAssetService(t *testing.T) {
 	assert.Equal(t, 3.5, newAsset.DividendRate)
 	assert.Equal(t, 3.5, newAsset.DividendRate)
 	assert.Equal(t, []int{6,12}, newAsset.PaymentMonth)
+
+	// モックの呼び出しを検証
+	mockRepo.AssertExpectations(t)
+	mockAuth.AssertExpectations(t)
+}
+
+// TestDeleteFixedIncomeAssetService は DeleteFixedIncomeAsset メソッドのテストです。
+func TestDeleteFixedIncomeAssetService(t *testing.T) {
+	mockRepo := new(MockFixedIncomeAssetRepository)
+	mockAuth := auth.NewMockAuthService()
+	service := NewAssetService(mockRepo, mockAuth)
+
+	// モックの期待値設定
+	userId := uint(1)
+	mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+	deleteId := uint(1)
+	mockRepo.On("DeleteFixedIncomeAsset", mock.Anything, deleteId).Return(nil)
+
+	// テスト対象メソッドの実行
+	result, err := service.DeleteFixedIncomeAsset(context.Background(), "1")
+	assert.NoError(t, err)
+	assert.True(t, result)
 
 	// モックの呼び出しを検証
 	mockRepo.AssertExpectations(t)

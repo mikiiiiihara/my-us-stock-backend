@@ -33,7 +33,7 @@ func (m *MockJapanFundRepository) CreateJapanFund(ctx context.Context, dto repo.
 
 func (m *MockJapanFundRepository) DeleteJapanFund(ctx context.Context, id uint) error {
 	args := m.Called(ctx, id)
-	return args.Error(1)
+	return args.Error(0)
 }
 
 // TestUsStocks は UsStocks メソッドのテストです。
@@ -107,6 +107,29 @@ func TestCreateJapanFundService(t *testing.T) {
 	assert.Equal(t, 18609.0, newFund.GetPrice)
 	assert.Equal(t, 400004.0, newFund.GetPriceTotal)
 	assert.Equal(t, 21682.0, newFund.CurrentPrice)
+
+	// モックの呼び出しを検証
+	mockRepo.AssertExpectations(t)
+	mockAuth.AssertExpectations(t)
+}
+
+// TestDeleteJapanFundService は DeleteJapanFund メソッドのテストです。
+func TestDeleteJapanFundService(t *testing.T) {
+	mockRepo := new(MockJapanFundRepository)
+	mockAuth := auth.NewMockAuthService()
+	service := NewJapanFundService(mockRepo, mockAuth)
+
+	// モックの期待値設定
+	userId := uint(1)
+	mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+	deleteId := uint(1)
+	mockRepo.On("DeleteJapanFund", mock.Anything, deleteId).Return(nil)
+
+	// テスト対象メソッドの実行
+	result, err := service.DeleteJapanFund(context.Background(), "1")
+	assert.NoError(t, err)
+	assert.True(t, result)
 
 	// モックの呼び出しを検証
 	mockRepo.AssertExpectations(t)

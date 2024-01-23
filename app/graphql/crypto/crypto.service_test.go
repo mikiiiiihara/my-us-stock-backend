@@ -34,7 +34,7 @@ func (m *MockCryptoRepository) CreateCrypto(ctx context.Context, dto crypto.Crea
 
 func (m *MockCryptoRepository) DeleteCrypto(ctx context.Context, id uint) error{
 	args := m.Called(ctx, id)
-	return args.Error(1)
+	return args.Error(0)
 }
 
 func TestCryptosService(t *testing.T) {
@@ -110,6 +110,30 @@ func TestCreateCryptoService(t *testing.T) {
 	assert.Equal(t, 5047113.0, usStock.GetPrice)
 	assert.Equal(t, 0.05, usStock.Quantity)
 	assert.Equal(t, 5947113.2, usStock.CurrentPrice)
+
+	// モックの呼び出しを検証
+	mockCryptoRepo.AssertExpectations(t)
+	mockMarketCryptoRepo.AssertExpectations(t)
+	mockAuth.AssertExpectations(t)
+}
+
+func TestDeleteCryptoService(t *testing.T) {
+	mockCryptoRepo := new(MockCryptoRepository)
+	mockMarketCryptoRepo := marketPrice.NewMockCryptoRepository()
+	mockAuth := auth.NewMockAuthService()
+	service := NewCryptoService(mockCryptoRepo, mockAuth, mockMarketCryptoRepo)
+
+	// モックの期待値設定
+	userId := uint(1)
+	mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+	deleteId := uint(1)
+	mockCryptoRepo.On("DeleteCrypto", mock.Anything, deleteId).Return(nil)
+
+	// テスト対象メソッドの実行
+	result, err := service.DeleteCrypto(context.Background(), "1")
+	assert.NoError(t, err)
+	assert.True(t, result)
 
 	// モックの呼び出しを検証
 	mockCryptoRepo.AssertExpectations(t)
