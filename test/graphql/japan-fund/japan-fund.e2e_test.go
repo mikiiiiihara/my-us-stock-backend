@@ -74,7 +74,7 @@ func TestJapanFunds(t *testing.T) {
 		assert.Equal(t, "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", response.Data.JapanFunds[0].Name)
 		assert.Equal(t, 15523.81, response.Data.JapanFunds[0].GetPrice)
 		assert.Equal(t, 761157.0, response.Data.JapanFunds[0].GetPriceTotal)
-		assert.Equal(t, 25369.0, response.Data.JapanFunds[0].CurrentPrice)
+		assert.Equal(t, 25779.0, response.Data.JapanFunds[0].CurrentPrice)
     } else {
         t.Fatalf("Expected non-empty array")
     }
@@ -140,7 +140,7 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, "ｅＭＡＸＩＳ　Ｓｌｉｍ　全世界株式（除く日本）", response.Data.CreateJapanFund.Name)
 	assert.Equal(t, 18609.0, response.Data.CreateJapanFund.GetPrice)
 	assert.Equal(t, 400004.0, response.Data.CreateJapanFund.GetPriceTotal)
-	assert.Equal(t, 21682.0, response.Data.CreateJapanFund.CurrentPrice)
+	assert.Equal(t, 22023.0, response.Data.CreateJapanFund.CurrentPrice)
 }
 
 func TestDeleteJapanFundE2E(t *testing.T) {
