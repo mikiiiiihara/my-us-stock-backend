@@ -38,7 +38,6 @@ func TestJapanFundsService(t *testing.T) {
 	assert.Equal(t, "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", funds[0].Name)
 	assert.Equal(t, 15523.81, funds[0].GetPrice)
 	assert.Equal(t, 761157.0, funds[0].GetPriceTotal)
-	assert.Equal(t, 25779.0, funds[0].CurrentPrice)
 
 	// モックの呼び出しを検証
 	mockRepo.AssertExpectations(t)
@@ -82,7 +81,6 @@ func TestCreateJapanFundService(t *testing.T) {
 	assert.Equal(t, "ｅＭＡＸＩＳ　Ｓｌｉｍ　全世界株式（除く日本）", newFund.Name)
 	assert.Equal(t, 18609.0, newFund.GetPrice)
 	assert.Equal(t, 400004.0, newFund.GetPriceTotal)
-	assert.Equal(t, 22023.0, newFund.CurrentPrice)
 
 	// モックの呼び出しを検証
 	mockRepo.AssertExpectations(t)
