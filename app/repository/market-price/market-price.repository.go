@@ -87,6 +87,21 @@ func (repo *DefaultMarketPriceRepository) FetchMarketPriceList(ctx context.Conte
         })
     }
 
+    // goでもできる？
+    req1, err := http.NewRequestWithContext(ctx, "GET", "https://developer.am.mufg.jp/fund_information_latest/fund_cd/253266", nil)
+    if err != nil {
+        return nil, err
+    }
+
+    resp1, err := repo.httpClient.Do(req1)
+    if err != nil {
+        return nil, err
+    }
+    defer resp1.Body.Close()
+
+    fmt.Println("------ resp1 ------")
+    fmt.Print(resp1)
+
     return priceDtos, nil
 }
 
