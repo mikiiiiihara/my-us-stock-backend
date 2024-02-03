@@ -24,6 +24,11 @@ func (m *MockJapanFundService) CreateJapanFund(ctx context.Context, input genera
     return args.Get(0).(*generated.JapanFund), args.Error(1)
 }
 
+func (m *MockJapanFundService) UpdateJapanFund(ctx context.Context, input generated.UpdateJapanFundInput) (*generated.JapanFund, error) {
+    args := m.Called(ctx, input)
+    return args.Get(0).(*generated.JapanFund), args.Error(1)
+}
+
 func (m *MockJapanFundService) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
     args := m.Called(ctx, id)
     return args.Get(0).(bool), args.Error(1)
@@ -76,6 +81,36 @@ func TestCreateJapanFund(t *testing.T) {
 
     mockService.AssertExpectations(t)
 }
+
+// TestUpdateJapanFund メソッドのテスト
+func TestUpdateJapanFund(t *testing.T) {
+    mockService := new(MockJapanFundService)
+    resolver := NewResolver(mockService)
+
+    input := generated.UpdateJapanFundInput{
+        ID:            "1",
+        GetPrice:      16000,
+        GetPriceTotal: 800000,
+    }
+    mockResponse := &generated.JapanFund{
+        ID:            "1",
+        Code:          "SP500",
+        Name:          "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）更新",
+        GetPrice:      16000,
+        GetPriceTotal: 800000,
+        CurrentPrice:  24281,
+    }
+
+    mockService.On("UpdateJapanFund", mock.Anything, input).Return(mockResponse, nil)
+
+    updatedFund, err := resolver.UpdateJapanFund(context.Background(), input)
+
+    assert.NoError(t, err)
+    assert.Equal(t, mockResponse, updatedFund)
+
+    mockService.AssertExpectations(t)
+}
+
 
 func TestDeleteJapanFund(t *testing.T) {
     mockService := new(MockJapanFundService)

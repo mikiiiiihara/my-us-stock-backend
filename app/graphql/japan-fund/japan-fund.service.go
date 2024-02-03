@@ -12,6 +12,7 @@ import (
 type JapanFundService interface {
     JapanFunds(ctx context.Context) ([]*generated.JapanFund, error)
 	CreateJapanFund(ctx context.Context, input generated.CreateJapanFundInput) (*generated.JapanFund, error)
+	UpdateJapanFund(ctx context.Context, input generated.UpdateJapanFundInput) (*generated.JapanFund, error)
 	DeleteJapanFund(ctx context.Context, id string) (bool, error)
 }
 
@@ -60,11 +61,11 @@ func (s *DefaultJapanFundService) JapanFunds(ctx context.Context) ([]*generated.
 
 // CreateUser は新しいユーザーを作成します
 func (s *DefaultJapanFundService) CreateJapanFund(ctx context.Context, input generated.CreateJapanFundInput) (*generated.JapanFund, error) {
-		// アクセストークンの検証
-		userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
-		if userId == 0 {
-			return nil, utils.UnauthenticatedError("Invalid user ID")
-		}
+	// アクセストークンの検証
+	userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+	if userId == 0 {
+		return nil, utils.UnauthenticatedError("Invalid user ID")
+	}
 	// 更新用DTOの作成
     createDto := JapanFund.CreateJapanFundDto{
         Code: input.Code,
@@ -83,7 +84,38 @@ func (s *DefaultJapanFundService) CreateJapanFund(ctx context.Context, input gen
 		Name: modelFund.Name,
 		GetPriceTotal: modelFund.GetPriceTotal,
 		GetPrice: modelFund.GetPrice,
-		CurrentPrice: getFundMarketPrice(modelFund.Code),// TODO: 三菱UFJのAPI復旧したらrepository実装してそこから取得するようにする
+		CurrentPrice: getFundMarketPrice(modelFund.Code),
+	}, nil
+}
+
+func (s *DefaultJapanFundService) UpdateJapanFund(ctx context.Context, input generated.UpdateJapanFundInput) (*generated.JapanFund, error) {
+	// アクセストークンの検証
+	userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+	if userId == 0 {
+		return nil, utils.UnauthenticatedError("Invalid user ID")
+	}
+	updateId, convertError := utils.ConvertIdToUint(input.ID)
+	if convertError != nil || updateId == 0 {
+        return nil, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+
+	// 更新用DTOの作成
+	updateDto := JapanFund.UpdateJapanFundDto{
+		ID: updateId,
+        GetPrice: &input.GetPrice,
+		GetPriceTotal: &input.GetPriceTotal,
+	}
+    modelFund, err := s.Repo.UpdateJapanFund(ctx, updateDto)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+	return  &generated.JapanFund{
+		ID: utils.ConvertIdToString(modelFund.ID),
+		Code: modelFund.Code,
+		Name: modelFund.Name,
+		GetPriceTotal: modelFund.GetPriceTotal,
+		GetPrice: modelFund.GetPrice,
+		CurrentPrice: getFundMarketPrice(modelFund.Code),
 	}, nil
 }
 

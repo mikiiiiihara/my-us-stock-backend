@@ -62,6 +62,10 @@ func (r *CustomMutationResolver) CreateJapanFund(ctx context.Context, input gene
 	return r.JapanFundResolver.CreateJapanFund(ctx, input)
 }
 
+func (r *CustomMutationResolver) UpdateJapanFund(ctx context.Context, input generated.UpdateJapanFundInput) (*generated.JapanFund, error) {
+	return r.JapanFundResolver.UpdateJapanFund(ctx, input)
+}
+
 func (r *CustomMutationResolver) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
 	return r.JapanFundResolver.DeleteJapanFund(ctx, id)
 }

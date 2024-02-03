@@ -122,6 +122,15 @@ type TotalAsset struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type UpdateJapanFundInput struct {
+	// id
+	ID string `json:"id"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 取得価格総額
+	GetPriceTotal float64 `json:"getPriceTotal"`
+}
+
 type UpdateTotalAssetInput struct {
 	ID string `json:"id"`
 	// 保有円

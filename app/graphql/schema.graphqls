@@ -23,6 +23,7 @@ type Mutation {
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
   deleteFixedIncomeAsset(id: ID!): Boolean!
   createJapanFund(input: CreateJapanFundInput!): JapanFund!
+  updateJapanFund(input: UpdateJapanFundInput!): JapanFund!
   deleteJapanFund(id: ID!): Boolean!
   updateTotalAsset(input: UpdateTotalAssetInput!): TotalAsset!
 }
@@ -149,6 +150,24 @@ input CreateJapanFundInput {
   銘柄名
   """
   name: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  取得価格総額
+  """
+  getPriceTotal: Float!
+}
+
+# 日本投資信託情報更新時の入力型
+input UpdateJapanFundInput {
+  """
+  id
+  """
+  id: ID!
 
   """
   取得価格

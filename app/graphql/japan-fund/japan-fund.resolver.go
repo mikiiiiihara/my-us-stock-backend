@@ -26,6 +26,15 @@ func (r *Resolver) CreateJapanFund(ctx context.Context, input generated.CreateJa
     return newFund, nil
 }
 
+func (r *Resolver) UpdateJapanFund(ctx context.Context, input generated.UpdateJapanFundInput) (*generated.JapanFund, error) {
+    newFund, err := r.JapanFundService.UpdateJapanFund(ctx, input)
+    if err != nil {
+        return nil, err
+    }
+
+    return newFund, nil
+}
+
 func (r *Resolver) DeleteJapanFund(ctx context.Context, id string) (bool, error) {
     return r.JapanFundService.DeleteJapanFund(ctx, id)
 }
