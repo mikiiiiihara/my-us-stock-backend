@@ -16,13 +16,16 @@ type Query {
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
-  # updateUsStock(input: UpdateUsStockInput!): UsStock!
+  updateUsStock(input: UpdateUsStockInput!): UsStock!
   deleteUsStock(id: ID!): Boolean!
   createCrypto(input: CreateCryptoInput!): Crypto!
+  updateCrypto(input: UpdateCryptoInput!): Crypto!
   deleteCrypto(id: ID!): Boolean!
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
+  updateFixedIncomeAsset(input: UpdateFixedIncomeAssetInput!): FixedIncomeAsset!
   deleteFixedIncomeAsset(id: ID!): Boolean!
   createJapanFund(input: CreateJapanFundInput!): JapanFund!
+  updateJapanFund(input: UpdateJapanFundInput!): JapanFund!
   deleteJapanFund(id: ID!): Boolean!
   updateTotalAsset(input: UpdateTotalAssetInput!): TotalAsset!
 }
@@ -90,21 +93,24 @@ input UpdateUsStockInput {
   購入時為替
   """
   usdJpy: Float!
+}
+
+# 仮想通貨更新時の入力型
+input UpdateCryptoInput {
+  """
+  id
+  """
+  id: ID!
 
   """
-  現在価格
+  取得価格
   """
-  currentPrice: Float!
+  getPrice: Float!
 
   """
-  変化額
+  保有株数
   """
-  priceGets: Float!
-
-  """
-  変化率
-  """
-  currentRate: Float!
+  quantity: Float!
 }
 
 # 仮想通貨作成時の入力型
@@ -153,6 +159,24 @@ input CreateFixedIncomeAssetInput {
   paymentMonth: [Int!]!
 }
 
+# 固定利回り資産更新時の入力型
+input UpdateFixedIncomeAssetInput {
+  """
+  id
+  """
+  id: ID!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
+}
+
 # 日本投資信託情報作成時の入力型
 input CreateJapanFundInput {
   """
@@ -164,6 +188,24 @@ input CreateJapanFundInput {
   銘柄名
   """
   name: String!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  取得価格総額
+  """
+  getPriceTotal: Float!
+}
+
+# 日本投資信託情報更新時の入力型
+input UpdateJapanFundInput {
+  """
+  id
+  """
+  id: ID!
 
   """
   取得価格

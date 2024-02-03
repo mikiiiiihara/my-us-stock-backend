@@ -53,7 +53,7 @@ func (r *DefaultUsStockRepository) UpdateUsStock(ctx context.Context, dto Update
         newStock["quantity"] = dto.Quantity
     }
     if dto.UsdJpy != nil {
-        newStock["usdjpy"] = dto.UsdJpy
+        newStock["usd_jpy"] = dto.UsdJpy
     }
 
     // 指定されたIDの株式情報を更新します

@@ -122,6 +122,33 @@ type TotalAsset struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type UpdateCryptoInput struct {
+	// id
+	ID string `json:"id"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 保有株数
+	Quantity float64 `json:"quantity"`
+}
+
+type UpdateFixedIncomeAssetInput struct {
+	// id
+	ID string `json:"id"`
+	// 取得価格合計
+	GetPriceTotal float64 `json:"getPriceTotal"`
+	// 購入時為替
+	UsdJpy *float64 `json:"usdJpy,omitempty"`
+}
+
+type UpdateJapanFundInput struct {
+	// id
+	ID string `json:"id"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 取得価格総額
+	GetPriceTotal float64 `json:"getPriceTotal"`
+}
+
 type UpdateTotalAssetInput struct {
 	ID string `json:"id"`
 	// 保有円
@@ -139,12 +166,6 @@ type UpdateUsStockInput struct {
 	Quantity float64 `json:"quantity"`
 	// 購入時為替
 	UsdJpy float64 `json:"usdJpy"`
-	// 現在価格
-	CurrentPrice float64 `json:"currentPrice"`
-	// 変化額
-	PriceGets float64 `json:"priceGets"`
-	// 変化率
-	CurrentRate float64 `json:"currentRate"`
 }
 
 type UsStock struct {

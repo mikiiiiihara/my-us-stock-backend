@@ -14,6 +14,7 @@ import (
 type CryptoService interface {
     Cryptos(ctx context.Context) ([]*generated.Crypto, error)
 	CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error)
+    UpdateCrypto(ctx context.Context, input generated.UpdateCryptoInput) (*generated.Crypto, error)
     DeleteCrypto(ctx context.Context, id string) (bool, error)
 }
 
@@ -124,6 +125,43 @@ func (s *DefaultCryptoService) CreateCrypto(ctx context.Context, input generated
 		Quantity:     modelStock.Quantity,
 		CurrentPrice: marketPrice.Price,
 	}, err
+}
+
+func (s *DefaultCryptoService) UpdateCrypto(ctx context.Context, input generated.UpdateCryptoInput) (*generated.Crypto, error) {
+	// アクセストークンの検証
+	userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+	if userId == 0 {
+		return nil, utils.UnauthenticatedError("Invalid user ID")
+	}
+	updateId, convertError := utils.ConvertIdToUint(input.ID)
+	if convertError != nil || updateId == 0 {
+        return nil, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+      	// 値入れ直し
+	updateDto := crypto.UpdateCryptoDto{
+        ID: updateId,
+        GetPrice: &input.GetPrice,
+        Quantity: &input.Quantity,
+
+	}
+
+    modelCrypto, err := s.Repo.UpdateCrypto(ctx, updateDto)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+    // 市場価格取得
+    marketPrice, err := s.MarketPriceRepo.FetchCryptoPrice(modelCrypto.Code)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+	// 市場情報を追加して返却
+	return &generated.Crypto{
+        ID: utils.ConvertIdToString(modelCrypto.ID),
+		Code: modelCrypto.Code,
+		GetPrice: modelCrypto.GetPrice,
+		Quantity:     modelCrypto.Quantity,
+		CurrentPrice: marketPrice.Price,
+	}, err 
 }
 
 // 削除

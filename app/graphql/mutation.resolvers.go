@@ -34,12 +34,20 @@ func (r *CustomMutationResolver) CreateUsStock(ctx context.Context, input genera
 	return r.UsStockResolver.CreateUsStock(ctx, input)
 }
 
+func (r *CustomMutationResolver) UpdateUsStock(ctx context.Context, input generated.UpdateUsStockInput) (*generated.UsStock, error) {
+	return r.UsStockResolver.UpdateUsStock(ctx, input)
+}
+
 func (r *CustomMutationResolver) DeleteUsStock(ctx context.Context, id string) (bool, error) {
 	return r.UsStockResolver.DeleteUsStock(ctx, id)
 }
 
 func (r *CustomMutationResolver) CreateCrypto(ctx context.Context, input generated.CreateCryptoInput) (*generated.Crypto, error) {
 	return r.CryptoResolver.CreateCrypto(ctx, input)
+}
+
+func (r *CustomMutationResolver) UpdateCrypto(ctx context.Context, input generated.UpdateCryptoInput) (*generated.Crypto, error) {
+	return r.CryptoResolver.UpdateCrypto(ctx, input)
 }
 
 func (r *CustomMutationResolver) DeleteCrypto(ctx context.Context, id string) (bool, error) {
@@ -50,12 +58,20 @@ func (r *CustomMutationResolver) CreateFixedIncomeAsset(ctx context.Context, inp
 	return r.FIxedIncomeAssetResolver.CreateFixedIncomeAsset(ctx, input)
 }
 
+func (r *CustomMutationResolver) UpdateFixedIncomeAsset(ctx context.Context, input generated.UpdateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
+	return r.FIxedIncomeAssetResolver.UpdateFixedIncomeAsset(ctx, input)
+}
+
 func (r *CustomMutationResolver) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
 	return r.FIxedIncomeAssetResolver.DeleteFixedIncomeAsset(ctx, id)
 }
 
 func (r *CustomMutationResolver) CreateJapanFund(ctx context.Context, input generated.CreateJapanFundInput) (*generated.JapanFund, error) {
 	return r.JapanFundResolver.CreateJapanFund(ctx, input)
+}
+
+func (r *CustomMutationResolver) UpdateJapanFund(ctx context.Context, input generated.UpdateJapanFundInput) (*generated.JapanFund, error) {
+	return r.JapanFundResolver.UpdateJapanFund(ctx, input)
 }
 
 func (r *CustomMutationResolver) DeleteJapanFund(ctx context.Context, id string) (bool, error) {

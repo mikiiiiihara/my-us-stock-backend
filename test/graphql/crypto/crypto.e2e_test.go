@@ -215,6 +215,110 @@ func TestCreateCryptoE2E(t *testing.T) {
 	db.Unscoped().Where("1=1").Delete(&model.Crypto{})
 }
 
+func TestUpdateCryptoE2E(t *testing.T) {
+	db := test.SetupTestDB()
+
+	// モックの HTTP レスポンスを設定
+	mockCryptoPrice := `{
+		"success": 1,
+		"data": {
+			"sell": "6058001",
+			"buy": "6058000",
+			"open": "6152000",
+			"high": "6227930",
+			"low": "6000000",
+			"last": "6056517",
+			"vol": "235.3697",
+			"timestamp": 1703926551294
+		}
+	}`
+
+	// モックのHTTPクライアント設定
+	mockTransport := &MockHTTPTransport{
+		RoundTripFunc: func(req *http.Request) (*http.Response, error) {
+			responseBody := mockCryptoPrice
+			r := io.NopCloser(bytes.NewReader([]byte(responseBody)))
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       r,
+			}, nil
+		},
+	}
+
+	mockHTTPClient := &http.Client{Transport: mockTransport}
+	mockMarketPriceRepo := repoMarketPrice.NewCryptoRepository(mockHTTPClient)
+	// オプションを使用してGraphQLサーバーをセットアップ
+	opts := &graphql.SetupOptions{
+		MockHTTPClient: mockHTTPClient,
+		// MarketCryptoRepoにモックリポジトリを指定
+		MarketCryptoRepo: mockMarketPriceRepo,
+	}
+	router := graphql.SetupGraphQLServer(db, opts)
+
+	// テスト用HTTPサーバーのセットアップ
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// テスト用のユーザーを作成
+	crypto := model.Crypto{Code: "btc", UserId: 1, Quantity: 0.1, GetPrice: 5858001.0}
+	db.Create(&crypto)
+
+	// ダミーのアクセストークンを生成
+	token, err := graphql.GenerateTestAccessTokenForUserId(1)
+	if err != nil {
+		t.Fatalf("Failed to generate test access token: %v", err)
+	}
+
+	// GraphQLリクエストの実行
+	query := fmt.Sprintf(`mutation {
+		updateCrypto(input: {
+		  id: "%s",
+		  getPrice: 6058001.0,
+		  quantity: 0.15
+		}) {
+		  id
+		  code
+		  getPrice
+		  quantity
+		  currentPrice
+		}
+	  }`, strconv.FormatUint(uint64(crypto.ID), 10))
+
+	w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, query, token)
+
+	// レスポンスボディの解析
+	var response struct {
+		Data struct {
+			UpdateCrypto struct {
+				ID           string  `json:"id"`
+				Code         string  `json:"code"`
+				GetPrice     float64 `json:"getPrice"`
+				Quantity     float64 `json:"quantity"`
+				CurrentPrice float64 `json:"currentPrice"`
+			} `json:"updateCrypto"`
+		} `json:"data"`
+	}
+
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf("Failed to parse response body: %v", err)
+	}
+
+	// レスポンスボディの内容の検証
+	assert.Equal(t, "btc", response.Data.UpdateCrypto.Code)
+	assert.Equal(t, 6058001.0, response.Data.UpdateCrypto.GetPrice)
+	assert.Equal(t, 0.15, response.Data.UpdateCrypto.Quantity)
+	assert.Equal(t, 6056517.0, response.Data.UpdateCrypto.CurrentPrice)
+
+	// データベースから削除されたことを確認
+	var cryptoAfterUpdate model.Crypto
+	result := db.First(&cryptoAfterUpdate, "id = ?", crypto.ID)
+	assert.NoError(t, result.Error) // 確認対象のレコードが削除されていないことを確認
+	assert.Equal(t, 6058001.0, cryptoAfterUpdate.GetPrice)
+	assert.Equal(t, 0.15, cryptoAfterUpdate.Quantity)
+}
+
+
 func TestDeleteCryptoE2E(t *testing.T) {
 	db := test.SetupTestDB()
 

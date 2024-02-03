@@ -5,12 +5,14 @@ import (
 	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
+	"my-us-stock-backend/app/graphql/utils"
 	"my-us-stock-backend/app/repository/assets/crypto"
 	marketPrice "my-us-stock-backend/app/repository/market-price/crypto"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 func TestCryptosService(t *testing.T) {
@@ -92,6 +94,49 @@ func TestCreateCryptoService(t *testing.T) {
 	mockMarketCryptoRepo.AssertExpectations(t)
 	mockAuth.AssertExpectations(t)
 }
+
+func TestUpdateCryptoService(t *testing.T) {
+	mockCryptoRepo := crypto.NewMockCryptoRepository()
+	mockMarketCryptoRepo := marketPrice.NewMockCryptoRepository()
+	mockAuth := auth.NewMockAuthService()
+	service := NewCryptoService(mockCryptoRepo, mockAuth, mockMarketCryptoRepo)
+
+	// モックの期待値設定
+	userId := uint(1)
+	mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+	updateId := uint(1)
+	updatedCrypto := &model.Crypto{
+				Model: gorm.Model{
+					ID: updateId,
+				}, 
+				Code: "eth",
+				GetPrice: 403000.0, 
+				Quantity: 1.2,
+			}
+	mockCryptoRepo.On("UpdateCrypto", mock.Anything, mock.AnythingOfType("crypto.UpdateCryptoDto")).Return(updatedCrypto, nil)
+
+	mockMarketPrice := &marketPrice.Crypto{Name: "eth", Price: 413000.0}
+	mockMarketCryptoRepo.On("FetchCryptoPrice", "eth").Return(mockMarketPrice, nil)
+
+	// テスト対象メソッドの実行
+	input := generated.UpdateCryptoInput{ID: utils.ConvertIdToString(updateId), GetPrice: 403000.0, Quantity: 1.2}
+	updatedCryptoResult, err := service.UpdateCrypto(context.Background(), input)
+	assert.NoError(t, err)
+	assert.NotNil(t, updatedCryptoResult)
+
+	assert.Equal(t, utils.ConvertIdToString(updateId), updatedCryptoResult.ID)
+	assert.Equal(t, "eth", updatedCryptoResult.Code)
+	assert.Equal(t, 403000.0, updatedCryptoResult.GetPrice)
+	assert.Equal(t, 1.2, updatedCryptoResult.Quantity)
+	assert.Equal(t, 413000.0, updatedCryptoResult.CurrentPrice)
+
+	// モックの呼び出しを検証
+	mockCryptoRepo.AssertExpectations(t)
+	mockMarketCryptoRepo.AssertExpectations(t)
+	mockAuth.AssertExpectations(t)
+}
+
 
 func TestDeleteCryptoService(t *testing.T) {
 	mockCryptoRepo := crypto.NewMockCryptoRepository()

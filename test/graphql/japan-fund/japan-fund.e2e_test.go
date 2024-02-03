@@ -141,6 +141,78 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, 400004.0, response.Data.CreateJapanFund.GetPriceTotal)
 }
 
+func TestUpdateJapanFundE2E(t *testing.T) {
+    db := test.SetupTestDB()
+    router := graphql.SetupGraphQLServer(db, nil)
+
+    // テスト用HTTPサーバーのセットアップ
+    ts := httptest.NewServer(router)
+    defer ts.Close()
+
+    // テスト用データの追加
+    japanFund := model.JapanFund{Code: "JPX400", Name: "日経400", GetPrice: 12345.67, GetPriceTotal: 234567.89, UserId: 1}
+    db.Create(&japanFund)
+
+    // 作成されたレコードのIDを取得
+    createdJapanFundID := japanFund.ID
+
+    // ダミーのアクセストークンを生成
+    token, err := graphql.GenerateTestAccessTokenForUserId(1)
+    if err != nil {
+        t.Fatalf("Failed to generate test access token: %v", err)
+    }
+
+    // GraphQLリクエストの実行
+    updateQuery := fmt.Sprintf(`mutation {
+        updateJapanFund(input: {
+            id: "%s",
+            getPrice: 13000.0,
+            getPriceTotal: 260000.0
+        }) {
+            id
+            code
+            name
+            getPrice
+            getPriceTotal
+            currentPrice
+        }
+    }`, strconv.FormatUint(uint64(createdJapanFundID), 10))
+
+    w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, updateQuery, token)
+
+    // レスポンスボディの解析
+    var response struct {
+        Data struct {
+            UpdateJapanFund struct {
+                ID            string  `json:"id"`
+                Code          string  `json:"code"`
+                Name          string  `json:"name"`
+                GetPrice      float64 `json:"getPrice"`
+                GetPriceTotal float64 `json:"getPriceTotal"`
+                CurrentPrice  float64 `json:"currentPrice"`
+            } `json:"updateJapanFund"`
+        } `json:"data"`
+    }
+
+    err = json.Unmarshal(w.Body.Bytes(), &response)
+    if err != nil {
+        t.Fatalf("Failed to parse response body: %v", err)
+    }
+
+    // レスポンスボディの内容の検証
+    assert.Equal(t, strconv.FormatUint(uint64(createdJapanFundID), 10), response.Data.UpdateJapanFund.ID)
+    assert.Equal(t, 13000.0, response.Data.UpdateJapanFund.GetPrice)
+    assert.Equal(t, 260000.0, response.Data.UpdateJapanFund.GetPriceTotal)
+
+    // データベースの更新内容を確認
+    var updatedFund model.JapanFund
+    result := db.First(&updatedFund, "id = ?", createdJapanFundID)
+    assert.NoError(t, result.Error)
+    assert.Equal(t, 13000.0, updatedFund.GetPrice)
+    assert.Equal(t, 260000.0, updatedFund.GetPriceTotal)
+}
+
+
 func TestDeleteJapanFundE2E(t *testing.T) {
 	db := test.SetupTestDB()
 	router := graphql.SetupGraphQLServer(db, nil)

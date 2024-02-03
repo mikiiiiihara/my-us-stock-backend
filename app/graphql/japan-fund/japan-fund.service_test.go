@@ -6,10 +6,12 @@ import (
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	repo "my-us-stock-backend/app/repository/assets/fund"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 // TestUsStocks は UsStocks メソッドのテストです。
@@ -86,6 +88,57 @@ func TestCreateJapanFundService(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 	mockAuth.AssertExpectations(t)
 }
+
+// TestUpdateJapanFundService は UpdateJapanFund メソッドのテストです。
+func TestUpdateJapanFundService(t *testing.T) {
+    mockRepo := repo.NewMockJapanFundRepository()
+    mockAuth := auth.NewMockAuthService()
+    service := NewJapanFundService(mockRepo, mockAuth)
+
+    // モックの期待値設定
+    userId := uint(1)
+    mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+    updateId := uint(1)
+    updatedMockFund := &model.JapanFund{
+		Model: gorm.Model{
+			ID: updateId,
+		},
+        Code:          "SP500",
+        Name:          "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
+        GetPrice:      16000,
+        GetPriceTotal: 800000,
+        UserId:        userId,
+    }
+    updateDto := repo.UpdateJapanFundDto{
+        ID:            updateId,
+        GetPrice:      &updatedMockFund.GetPrice,
+        GetPriceTotal: &updatedMockFund.GetPriceTotal,
+    }
+    mockRepo.On("UpdateJapanFund", mock.Anything, updateDto).Return(updatedMockFund, nil)
+
+    // テスト対象メソッドの実行
+    serviceInput := generated.UpdateJapanFundInput{
+        ID:            "1",
+        GetPrice:      16000,
+        GetPriceTotal: 800000,
+    }
+    updatedFund, err := service.UpdateJapanFund(context.Background(), serviceInput)
+    assert.NoError(t, err)
+    assert.NotNil(t, updatedFund)
+
+    // 期待される結果の検証
+    assert.Equal(t, strconv.FormatUint(uint64(updateId), 10), updatedFund.ID)
+    assert.Equal(t, "SP500", updatedFund.Code)
+    assert.Equal(t, "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", updatedFund.Name)
+    assert.Equal(t, 16000.0, updatedFund.GetPrice)
+    assert.Equal(t, 800000.0, updatedFund.GetPriceTotal)
+
+    // モックの呼び出しを検証
+    mockRepo.AssertExpectations(t)
+    mockAuth.AssertExpectations(t)
+}
+
 
 // TestDeleteJapanFundService は DeleteJapanFund メソッドのテストです。
 func TestDeleteJapanFundService(t *testing.T) {

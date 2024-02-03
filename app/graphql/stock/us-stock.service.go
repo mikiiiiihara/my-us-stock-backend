@@ -14,6 +14,7 @@ import (
 type UsStockService interface {
     UsStocks(ctx context.Context) ([]*generated.UsStock, error)
 	CreateUsStock(ctx context.Context, input generated.CreateUsStockInput) (*generated.UsStock, error)
+    UpdateUsStock(ctx context.Context, input generated.UpdateUsStockInput) (*generated.UsStock, error)
     DeleteUsStock(ctx context.Context, id string) (bool, error)
 }
 
@@ -128,9 +129,9 @@ func (s *DefaultUsStockService) UsStocks(ctx context.Context) ([]*generated.UsSt
     return usStocks, nil
 }
 
-// UsStocks はユーザーの米国株式情報リストを新規作成します
+// ユーザーの米国株式情報を新規作成します
 func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generated.CreateUsStockInput) (*generated.UsStock, error) {
-    // アクセストークンの検証（コメントアウトされている部分は必要に応じて実装してください）
+    // アクセストークンの検証
     userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
     if userId == 0 {
         return nil, utils.UnauthenticatedError("Invalid user ID")
@@ -147,7 +148,7 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
 	}
 
     modelStock, err := s.StockRepo.CreateUsStock(ctx, createDto)
-    // すでに登録されていますの時はキャッチして、repo.updateを呼び出す
+    // すでに登録されていますの時はキャッチ
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
@@ -159,6 +160,57 @@ func (s *DefaultUsStockService) CreateUsStock(ctx context.Context, input generat
     // 市場価格取得
     var codeInput = []string{createDto.Code}
     marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, codeInput)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+	// 市場情報を追加して返却
+	return &generated.UsStock{
+        ID: utils.ConvertIdToString(modelStock.ID),
+		Code: modelStock.Code,
+		GetPrice: modelStock.GetPrice,
+		Dividend: dividend.DividendTotal,
+		Quantity:     modelStock.Quantity,
+		Sector:       modelStock.Sector,
+		UsdJpy:       modelStock.UsdJpy,
+		CurrentPrice: marketPrices[0].CurrentPrice,
+		PriceGets:    marketPrices[0].PriceGets,
+		CurrentRate:  marketPrices[0].CurrentRate,
+	}, err
+}
+
+// ユーザーの米国株式情報を新規作成します
+func (s *DefaultUsStockService) UpdateUsStock(ctx context.Context, input generated.UpdateUsStockInput) (*generated.UsStock, error) {
+    // アクセストークンの検証
+    userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+    if userId == 0 {
+        return nil, utils.UnauthenticatedError("Invalid user ID")
+    }
+
+    updateId, convertError := utils.ConvertIdToUint(input.ID)
+	if convertError != nil || updateId == 0 {
+        return nil, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+
+    	// 値入れ直し
+	updateDto := stock.UpdateUsStockDto{
+		ID: updateId,
+        GetPrice: &input.GetPrice,
+        Quantity: &input.Quantity,
+        UsdJpy: &input.UsdJpy,
+	}
+
+    modelStock, err := s.StockRepo.UpdateUsStock(ctx, updateDto)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+    // 市場価格取得
+    var codeInput = []string{modelStock.Code}
+    marketPrices, err := s.MarketPriceRepo.FetchMarketPriceList(ctx, codeInput)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+    // 配当情報取得
+    dividend, err := s.MarketPriceRepo.FetchDividend(ctx, modelStock.Code)
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
