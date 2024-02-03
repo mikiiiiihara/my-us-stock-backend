@@ -46,6 +46,10 @@ func (r *CustomMutationResolver) CreateCrypto(ctx context.Context, input generat
 	return r.CryptoResolver.CreateCrypto(ctx, input)
 }
 
+func (r *CustomMutationResolver) UpdateCrypto(ctx context.Context, input generated.UpdateCryptoInput) (*generated.Crypto, error) {
+	return r.CryptoResolver.UpdateCrypto(ctx, input)
+}
+
 func (r *CustomMutationResolver) DeleteCrypto(ctx context.Context, id string) (bool, error) {
 	return r.CryptoResolver.DeleteCrypto(ctx, id)
 }

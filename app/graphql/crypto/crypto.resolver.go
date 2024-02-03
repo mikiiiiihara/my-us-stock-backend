@@ -26,6 +26,15 @@ func (r *Resolver) CreateCrypto(ctx context.Context, input generated.CreateCrypt
     return newCrypto, nil
 }
 
+func (r *Resolver) UpdateCrypto(ctx context.Context, input generated.UpdateCryptoInput) (*generated.Crypto, error) {
+    newCrypto, err := r.CryptoService.UpdateCrypto(ctx, input)
+    if err != nil {
+        return nil, err
+    }
+
+    return newCrypto, nil
+}
+
 func (r *Resolver) DeleteCrypto(ctx context.Context, id string) (bool, error) {
     return r.CryptoService.DeleteCrypto(ctx, id)
 }

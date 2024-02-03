@@ -19,6 +19,7 @@ type Mutation {
   updateUsStock(input: UpdateUsStockInput!): UsStock!
   deleteUsStock(id: ID!): Boolean!
   createCrypto(input: CreateCryptoInput!): Crypto!
+  updateCrypto(input: UpdateCryptoInput!): Crypto!
   deleteCrypto(id: ID!): Boolean!
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
   updateFixedIncomeAsset(input: UpdateFixedIncomeAssetInput!): FixedIncomeAsset!
@@ -92,6 +93,24 @@ input UpdateUsStockInput {
   購入時為替
   """
   usdJpy: Float!
+}
+
+# 仮想通貨更新時の入力型
+input UpdateCryptoInput {
+  """
+  id
+  """
+  id: ID!
+
+  """
+  取得価格
+  """
+  getPrice: Float!
+
+  """
+  保有株数
+  """
+  quantity: Float!
 }
 
 # 仮想通貨作成時の入力型

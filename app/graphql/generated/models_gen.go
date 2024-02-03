@@ -122,6 +122,15 @@ type TotalAsset struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type UpdateCryptoInput struct {
+	// id
+	ID string `json:"id"`
+	// 取得価格
+	GetPrice float64 `json:"getPrice"`
+	// 保有株数
+	Quantity float64 `json:"quantity"`
+}
+
 type UpdateFixedIncomeAssetInput struct {
 	// id
 	ID string `json:"id"`
