@@ -144,6 +144,80 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, []int{3}, response.Data.CreateFixedIncomeAsset.PaymentMonth)
 }
 
+func TestUpdateFixedIncomeAssetE2E(t *testing.T) {
+    db := test.SetupTestDB()
+    router := graphql.SetupGraphQLServer(db, nil)
+
+    // テスト用HTTPサーバーのセットアップ
+    ts := httptest.NewServer(router)
+    defer ts.Close()
+
+    // テスト用データの追加
+    fixedIncomeAsset := model.FixedIncomeAsset{
+        Code: "Funds", 
+        UserId: 1, 
+        DividendRate: 3.5, 
+        GetPriceTotal: 100000.0, 
+        PaymentMonth: pq.Int64Array{6, 12},
+    }
+    db.Create(&fixedIncomeAsset)
+
+    // 作成されたレコードのIDを取得
+    createdFixedIncomeAssetID := fixedIncomeAsset.ID
+
+    // ダミーのアクセストークンを生成
+    token, err := graphql.GenerateTestAccessTokenForUserId(1)
+    if err != nil {
+        t.Fatalf("Failed to generate test access token: %v", err)
+    }
+
+    // GraphQLリクエストの実行
+    updateQuery := fmt.Sprintf(`mutation {
+        updateFixedIncomeAsset(input: {
+            id: "%s",
+            getPriceTotal: 120000.0,
+        }) {
+            id
+            code
+            getPriceTotal
+            dividendRate
+            usdJpy
+            paymentMonth
+        }
+    }`, strconv.FormatUint(uint64(createdFixedIncomeAssetID), 10))
+
+    w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, updateQuery, token)
+
+    // レスポンスボディの解析
+    var response struct {
+        Data struct {
+            UpdateFixedIncomeAsset struct {
+                ID            string  `json:"id"`
+                Code          string  `json:"code"`
+                GetPriceTotal float64 `json:"getPriceTotal"`
+                DividendRate  float64 `json:"dividendRate"`
+                PaymentMonth  []int   `json:"paymentMonth"`
+            } `json:"updateFixedIncomeAsset"`
+        } `json:"data"`
+    }
+
+    err = json.Unmarshal(w.Body.Bytes(), &response)
+    if err != nil {
+        t.Fatalf("Failed to parse response body: %v", err)
+    }
+
+    // レスポンスボディの内容の検証
+    assert.Equal(t, strconv.FormatUint(uint64(createdFixedIncomeAssetID), 10), response.Data.UpdateFixedIncomeAsset.ID)
+    assert.Equal(t, 120000.0, response.Data.UpdateFixedIncomeAsset.GetPriceTotal)
+
+    // データベースの更新内容を確認
+    var updatedAsset model.FixedIncomeAsset
+    result := db.First(&updatedAsset, "id = ?", createdFixedIncomeAssetID)
+    assert.NoError(t, result.Error)
+    assert.Equal(t, 120000.0, updatedAsset.GetPriceTotal)
+}
+
+
 func TestDeleteFixedIncomeAssetE2E(t *testing.T) {
 	db := test.SetupTestDB()
 	router := graphql.SetupGraphQLServer(db, nil)

@@ -54,6 +54,10 @@ func (r *CustomMutationResolver) CreateFixedIncomeAsset(ctx context.Context, inp
 	return r.FIxedIncomeAssetResolver.CreateFixedIncomeAsset(ctx, input)
 }
 
+func (r *CustomMutationResolver) UpdateFixedIncomeAsset(ctx context.Context, input generated.UpdateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
+	return r.FIxedIncomeAssetResolver.UpdateFixedIncomeAsset(ctx, input)
+}
+
 func (r *CustomMutationResolver) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
 	return r.FIxedIncomeAssetResolver.DeleteFixedIncomeAsset(ctx, id)
 }

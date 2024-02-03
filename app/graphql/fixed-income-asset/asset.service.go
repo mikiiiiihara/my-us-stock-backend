@@ -12,6 +12,7 @@ import (
 type AssetService interface {
     FixedIncomeAssets(ctx context.Context) ([]*generated.FixedIncomeAsset, error)
     CreateFixedIncomeAsset(ctx context.Context, input generated.CreateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error)
+	UpdateFixedIncomeAsset(ctx context.Context, input generated.UpdateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error)
 	DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error)
 }
 
@@ -63,7 +64,6 @@ func (s *DefaultAssetService) FixedIncomeAssets(ctx context.Context) ([]*generat
     return assets, nil
 }
 
-// CreateUser は新しいユーザーを作成します
 func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input generated.CreateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
 		// アクセストークンの検証
 		userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
@@ -94,6 +94,41 @@ func (s *DefaultAssetService) CreateFixedIncomeAsset(ctx context.Context, input 
 		newPaymentMonths[i] = int(month)
 	}
     return  &generated.FixedIncomeAsset{
+		ID: utils.ConvertIdToString(modelAsset.ID),
+		Code: modelAsset.Code,
+		GetPriceTotal: modelAsset.GetPriceTotal,
+		DividendRate: modelAsset.DividendRate,
+		UsdJpy: modelAsset.UsdJpy,
+		PaymentMonth: newPaymentMonths, // Updated field
+	}, nil
+}
+
+func (s *DefaultAssetService) UpdateFixedIncomeAsset(ctx context.Context, input generated.UpdateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
+	// アクセストークンの検証
+	userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
+	if userId == 0 {
+		return nil, utils.UnauthenticatedError("Invalid user ID")
+	}
+	updateId, convertError := utils.ConvertIdToUint(input.ID)
+	if convertError != nil || updateId == 0 {
+        return nil, utils.DefaultGraphQLError("入力されたidが無効です")
+       }
+	// 更新用DTOの作成
+	updateDto := FixedIncome.UpdateFixedIncomeDto{
+		ID: updateId,
+		GetPriceTotal: &input.GetPriceTotal,
+		UsdJpy: input.UsdJpy,
+	}
+	modelAsset, err := s.Repo.UpdateFixedIncomeAsset(ctx, updateDto)
+    if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
+	// pq.Int64Array to []int conversion
+	var newPaymentMonths = make([]int, len(modelAsset.PaymentMonth))
+	for i, month := range modelAsset.PaymentMonth {
+		newPaymentMonths[i] = int(month)
+	}
+	return  &generated.FixedIncomeAsset{
 		ID: utils.ConvertIdToString(modelAsset.ID),
 		Code: modelAsset.Code,
 		GetPriceTotal: modelAsset.GetPriceTotal,

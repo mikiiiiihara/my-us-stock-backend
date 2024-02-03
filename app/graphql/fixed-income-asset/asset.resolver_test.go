@@ -24,6 +24,11 @@ func (m *MockAssetService) CreateFixedIncomeAsset(ctx context.Context, input gen
     return args.Get(0).(*generated.FixedIncomeAsset), args.Error(1)
 }
 
+func (m *MockAssetService) UpdateFixedIncomeAsset(ctx context.Context, input generated.UpdateFixedIncomeAssetInput) (*generated.FixedIncomeAsset, error) {
+    args := m.Called(ctx, input)
+    return args.Get(0).(*generated.FixedIncomeAsset), args.Error(1)
+}
+
 func (m *MockAssetService) DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error) {
     args := m.Called(ctx, id)
     return args.Get(0).(bool), args.Error(1)
@@ -47,7 +52,34 @@ func TestFixedIncomeAssets(t *testing.T) {
     mockService.AssertExpectations(t)
 }
 
-// UsStocks メソッドのテスト(0件の場合)
+// TestUpdateFixedIncomeAsset メソッドのテスト
+func TestUpdateFixedIncomeAsset(t *testing.T) {
+    mockService := new(MockAssetService)
+    resolver := NewResolver(mockService)
+
+    input := generated.UpdateFixedIncomeAssetInput{
+        ID:            "1",
+        GetPriceTotal: 15000.0,
+    }
+    mockResponse := &generated.FixedIncomeAsset{
+        ID:            "1",
+        Code:          "i-Bond",
+        GetPriceTotal: 15000.0,
+        DividendRate:  2.0,
+        PaymentMonth:  []int{6, 12},
+    }
+
+    mockService.On("UpdateFixedIncomeAsset", mock.Anything, input).Return(mockResponse, nil)
+
+    updatedAsset, err := resolver.UpdateFixedIncomeAsset(context.Background(), input)
+
+    assert.NoError(t, err)
+    assert.Equal(t, mockResponse, updatedAsset)
+
+    mockService.AssertExpectations(t)
+}
+
+
 func TestCreateFixedIncomeAsset(t *testing.T) {
     mockService := new(MockAssetService)
     resolver := NewResolver(mockService)

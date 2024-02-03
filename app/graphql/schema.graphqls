@@ -21,6 +21,7 @@ type Mutation {
   createCrypto(input: CreateCryptoInput!): Crypto!
   deleteCrypto(id: ID!): Boolean!
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
+  updateFixedIncomeAsset(input: UpdateFixedIncomeAssetInput!): FixedIncomeAsset!
   deleteFixedIncomeAsset(id: ID!): Boolean!
   createJapanFund(input: CreateJapanFundInput!): JapanFund!
   updateJapanFund(input: UpdateJapanFundInput!): JapanFund!
@@ -137,6 +138,24 @@ input CreateFixedIncomeAssetInput {
   配当支払い月
   """
   paymentMonth: [Int!]!
+}
+
+# 固定利回り資産更新時の入力型
+input UpdateFixedIncomeAssetInput {
+  """
+  id
+  """
+  id: ID!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
 }
 
 # 日本投資信託情報作成時の入力型

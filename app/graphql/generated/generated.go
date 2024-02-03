@@ -88,6 +88,7 @@ type ComplexityRoot struct {
 		DeleteFixedIncomeAsset func(childComplexity int, id string) int
 		DeleteJapanFund        func(childComplexity int, id string) int
 		DeleteUsStock          func(childComplexity int, id string) int
+		UpdateFixedIncomeAsset func(childComplexity int, input UpdateFixedIncomeAssetInput) int
 		UpdateJapanFund        func(childComplexity int, input UpdateJapanFundInput) int
 		UpdateTotalAsset       func(childComplexity int, input UpdateTotalAssetInput) int
 		UpdateUsStock          func(childComplexity int, input UpdateUsStockInput) int
@@ -144,6 +145,7 @@ type MutationResolver interface {
 	CreateCrypto(ctx context.Context, input CreateCryptoInput) (*Crypto, error)
 	DeleteCrypto(ctx context.Context, id string) (bool, error)
 	CreateFixedIncomeAsset(ctx context.Context, input CreateFixedIncomeAssetInput) (*FixedIncomeAsset, error)
+	UpdateFixedIncomeAsset(ctx context.Context, input UpdateFixedIncomeAssetInput) (*FixedIncomeAsset, error)
 	DeleteFixedIncomeAsset(ctx context.Context, id string) (bool, error)
 	CreateJapanFund(ctx context.Context, input CreateJapanFundInput) (*JapanFund, error)
 	UpdateJapanFund(ctx context.Context, input UpdateJapanFundInput) (*JapanFund, error)
@@ -435,6 +437,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteUsStock(childComplexity, args["id"].(string)), true
 
+	case "Mutation.updateFixedIncomeAsset":
+		if e.complexity.Mutation.UpdateFixedIncomeAsset == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateFixedIncomeAsset_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateFixedIncomeAsset(childComplexity, args["input"].(UpdateFixedIncomeAssetInput)), true
+
 	case "Mutation.updateJapanFund":
 		if e.complexity.Mutation.UpdateJapanFund == nil {
 			break
@@ -704,6 +718,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateJapanFundInput,
 		ec.unmarshalInputCreateUsStockInput,
 		ec.unmarshalInputCreateUserInput,
+		ec.unmarshalInputUpdateFixedIncomeAssetInput,
 		ec.unmarshalInputUpdateJapanFundInput,
 		ec.unmarshalInputUpdateTotalAssetInput,
 		ec.unmarshalInputUpdateUsStockInput,
@@ -827,6 +842,7 @@ type Mutation {
   createCrypto(input: CreateCryptoInput!): Crypto!
   deleteCrypto(id: ID!): Boolean!
   createFixedIncomeAsset(input: CreateFixedIncomeAssetInput!): FixedIncomeAsset!
+  updateFixedIncomeAsset(input: UpdateFixedIncomeAssetInput!): FixedIncomeAsset!
   deleteFixedIncomeAsset(id: ID!): Boolean!
   createJapanFund(input: CreateJapanFundInput!): JapanFund!
   updateJapanFund(input: UpdateJapanFundInput!): JapanFund!
@@ -943,6 +959,24 @@ input CreateFixedIncomeAssetInput {
   配当支払い月
   """
   paymentMonth: [Int!]!
+}
+
+# 固定利回り資産更新時の入力型
+input UpdateFixedIncomeAssetInput {
+  """
+  id
+  """
+  id: ID!
+
+  """
+  取得価格合計
+  """
+  getPriceTotal: Float!
+
+  """
+  購入時為替
+  """
+  usdJpy: Float
 }
 
 # 日本投資信託情報作成時の入力型
@@ -1337,6 +1371,21 @@ func (ec *executionContext) field_Mutation_deleteUsStock_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateFixedIncomeAsset_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateFixedIncomeAssetInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateFixedIncomeAssetInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateFixedIncomeAssetInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2845,6 +2894,75 @@ func (ec *executionContext) fieldContext_Mutation_createFixedIncomeAsset(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createFixedIncomeAsset_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateFixedIncomeAsset(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateFixedIncomeAsset(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateFixedIncomeAsset(rctx, fc.Args["input"].(UpdateFixedIncomeAssetInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*FixedIncomeAsset)
+	fc.Result = res
+	return ec.marshalNFixedIncomeAsset2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐFixedIncomeAsset(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateFixedIncomeAsset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_FixedIncomeAsset_id(ctx, field)
+			case "code":
+				return ec.fieldContext_FixedIncomeAsset_code(ctx, field)
+			case "getPriceTotal":
+				return ec.fieldContext_FixedIncomeAsset_getPriceTotal(ctx, field)
+			case "dividendRate":
+				return ec.fieldContext_FixedIncomeAsset_dividendRate(ctx, field)
+			case "usdJpy":
+				return ec.fieldContext_FixedIncomeAsset_usdJpy(ctx, field)
+			case "paymentMonth":
+				return ec.fieldContext_FixedIncomeAsset_paymentMonth(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type FixedIncomeAsset", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateFixedIncomeAsset_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6731,6 +6849,47 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateFixedIncomeAssetInput(ctx context.Context, obj interface{}) (UpdateFixedIncomeAssetInput, error) {
+	var it UpdateFixedIncomeAssetInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "getPriceTotal", "usdJpy"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "getPriceTotal":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("getPriceTotal"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GetPriceTotal = data
+		case "usdJpy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("usdJpy"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UsdJpy = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateJapanFundInput(ctx context.Context, obj interface{}) (UpdateJapanFundInput, error) {
 	var it UpdateJapanFundInput
 	asMap := map[string]interface{}{}
@@ -7168,6 +7327,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createFixedIncomeAsset":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createFixedIncomeAsset(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateFixedIncomeAsset":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateFixedIncomeAsset(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -8257,6 +8423,11 @@ func (ec *executionContext) marshalNTotalAsset2ᚖmyᚑusᚑstockᚑbackendᚋap
 		return graphql.Null
 	}
 	return ec._TotalAsset(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateFixedIncomeAssetInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateFixedIncomeAssetInput(ctx context.Context, v interface{}) (UpdateFixedIncomeAssetInput, error) {
+	res, err := ec.unmarshalInputUpdateFixedIncomeAssetInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUpdateJapanFundInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateJapanFundInput(ctx context.Context, v interface{}) (UpdateJapanFundInput, error) {

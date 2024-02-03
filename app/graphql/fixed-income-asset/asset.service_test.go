@@ -5,12 +5,14 @@ import (
 	"my-us-stock-backend/app/common/auth"
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
+	"my-us-stock-backend/app/graphql/utils"
 	repo "my-us-stock-backend/app/repository/assets/fixed-income"
 	"testing"
 
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 // TestUsStocks は UsStocks メソッドのテストです。
@@ -89,6 +91,53 @@ func TestCreateFixedIncomeAssetService(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 	mockAuth.AssertExpectations(t)
 }
+
+// TestUpdateFixedIncomeAssetService は UpdateFixedIncomeAsset メソッドのテストです。
+func TestUpdateFixedIncomeAssetService(t *testing.T) {
+    mockRepo := repo.NewMockFixedIncomeAssetRepository()
+    mockAuth := auth.NewMockAuthService()
+    service := NewAssetService(mockRepo, mockAuth)
+
+    // モックの期待値設定
+    userId := uint(1)
+    mockAuth.On("FetchUserIdAccessToken", mock.Anything).Return(userId, nil)
+
+    updatedAsset := &model.FixedIncomeAsset{
+		Model: gorm.Model{
+			ID: userId,
+		},
+        Code:          "UpdatedBankers",
+        DividendRate:  4.0,
+        GetPriceTotal: 200000.0,
+        PaymentMonth:  pq.Int64Array{3, 9},
+        UserId:        userId,
+    }
+    updateDto := repo.UpdateFixedIncomeDto{
+        ID:            1,
+        GetPriceTotal: &updatedAsset.GetPriceTotal,
+    }
+    mockRepo.On("UpdateFixedIncomeAsset", mock.Anything, updateDto).Return(updatedAsset, nil)
+
+    // テスト対象メソッドの実行
+    input := generated.UpdateFixedIncomeAssetInput{
+        ID:            utils.ConvertIdToString(updatedAsset.ID),
+        GetPriceTotal: updatedAsset.GetPriceTotal,
+    }
+    updated, err := service.UpdateFixedIncomeAsset(context.Background(), input)
+    assert.NoError(t, err)
+    assert.NotNil(t, updated)
+
+    // 結果の検証
+    assert.Equal(t, updatedAsset.Code, updated.Code)
+    assert.Equal(t, updatedAsset.GetPriceTotal, updated.GetPriceTotal)
+    assert.Equal(t, updatedAsset.DividendRate, updated.DividendRate)
+    assert.Equal(t, []int{3, 9}, updated.PaymentMonth)
+
+    // モックの呼び出しを検証
+    mockRepo.AssertExpectations(t)
+    mockAuth.AssertExpectations(t)
+}
+
 
 // TestDeleteFixedIncomeAssetService は DeleteFixedIncomeAsset メソッドのテストです。
 func TestDeleteFixedIncomeAssetService(t *testing.T) {
