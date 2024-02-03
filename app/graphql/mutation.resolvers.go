@@ -34,6 +34,10 @@ func (r *CustomMutationResolver) CreateUsStock(ctx context.Context, input genera
 	return r.UsStockResolver.CreateUsStock(ctx, input)
 }
 
+func (r *CustomMutationResolver) UpdateUsStock(ctx context.Context, input generated.UpdateUsStockInput) (*generated.UsStock, error) {
+	return r.UsStockResolver.UpdateUsStock(ctx, input)
+}
+
 func (r *CustomMutationResolver) DeleteUsStock(ctx context.Context, id string) (bool, error) {
 	return r.UsStockResolver.DeleteUsStock(ctx, id)
 }

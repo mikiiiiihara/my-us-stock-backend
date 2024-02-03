@@ -24,6 +24,11 @@ func (m *MockUsStockService) CreateUsStock(ctx context.Context, input generated.
     return args.Get(0).(*generated.UsStock), args.Error(1)
 }
 
+func (m *MockUsStockService) UpdateUsStock(ctx context.Context, input generated.UpdateUsStockInput) (*generated.UsStock, error) {
+    args := m.Called(ctx, input)
+    return args.Get(0).(*generated.UsStock), args.Error(1)
+}
+
 func (m *MockUsStockService) DeleteUsStock(ctx context.Context, id string) (bool, error) {
     args := m.Called(ctx, id)
     return args.Get(0).(bool), args.Error(1)
@@ -82,6 +87,42 @@ func TestCreateUsStock(t *testing.T) {
 
     mockService.AssertExpectations(t)
 }
+
+// TestUpdateUsStock メソッドのテスト
+func TestUpdateUsStock(t *testing.T) {
+    mockService := new(MockUsStockService)
+    resolver := NewResolver(mockService)
+
+    input := generated.UpdateUsStockInput{
+        ID: "1",
+        GetPrice: 190.0, 
+        Quantity: 3, 
+        UsdJpy: 131.0,
+    }
+
+    mockResponse := &generated.UsStock{
+        ID: "1",
+        Code: "AAPL",
+        GetPrice: 190.0, 
+        Quantity: 3, 
+        Sector: "IT", 
+        UsdJpy: 131.0,
+        Dividend: 1.24,
+        CurrentPrice: 192.84,
+        PriceGets: 0.0725, 
+        CurrentRate: 0.14,
+    }
+
+    mockService.On("UpdateUsStock", mock.Anything, input).Return(mockResponse, nil)
+
+    result, err := resolver.UpdateUsStock(context.Background(), input)
+
+    assert.NoError(t, err)
+    assert.Equal(t, mockResponse, result)
+
+    mockService.AssertExpectations(t)
+}
+
 
 func TestDeleteUsStock(t *testing.T) {
     mockService := new(MockUsStockService)

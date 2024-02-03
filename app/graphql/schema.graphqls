@@ -16,7 +16,7 @@ type Query {
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
-  # updateUsStock(input: UpdateUsStockInput!): UsStock!
+  updateUsStock(input: UpdateUsStockInput!): UsStock!
   deleteUsStock(id: ID!): Boolean!
   createCrypto(input: CreateCryptoInput!): Crypto!
   deleteCrypto(id: ID!): Boolean!
@@ -90,21 +90,6 @@ input UpdateUsStockInput {
   購入時為替
   """
   usdJpy: Float!
-
-  """
-  現在価格
-  """
-  currentPrice: Float!
-
-  """
-  変化額
-  """
-  priceGets: Float!
-
-  """
-  変化率
-  """
-  currentRate: Float!
 }
 
 # 仮想通貨作成時の入力型

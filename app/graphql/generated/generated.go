@@ -89,6 +89,7 @@ type ComplexityRoot struct {
 		DeleteJapanFund        func(childComplexity int, id string) int
 		DeleteUsStock          func(childComplexity int, id string) int
 		UpdateTotalAsset       func(childComplexity int, input UpdateTotalAssetInput) int
+		UpdateUsStock          func(childComplexity int, input UpdateUsStockInput) int
 	}
 
 	Query struct {
@@ -137,6 +138,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input CreateUserInput) (*User, error)
 	CreateUsStock(ctx context.Context, input CreateUsStockInput) (*UsStock, error)
+	UpdateUsStock(ctx context.Context, input UpdateUsStockInput) (*UsStock, error)
 	DeleteUsStock(ctx context.Context, id string) (bool, error)
 	CreateCrypto(ctx context.Context, input CreateCryptoInput) (*Crypto, error)
 	DeleteCrypto(ctx context.Context, id string) (bool, error)
@@ -442,6 +444,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTotalAsset(childComplexity, args["input"].(UpdateTotalAssetInput)), true
+
+	case "Mutation.updateUsStock":
+		if e.complexity.Mutation.UpdateUsStock == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUsStock_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUsStock(childComplexity, args["input"].(UpdateUsStockInput)), true
 
 	case "Query.cryptos":
 		if e.complexity.Query.Cryptos == nil {
@@ -793,7 +807,7 @@ type Query {
 type Mutation {
   createUser(input: CreateUserInput!): User
   createUsStock(input: CreateUsStockInput!): UsStock!
-  # updateUsStock(input: UpdateUsStockInput!): UsStock!
+  updateUsStock(input: UpdateUsStockInput!): UsStock!
   deleteUsStock(id: ID!): Boolean!
   createCrypto(input: CreateCryptoInput!): Crypto!
   deleteCrypto(id: ID!): Boolean!
@@ -867,21 +881,6 @@ input UpdateUsStockInput {
   購入時為替
   """
   usdJpy: Float!
-
-  """
-  現在価格
-  """
-  currentPrice: Float!
-
-  """
-  変化額
-  """
-  priceGets: Float!
-
-  """
-  変化率
-  """
-  currentRate: Float!
 }
 
 # 仮想通貨作成時の入力型
@@ -1314,6 +1313,21 @@ func (ec *executionContext) field_Mutation_updateTotalAsset_args(ctx context.Con
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateTotalAssetInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateTotalAssetInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUsStock_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateUsStockInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateUsStockInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateUsStockInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2459,6 +2473,83 @@ func (ec *executionContext) fieldContext_Mutation_createUsStock(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createUsStock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateUsStock(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUsStock(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUsStock(rctx, fc.Args["input"].(UpdateUsStockInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UsStock)
+	fc.Result = res
+	return ec.marshalNUsStock2ᚖmyᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUsStock(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateUsStock(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UsStock_id(ctx, field)
+			case "code":
+				return ec.fieldContext_UsStock_code(ctx, field)
+			case "getPrice":
+				return ec.fieldContext_UsStock_getPrice(ctx, field)
+			case "dividend":
+				return ec.fieldContext_UsStock_dividend(ctx, field)
+			case "quantity":
+				return ec.fieldContext_UsStock_quantity(ctx, field)
+			case "sector":
+				return ec.fieldContext_UsStock_sector(ctx, field)
+			case "usdJpy":
+				return ec.fieldContext_UsStock_usdJpy(ctx, field)
+			case "currentPrice":
+				return ec.fieldContext_UsStock_currentPrice(ctx, field)
+			case "priceGets":
+				return ec.fieldContext_UsStock_priceGets(ctx, field)
+			case "currentRate":
+				return ec.fieldContext_UsStock_currentRate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UsStock", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUsStock_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6570,7 +6661,7 @@ func (ec *executionContext) unmarshalInputUpdateUsStockInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "getPrice", "quantity", "usdJpy", "currentPrice", "priceGets", "currentRate"}
+	fieldsInOrder := [...]string{"id", "getPrice", "quantity", "usdJpy"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6605,27 +6696,6 @@ func (ec *executionContext) unmarshalInputUpdateUsStockInput(ctx context.Context
 				return it, err
 			}
 			it.UsdJpy = data
-		case "currentPrice":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentPrice"))
-			data, err := ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CurrentPrice = data
-		case "priceGets":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priceGets"))
-			data, err := ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PriceGets = data
-		case "currentRate":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentRate"))
-			data, err := ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CurrentRate = data
 		}
 	}
 
@@ -6904,6 +6974,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createUsStock":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUsStock(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateUsStock":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUsStock(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -8018,6 +8095,11 @@ func (ec *executionContext) marshalNTotalAsset2ᚖmyᚑusᚑstockᚑbackendᚋap
 
 func (ec *executionContext) unmarshalNUpdateTotalAssetInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateTotalAssetInput(ctx context.Context, v interface{}) (UpdateTotalAssetInput, error) {
 	res, err := ec.unmarshalInputUpdateTotalAssetInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateUsStockInput2myᚑusᚑstockᚑbackendᚋappᚋgraphqlᚋgeneratedᚐUpdateUsStockInput(ctx context.Context, v interface{}) (UpdateUsStockInput, error) {
+	res, err := ec.unmarshalInputUpdateUsStockInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

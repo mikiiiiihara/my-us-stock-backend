@@ -48,63 +48,63 @@ func TestFetchTotalAssetListById(t *testing.T) {
 	db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
 }
 
-// func TestFindTodayTotalAsset(t *testing.T) {
-//     db := setupTestDB()
-//     repo := NewTotalAssetRepository(db)
+func TestFindTodayTotalAsset(t *testing.T) {
+    db := setupTestDB()
+    repo := NewTotalAssetRepository(db)
 
-//     // UTCの日付の境界値でのテスト
-//     utcNow := time.Now().UTC()
-//     testBoundaryValues := []time.Time{
-//         utcNow.Add(-time.Hour),   // UTCの日付変更直前
-//         utcNow.Add(time.Hour),    // UTCの日付変更直後
-//     }
+    // UTCの日付の境界値でのテスト
+    utcNow := time.Now().UTC()
+    testBoundaryValues := []time.Time{
+        utcNow.Add(-time.Hour),   // UTCの日付変更直前
+        utcNow.Add(time.Hour),    // UTCの日付変更直後
+    }
 
-//     for _, testTime := range testBoundaryValues {
-//         asset := model.TotalAsset{
-//             Model: gorm.Model{
-//                 CreatedAt: testTime,
-//             },
-//             UserId:  1,
-//             CashUsd: 1000,
-//         }
-//         db.Create(&asset)
+    for _, testTime := range testBoundaryValues {
+        asset := model.TotalAsset{
+            Model: gorm.Model{
+                CreatedAt: testTime,
+            },
+            UserId:  1,
+            CashUsd: 1000,
+        }
+        db.Create(&asset)
 
-//         foundAsset, err := repo.FindTodayTotalAsset(context.Background(), asset.UserId)
-//         assert.NoError(t, err)
-//         assert.NotNil(t, foundAsset)
-//         assert.Equal(t, asset.UserId, foundAsset.UserId)
-//         assert.WithinDuration(t, testTime, foundAsset.CreatedAt, time.Second)
+        foundAsset, err := repo.FindTodayTotalAsset(context.Background(), asset.UserId)
+        assert.NoError(t, err)
+        assert.NotNil(t, foundAsset)
+        assert.Equal(t, asset.UserId, foundAsset.UserId)
+        assert.WithinDuration(t, testTime, foundAsset.CreatedAt, time.Second)
 
-//         // テストデータをクリーンアップ
-//         db.Unscoped().Delete(&asset)
-//     }
+        // テストデータをクリーンアップ
+        db.Unscoped().Delete(&asset)
+    }
 
-//     // JSTとUTCとで日付が変わってしまう場合でのテスト
-//     pastAsset := model.TotalAsset{
-//         Model: gorm.Model{
-//             CreatedAt: utcNow.AddDate(0, 0, -1), // 昨日
-//         },
-//         UserId:  1,
-//         CashUsd: 1000,
-//     }
-//     futureAsset := model.TotalAsset{
-//         Model: gorm.Model{
-//             CreatedAt: utcNow.AddDate(0, 0, 1), // 明日
-//         },
-//         UserId:  1,
-//         CashUsd: 1000,
-//     }
-//     db.Create(&pastAsset)
-//     db.Create(&futureAsset)
+    // JSTとUTCとで日付が変わってしまう場合でのテスト
+    pastAsset := model.TotalAsset{
+        Model: gorm.Model{
+            CreatedAt: utcNow.AddDate(0, 0, -1), // 昨日
+        },
+        UserId:  1,
+        CashUsd: 1000,
+    }
+    futureAsset := model.TotalAsset{
+        Model: gorm.Model{
+            CreatedAt: utcNow.AddDate(0, 0, 1), // 明日
+        },
+        UserId:  1,
+        CashUsd: 1000,
+    }
+    db.Create(&pastAsset)
+    db.Create(&futureAsset)
 
-//     _, err := repo.FindTodayTotalAsset(context.Background(), pastAsset.UserId)
-//     assert.Error(t, err)
-//     _, err = repo.FindTodayTotalAsset(context.Background(), futureAsset.UserId)
-//     assert.Error(t, err)
+    _, err := repo.FindTodayTotalAsset(context.Background(), pastAsset.UserId)
+    assert.Error(t, err)
+    _, err = repo.FindTodayTotalAsset(context.Background(), futureAsset.UserId)
+    assert.Error(t, err)
 
-//     // DB初期化
-//     db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
-// }
+    // DB初期化
+    db.Unscoped().Where("1=1").Delete(&model.TotalAsset{})
+}
 
 // UpdateTotalAssetのテスト
 func TestUpdateTotalAsset(t *testing.T) {

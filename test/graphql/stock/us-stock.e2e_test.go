@@ -392,6 +392,208 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, 0.1259, response.Data.CreateUsStock.CurrentRate)
 }
 
+func TestUpdateUsStockE2E(t *testing.T) {
+	db := test.SetupTestDB()
+
+	// モックの HTTP レスポンスを設定
+	mockStockPrice := `[
+		{
+			"symbol": "VTI",
+			"name": "Vanguard Total Stock Market Index Fund",
+			"price": 238.55,
+			"changesPercentage": 0.1259,
+			"change": 0.3,
+			"dayLow": 238.15,
+			"dayHigh": 238.7399,
+			"yearHigh": 238.7399,
+			"yearLow": 188.93,
+			"marketCap": 494685928424,
+			"priceAvg50": 222.1308,
+			"priceAvg200": 215.4878,
+			"exchange": "AMEX",
+			"volume": 3124566,
+			"avgVolume": 3536133,
+			"open": 238.25,
+			"previousClose": 238.25,
+			"eps": 10.632924,
+			"pe": 22.44,
+			"earningsAnnouncement": null,
+			"sharesOutstanding": 2073720094,
+			"timestamp": 1703793061
+		}
+	]`
+
+	mockDividend := `{
+		"symbol": "VTI",
+		"historical": [
+			{
+				"date": "2023-12-21",
+				"label": "December 21, 23",
+				"adjDividend": 1.002,
+				"dividend": 1.002,
+				"recordDate": "",
+				"paymentDate": "",
+				"declarationDate": ""
+			},
+			{
+				"date": "2023-09-21",
+				"label": "September 21, 23",
+				"adjDividend": 0.7984,
+				"dividend": 0.7984,
+				"recordDate": "2023-09-22",
+				"paymentDate": "2023-09-26",
+				"declarationDate": "2023-03-17"
+			},
+			{
+				"date": "2023-06-23",
+				"label": "June 23, 23",
+				"adjDividend": 0.8265,
+				"dividend": 0.8265,
+				"recordDate": "2023-06-26",
+				"paymentDate": "2023-06-28",
+				"declarationDate": "2023-03-17"
+			},
+			{
+				"date": "2023-03-23",
+				"label": "March 23, 23",
+				"adjDividend": 0.7862,
+				"dividend": 0.7862,
+				"recordDate": "2023-03-24",
+				"paymentDate": "2023-03-28",
+				"declarationDate": "2023-03-17"
+			},
+			{
+				"date": "2022-12-22",
+				"label": "December 22, 22",
+				"adjDividend": 0.9305,
+				"dividend": 0.931,
+				"recordDate": "2022-12-23",
+				"paymentDate": "2022-12-28",
+				"declarationDate": "2022-12-20"
+			},
+			{
+				"date": "2022-09-23",
+				"label": "September 23, 22",
+				"adjDividend": 0.7955,
+				"dividend": 0.796,
+				"recordDate": "2022-09-26",
+				"paymentDate": "2022-09-28",
+				"declarationDate": "2022-09-21"
+			}
+		]
+	}
+	`
+
+	// モックのHTTPクライアント設定
+	mockTransport := &MockHTTPTransport{
+		RoundTripFunc: func(req *http.Request) (*http.Response, error) {
+			var responseBody string
+	
+			// URLに基づいて異なるレスポンスを返す
+			if req.URL.Path == "/v3/quote-order/VTI" {
+				responseBody = mockStockPrice
+			} else if req.URL.Path == "/v3/historical-price-full/stock_dividend/VTI" {
+				responseBody = mockDividend
+			}
+	
+			r := io.NopCloser(bytes.NewReader([]byte(responseBody)))
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       r,
+			}, nil
+		},
+	}
+
+	mockHTTPClient := &http.Client{Transport: mockTransport}
+	mockMarketPriceRepo := repoMarketPrice.NewMarketPriceRepository(mockHTTPClient)
+	// オプションを使用してGraphQLサーバーをセットアップ
+	opts := &graphql.SetupOptions{
+		MockHTTPClient: mockHTTPClient,
+		// MarketPriceRepoにモックリポジトリを指定
+		MarketPriceRepo: mockMarketPriceRepo,
+	}
+    router := graphql.SetupGraphQLServer(db, opts)
+
+    // テスト用HTTPサーバーのセットアップ
+    ts := httptest.NewServer(router)
+    defer ts.Close()
+
+    // テスト用データの追加
+    usStock := model.UsStock{Code: "VTI", UserId: 1, Quantity: 10, GetPrice: 230, Sector: "Index", UsdJpy: 133.9}
+    db.Create(&usStock)
+
+    // 更新前の株式情報を取得
+    createdUsStockID := usStock.ID
+
+    // ダミーのアクセストークンを生成
+    token, err := graphql.GenerateTestAccessTokenForUserId(1)
+    if err != nil {
+        t.Fatalf("Failed to generate test access token: %v", err)
+    }
+
+    // GraphQLリクエストの実行
+    updateQuery := fmt.Sprintf(`mutation {
+        updateUsStock(input: {
+            id: "%s",
+            getPrice: 234.0,
+            quantity: 15,
+            usdJpy: 135.0
+        }) {
+            id
+            code
+            getPrice
+            quantity
+            sector
+            usdJpy
+            currentPrice
+            priceGets
+            currentRate
+        }
+    }`, strconv.FormatUint(uint64(createdUsStockID), 10))
+
+    w := graphql.ExecuteGraphQLRequestWithToken(ts.URL, updateQuery, token)
+
+    // レスポンスボディの解析
+    var response struct {
+        Data struct {
+            UpdateUsStock struct {
+                ID          string  `json:"id"`
+                Code        string  `json:"code"`
+                GetPrice    float64 `json:"getPrice"`
+                Quantity    int     `json:"quantity"`
+                Sector      string  `json:"sector"`
+                UsdJpy      float64 `json:"usdJpy"`
+                CurrentPrice float64 `json:"currentPrice"`
+                PriceGets   float64 `json:"priceGets"`
+                CurrentRate float64 `json:"currentRate"`
+            } `json:"updateUsStock"`
+        } `json:"data"`
+    }
+	t.Log("==========")
+	t.Log(w.Body)
+
+    err = json.Unmarshal(w.Body.Bytes(), &response)
+    if err != nil {
+        t.Fatalf("Failed to parse response body: %v", err)
+    }
+
+    // レスポンスボディの内容の検証
+    assert.Equal(t, "VTI", response.Data.UpdateUsStock.Code)
+    assert.Equal(t, 234.0, response.Data.UpdateUsStock.GetPrice)
+    assert.Equal(t, 15, response.Data.UpdateUsStock.Quantity)
+    assert.Equal(t, "Index", response.Data.UpdateUsStock.Sector)
+    assert.Equal(t, 135.0, response.Data.UpdateUsStock.UsdJpy)
+
+    // データベースの更新内容を確認
+    var updatedStock model.UsStock
+    db.First(&updatedStock, "id = ?", createdUsStockID)
+
+    assert.Equal(t, 234.0, updatedStock.GetPrice)
+    assert.Equal(t, 15.0, updatedStock.Quantity)
+    assert.Equal(t, 135.0, updatedStock.UsdJpy)
+}
+
+
 func TestDeleteUsStockE2E(t *testing.T) {
 	db := test.SetupTestDB()
 	router := graphql.SetupGraphQLServer(db, nil)

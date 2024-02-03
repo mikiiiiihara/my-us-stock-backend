@@ -139,12 +139,6 @@ type UpdateUsStockInput struct {
 	Quantity float64 `json:"quantity"`
 	// 購入時為替
 	UsdJpy float64 `json:"usdJpy"`
-	// 現在価格
-	CurrentPrice float64 `json:"currentPrice"`
-	// 変化額
-	PriceGets float64 `json:"priceGets"`
-	// 変化率
-	CurrentRate float64 `json:"currentRate"`
 }
 
 type UsStock struct {
