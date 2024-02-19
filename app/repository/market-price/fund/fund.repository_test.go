@@ -23,7 +23,7 @@ func setupTestDB() *gorm.DB {
 // TestFetchFundPriceList tests FetchFundPriceList function of DefaultFundPriceRepository.
 func TestFetchFundPriceList(t *testing.T) {
     db := setupTestDB()
-    repo := NewJapanFundRepository(db)
+    repo := NewFetchFundRepository(db)
 
     // Insert test data
     db.Create(&model.FundPrice{Name: "Test Fund", Code: "TF123", Price: 100.0})
@@ -38,7 +38,7 @@ func TestFetchFundPriceList(t *testing.T) {
 // TestUpdateFundPrice tests UpdateFundPrice function of DefaultFundPriceRepository.
 func TestUpdateFundPrice(t *testing.T) {
     db := setupTestDB()
-    repo := NewJapanFundRepository(db)
+    repo := NewFetchFundRepository(db)
 
     // Setup and insert test data
     originalPrice := model.FundPrice{Name: "Test Fund", Code: "TF123", Price: 100.0}
@@ -56,7 +56,7 @@ func TestUpdateFundPrice(t *testing.T) {
 // TestCreateFundPrice tests CreateFundPrice function of DefaultFundPriceRepository.
 func TestCreateFundPrice(t *testing.T) {
     db := setupTestDB()
-    repo := NewJapanFundRepository(db)
+    repo := NewFetchFundRepository(db)
 
     // Create a new fund price
     createDto := CreateFundPriceDto{Name: "New Fund", Code: "NF123", Price: 110.0}
@@ -72,7 +72,7 @@ func TestCreateFundPrice(t *testing.T) {
 
 func TestCreateFundPriceAlreadyExists(t *testing.T) {
     db := setupTestDB()
-    repo := NewJapanFundRepository(db)
+    repo := NewFetchFundRepository(db)
 
 	// 既存の銘柄をデータベースに登録
 	db.Create(&model.FundPrice{Name: "Test Fund", Code: "TF1234", Price: 100.0})

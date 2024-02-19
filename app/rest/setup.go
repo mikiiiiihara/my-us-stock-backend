@@ -12,9 +12,12 @@ import (
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
+	repoFundPrice "my-us-stock-backend/app/repository/market-price/fund"
 	repoTotalAsset "my-us-stock-backend/app/repository/total-assets"
 	"my-us-stock-backend/app/rest/auth"
 	totalAssets "my-us-stock-backend/app/rest/total-assets"
+
+	"my-us-stock-backend/app/rest/admin"
 
 	"my-us-stock-backend/app/rest/user"
 
@@ -34,6 +37,7 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     marketCryptoRepo := repoMarketCrypto.NewCryptoRepository(nil)
     fixedIncomeAssetRepo := repoFixedIncome.NewFixedIncomeRepository(db)
     cryptoRepo := repoCrypto.NewCryptoRepository(db)
+    fundPriceRepo := repoFundPrice.NewFetchFundRepository(db)
 
     // 認証機能
     userLogic := logic.NewUserLogic()
@@ -52,6 +56,9 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     totalAssetService := totalAssets.NewTotalAssetService(totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo)
     totalAssetController := totalAssets.NewTotalAssetController(totalAssetService)
 
+    adminService := admin.NewFundPriceService(fundPriceRepo)
+    adminController := admin.NewFundPriceController(adminService)
+
     // RESTコントローラのルートを設定
     r.GET("/api/users/:id", userController.GetUser)
     r.POST("/api/users", userController.CreateUser)
@@ -60,4 +67,8 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     r.POST("/api/v1/signup", authController.SignUp)
     r.POST("/api/v1/total-assets", totalAssetController.CreateTodayTotalAsset)
     r.POST("/api/v1/refresh", authController.RefreshAccessToken)
+    // 管理画面用
+    r.GET("/api/v1/admin/fund-prices", adminController.GetFundPrices)
+    r.POST("/api/v1/admin/fund-prices", adminController.CreateFundPrice)
+    r.PUT("/api/v1/admin/fund-prices", adminController.UpdateFundPrice)
 }

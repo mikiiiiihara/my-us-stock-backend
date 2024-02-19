@@ -25,8 +25,8 @@ func selectBaseQuery(db *gorm.DB) *gorm.DB {
     return db.Select("id", "price","code", "name")
 }
 
-// NewJapanFundRepository は DefaultStrategyRepository の新しいインスタンスを作成します
-func NewJapanFundRepository(db *gorm.DB) FundPriceRepository {
+// NewFetchFundRepository は DefaultStrategyRepository の新しいインスタンスを作成します
+func NewFetchFundRepository(db *gorm.DB) FundPriceRepository {
     return &DefaultFundPriceRepository{DB: db}
 }
 
