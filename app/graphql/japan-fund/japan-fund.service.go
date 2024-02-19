@@ -3,9 +3,11 @@ package japanfund
 import (
 	"context"
 	"my-us-stock-backend/app/common/auth"
+	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	"my-us-stock-backend/app/graphql/utils"
 	JapanFund "my-us-stock-backend/app/repository/assets/fund"
+	marketPrice "my-us-stock-backend/app/repository/market-price/fund"
 )
 
 // JapanFundService インターフェースの定義
@@ -20,16 +22,15 @@ type JapanFundService interface {
 type DefaultJapanFundService struct {
     Repo JapanFund.JapanFundRepository // インターフェースを利用
     Auth auth.AuthService    // 認証サービスのインターフェース
+	MarketPriceRepo marketPrice.FundPriceRepository
 }
 
 // NewJapanFundService は DefaultUserService の新しいインスタンスを作成します
-func NewJapanFundService(repo JapanFund.JapanFundRepository, auth auth.AuthService) JapanFundService {
-    return &DefaultJapanFundService{Repo: repo, Auth: auth}
+func NewJapanFundService(repo JapanFund.JapanFundRepository, auth auth.AuthService, marketPriceRepo marketPrice.FundPriceRepository) JapanFundService {
+    return &DefaultJapanFundService{Repo: repo, Auth: auth, MarketPriceRepo: marketPriceRepo}
 }
 
-// GetUserByID はユーザーをIDによって検索します
 func (s *DefaultJapanFundService) JapanFunds(ctx context.Context) ([]*generated.JapanFund, error) {
-    // アクセストークンの検証
     userId, _ := s.Auth.FetchUserIdAccessToken(ctx)
     if userId == 0 {
         return nil, utils.UnauthenticatedError("Invalid user ID")
@@ -38,23 +39,46 @@ func (s *DefaultJapanFundService) JapanFunds(ctx context.Context) ([]*generated.
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
-	// modelFundsが空の場合は空の配列を返却する
-	if len(modelFunds) == 0 {
-		return []*generated.JapanFund{}, nil
-	}
+    if len(modelFunds) == 0 {
+        return []*generated.JapanFund{}, nil
+    }
 
-	funds := make([]*generated.JapanFund, len(modelFunds))
-	for i, modelFund := range modelFunds {
-		funds[i] = &generated.JapanFund{
-			ID: utils.ConvertIdToString(modelFund.ID),
-			Code: modelFund.Code,
-			Name: modelFund.Name,
-			GetPrice: modelFund.GetPrice,
-			GetPriceTotal: modelFund.GetPriceTotal,
-			CurrentPrice: getFundMarketPrice(modelFund.Code), // TODO: 三菱UFJのAPI復旧したらrepository実装してそこから取得するようにする
-		}
-	}
-	
+    funds := make([]*generated.JapanFund, len(modelFunds))
+    errChan := make(chan error, 1)
+    resultChan := make(chan struct {
+        Index int
+        FundPrice *model.FundPrice
+    }, len(modelFunds))
+
+    for i, modelFund := range modelFunds {
+        go func(i int, code string) {
+            fundPrice, err := s.MarketPriceRepo.FindFundPriceByCode(ctx, code)
+            if err != nil {
+                errChan <- err
+                return
+            }
+            resultChan <- struct {
+                Index int
+                FundPrice *model.FundPrice
+            }{i, fundPrice}
+        }(i, modelFund.Code)
+    }
+
+    for i := 0; i < len(modelFunds); i++ {
+        select {
+        case result := <-resultChan:
+            funds[result.Index] = &generated.JapanFund{
+                ID: utils.ConvertIdToString(modelFunds[result.Index].ID),
+                Code: modelFunds[result.Index].Code,
+                Name: modelFunds[result.Index].Name,
+                GetPrice: modelFunds[result.Index].GetPrice,
+                GetPriceTotal: modelFunds[result.Index].GetPriceTotal,
+                CurrentPrice: result.FundPrice.Price,
+            }
+        case err := <-errChan:
+            return nil, utils.DefaultGraphQLError(err.Error())
+        }
+    }
 
     return funds, nil
 }
@@ -78,13 +102,17 @@ func (s *DefaultJapanFundService) CreateJapanFund(ctx context.Context, input gen
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
+	fundPrice, err := s.MarketPriceRepo.FindFundPriceByCode(ctx, createDto.Code)
+	if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
     return  &generated.JapanFund{
 		ID: utils.ConvertIdToString(modelFund.ID),
 		Code: modelFund.Code,
 		Name: modelFund.Name,
 		GetPriceTotal: modelFund.GetPriceTotal,
 		GetPrice: modelFund.GetPrice,
-		CurrentPrice: getFundMarketPrice(modelFund.Code),
+		CurrentPrice: fundPrice.Price,
 	}, nil
 }
 
@@ -109,26 +137,18 @@ func (s *DefaultJapanFundService) UpdateJapanFund(ctx context.Context, input gen
     if err != nil {
         return nil, utils.DefaultGraphQLError(err.Error())
     }
+	fundPrice, err := s.MarketPriceRepo.FindFundPriceByCode(ctx, modelFund.Code)
+	if err != nil {
+        return nil, utils.DefaultGraphQLError(err.Error())
+    }
 	return  &generated.JapanFund{
 		ID: utils.ConvertIdToString(modelFund.ID),
 		Code: modelFund.Code,
 		Name: modelFund.Name,
 		GetPriceTotal: modelFund.GetPriceTotal,
 		GetPrice: modelFund.GetPrice,
-		CurrentPrice: getFundMarketPrice(modelFund.Code),
+		CurrentPrice: fundPrice.Price,
 	}, nil
-}
-
-// TODO: 三菱UFJのAPI復旧したらrepository実装してそこから取得するようにする
-func getFundMarketPrice(code string) float64 {
-	switch code {
-	case "SP500":
-		return 27091.0
-	case "全世界株":
-		return 23040.0
-	default:
-		return 18768.0
-	}
 }
 
 // 削除

@@ -35,6 +35,8 @@ func TestJapanFunds(t *testing.T) {
 
     // テスト用のユーザーを作成
     db.Create(&model.JapanFund{Code: "SP500", Name:"ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", GetPrice: 15523.81, GetPriceTotal: 761157.0,UserId: 1})
+    expectedFundPrice := model.FundPrice{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", Code: "SP500", Price: 27000.0}
+    db.Create(&expectedFundPrice)
 
 	// ダミーのアクセストークンを生成
 	token, err := graphql.GenerateTestAccessTokenForUserId(1)
@@ -74,6 +76,7 @@ func TestJapanFunds(t *testing.T) {
 		assert.Equal(t, "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", response.Data.JapanFunds[0].Name)
 		assert.Equal(t, 15523.81, response.Data.JapanFunds[0].GetPrice)
 		assert.Equal(t, 761157.0, response.Data.JapanFunds[0].GetPriceTotal)
+		assert.Equal(t, expectedFundPrice.Price, response.Data.JapanFunds[0].CurrentPrice)
     } else {
         t.Fatalf("Expected non-empty array")
     }
@@ -92,6 +95,9 @@ func TestCreateUsStockE2E(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to generate test access token: %v", err)
 	}
+
+	expectedFundPrice := model.FundPrice{Name: "ｅＭＡＸＩＳ　Ｓｌｉｍ　全世界株式（除く日本）", Code: "全世界株", Price: 23000.0}
+    db.Create(&expectedFundPrice)
 
 	// GraphQLリクエストの実行
 	query := `mutation {
@@ -139,6 +145,7 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, "ｅＭＡＸＩＳ　Ｓｌｉｍ　全世界株式（除く日本）", response.Data.CreateJapanFund.Name)
 	assert.Equal(t, 18609.0, response.Data.CreateJapanFund.GetPrice)
 	assert.Equal(t, 400004.0, response.Data.CreateJapanFund.GetPriceTotal)
+	assert.Equal(t, expectedFundPrice.Price, response.Data.CreateJapanFund.CurrentPrice)
 }
 
 func TestUpdateJapanFundE2E(t *testing.T) {
@@ -152,6 +159,9 @@ func TestUpdateJapanFundE2E(t *testing.T) {
     // テスト用データの追加
     japanFund := model.JapanFund{Code: "JPX400", Name: "日経400", GetPrice: 12345.67, GetPriceTotal: 234567.89, UserId: 1}
     db.Create(&japanFund)
+
+	expectedFundPrice := model.FundPrice{Name: "日経400", Code: "JPX400", Price: 18000.0}
+    db.Create(&expectedFundPrice)
 
     // 作成されたレコードのIDを取得
     createdJapanFundID := japanFund.ID
@@ -203,6 +213,7 @@ func TestUpdateJapanFundE2E(t *testing.T) {
     assert.Equal(t, strconv.FormatUint(uint64(createdJapanFundID), 10), response.Data.UpdateJapanFund.ID)
     assert.Equal(t, 13000.0, response.Data.UpdateJapanFund.GetPrice)
     assert.Equal(t, 260000.0, response.Data.UpdateJapanFund.GetPriceTotal)
+	assert.Equal(t, expectedFundPrice.Price, response.Data.UpdateJapanFund.CurrentPrice)
 
     // データベースの更新内容を確認
     var updatedFund model.JapanFund

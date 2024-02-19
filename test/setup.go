@@ -20,5 +20,6 @@ func SetupTestDB() *gorm.DB {
 	db.AutoMigrate(&model.FixedIncomeAsset{})
 	db.AutoMigrate(&model.JapanFund{})
 	db.AutoMigrate(&model.TotalAsset{})
+	db.AutoMigrate(&model.FundPrice{})
 	return db
 }
