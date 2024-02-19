@@ -26,6 +26,6 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&model.FixedIncomeAsset{})
 	db.AutoMigrate(&model.JapanFund{})
 	db.AutoMigrate(&model.UsStock{})
-	db.AutoMigrate(&model.Strategy{})
+	db.AutoMigrate(&model.FundPrice{})
 	db.AutoMigrate(&model.User{})
 }

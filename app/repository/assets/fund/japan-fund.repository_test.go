@@ -128,12 +128,12 @@ func TestCreateJapanFundAlreadyExists(t *testing.T) {
     repo := NewJapanFundRepository(db)
 
     // 既存の銘柄をデータベースに登録
-    existingFund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
+    existingFund := model.JapanFund{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）1", UserId: 99, Code: "253266", GetPrice: 15523.81, GetPriceTotal: 761157}
     db.Create(&existingFund)
 
     // 同じ銘柄で新しい情報を作成
     createDto := CreateJapanFundDto{
-		Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
+		Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）1",
 		UserId: 99,
 		Code: "253266",
 		GetPrice: 15523.81,
