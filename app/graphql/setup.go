@@ -20,6 +20,7 @@ import (
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
+	repoFundPrice "my-us-stock-backend/app/repository/market-price/fund"
 	repoTotalAsset "my-us-stock-backend/app/repository/total-assets"
 	repoUser "my-us-stock-backend/app/repository/user"
 
@@ -82,6 +83,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     japanFundRepo := repoJapanFund.NewJapanFundRepository(db)
     fixedIncomeAssetRepo := repoFixedIncome.NewFixedIncomeRepository(db)
     totalAssetRepo := repoTotalAsset.NewTotalAssetRepository(db)
+    fundPriceRepo := repoFundPrice.NewFetchFundRepository(db)
 
     // 認証機能
     userLogic := logic.NewUserLogic()
@@ -111,7 +113,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     fixedIncomeAssetService := fixedIncomeAsset.NewAssetService(fixedIncomeAssetRepo, authService)
     fixedIncomeAssetResolver := fixedIncomeAsset.NewResolver(fixedIncomeAssetService)
 
-    japanFundService := japanFund.NewJapanFundService(japanFundRepo, authService)
+    japanFundService := japanFund.NewJapanFundService(japanFundRepo, authService, fundPriceRepo)
     japanFundResolver := japanFund.NewResolver(japanFundService)
 
     totalAssetService := totalAsset.NewTotalAssetService(authService,totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo)

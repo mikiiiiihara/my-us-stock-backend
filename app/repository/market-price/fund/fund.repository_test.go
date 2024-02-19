@@ -34,6 +34,28 @@ func TestFetchFundPriceList(t *testing.T) {
     assert.NotEmpty(t, prices)
     // Add more assertions as needed
 }
+// TestFindFundPriceByCode tests the FindFundPriceByCode function of DefaultFundPriceRepository.
+func TestFindFundPriceByCode(t *testing.T) {
+    db := setupTestDB()
+    repo := NewFetchFundRepository(db)
+
+    // Setup test data
+    expectedFundPrice := model.FundPrice{Name: "Test Fund", Code: "TF123", Price: 100.0}
+    db.Create(&expectedFundPrice)
+
+    // Test FindFundPriceByCode with an existing code
+    foundFundPrice, err := repo.FindFundPriceByCode(context.Background(), "TF123")
+    assert.NoError(t, err)
+    assert.NotNil(t, foundFundPrice)
+    assert.Equal(t, expectedFundPrice.Name, foundFundPrice.Name)
+    assert.Equal(t, expectedFundPrice.Code, foundFundPrice.Code)
+    assert.Equal(t, expectedFundPrice.Price, foundFundPrice.Price)
+
+    // Test FindFundPriceByCode with a non-existing code
+    _, err = repo.FindFundPriceByCode(context.Background(), "NON_EXISTENT_CODE")
+    assert.Error(t, err)
+    assert.Equal(t, gorm.ErrRecordNotFound, err)
+}
 
 // TestUpdateFundPrice tests UpdateFundPrice function of DefaultFundPriceRepository.
 func TestUpdateFundPrice(t *testing.T) {

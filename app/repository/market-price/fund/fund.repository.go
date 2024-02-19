@@ -11,6 +11,7 @@ import (
 // FundPriceRepository インターフェースの定義
 type FundPriceRepository interface {
 	FetchFundPriceList(ctx context.Context) ([]model.FundPrice, error)
+    FindFundPriceByCode(ctx context.Context, code string) (*model.FundPrice, error)
     UpdateFundPrice(ctx context.Context, dto UpdateFundPriceDto) (*model.FundPrice, error)
 	CreateFundPrice(ctx context.Context, dto CreateFundPriceDto) (*model.FundPrice, error)
 }
@@ -38,6 +39,20 @@ func (r *DefaultFundPriceRepository) FetchFundPriceList(ctx context.Context) ([]
         return nil, err
     }
     return funds, nil
+}
+
+// FindFundPriceByCode は指定されたcodeのファンド価格情報を取得します
+func (r *DefaultFundPriceRepository) FindFundPriceByCode(ctx context.Context, code string) (*model.FundPrice, error) {
+	var fundPrice model.FundPrice
+	if err := r.DB.Where("code = ?", code).First(&fundPrice).Error; err != nil {
+		// gorm.ErrRecordNotFound をチェックして、見つからなかった場合の処理をすることもできます
+		if err == gorm.ErrRecordNotFound {
+			return nil, err
+		}
+		// その他のエラーの場合
+		return nil, err
+	}
+	return &fundPrice, nil
 }
 
 // 日本投資信託情報を更新します

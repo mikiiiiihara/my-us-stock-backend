@@ -5,6 +5,7 @@ import (
 	"my-us-stock-backend/app/graphql"
 	"my-us-stock-backend/app/rest"
 	"os"
+	"strings"
 
 	"my-us-stock-backend/app/database"
 
@@ -33,9 +34,10 @@ func main() {
     // Gin HTTPサーバーの初期化
     r := gin.Default() // gin.Engineのインスタンスを初期化
 
-    clientURL := os.Getenv("CLIENT_URL")
+   // 環境変数からクライアントのURLを読み込み、","で分割して配列にする
+   clientURLs := strings.Split(os.Getenv("CLIENT_URL"), ",")
     r.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{clientURL},
+        AllowOrigins:     clientURLs,
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Content-Type", "Authorization"},
         ExposeHeaders:    []string{"Content-Length"},

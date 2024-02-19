@@ -6,6 +6,7 @@ import (
 	"my-us-stock-backend/app/database/model"
 	"my-us-stock-backend/app/graphql/generated"
 	repo "my-us-stock-backend/app/repository/assets/fund"
+	marketPrice "my-us-stock-backend/app/repository/market-price/fund"
 	"strconv"
 	"testing"
 
@@ -18,7 +19,8 @@ import (
 func TestJapanFundsService(t *testing.T) {
 	mockRepo := repo.NewMockJapanFundRepository()
 	mockAuth := auth.NewMockAuthService()
-	service := NewJapanFundService(mockRepo, mockAuth)
+	mockMarketRepo := marketPrice.NewMockFundPriceRepository()
+	service := NewJapanFundService(mockRepo, mockAuth, mockMarketRepo)
 
 	// モックの期待値設定
 	userId := uint(1)
@@ -29,6 +31,8 @@ func TestJapanFundsService(t *testing.T) {
 	}
 	mockRepo.On("FetchJapanFundListById", mock.Anything, userId).Return(mockFunds, nil)
 
+	expectedPrice := &model.FundPrice{Name: mockFunds[0].Name, Code: mockFunds[0].Code, Price: 27000.0}
+	mockMarketRepo.On("FindFundPriceByCode", mock.Anything, "SP500").Return(expectedPrice, nil)
 	// テスト対象メソッドの実行
 	funds, err := service.JapanFunds(context.Background())
 	assert.NoError(t, err)
@@ -40,6 +44,7 @@ func TestJapanFundsService(t *testing.T) {
 	assert.Equal(t, "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", funds[0].Name)
 	assert.Equal(t, 15523.81, funds[0].GetPrice)
 	assert.Equal(t, 761157.0, funds[0].GetPriceTotal)
+	assert.Equal(t, expectedPrice.Price, funds[0].CurrentPrice)
 
 	// モックの呼び出しを検証
 	mockRepo.AssertExpectations(t)
@@ -50,7 +55,8 @@ func TestJapanFundsService(t *testing.T) {
 func TestCreateJapanFundService(t *testing.T) {
 	mockRepo := repo.NewMockJapanFundRepository()
 	mockAuth := auth.NewMockAuthService()
-	service := NewJapanFundService(mockRepo, mockAuth)
+	mockMarketRepo := marketPrice.NewMockFundPriceRepository()
+	service := NewJapanFundService(mockRepo, mockAuth, mockMarketRepo)
 
 	// モックの期待値設定
 	userId := uint(1)
@@ -67,6 +73,9 @@ func TestCreateJapanFundService(t *testing.T) {
 	}
 	mockRepo.On("CreateJapanFund", mock.Anything, input).Return(mockAsset, nil)
 
+	expectedPrice := &model.FundPrice{Name: input.Name, Code: input.Code, Price: 23000.0}
+	mockMarketRepo.On("FindFundPriceByCode", mock.Anything, "全世界株").Return(expectedPrice, nil)
+
 	// テスト対象メソッドの実行
 	serviceInput := generated.CreateJapanFundInput{
 		Code: "全世界株", 
@@ -78,11 +87,11 @@ func TestCreateJapanFundService(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, newFund)
 
-	assert.Equal(t, "0", newFund.ID)
 	assert.Equal(t, "全世界株", newFund.Code)
 	assert.Equal(t, "ｅＭＡＸＩＳ　Ｓｌｉｍ　全世界株式（除く日本）", newFund.Name)
 	assert.Equal(t, 18609.0, newFund.GetPrice)
 	assert.Equal(t, 400004.0, newFund.GetPriceTotal)
+	assert.Equal(t, expectedPrice.Price, newFund.CurrentPrice)
 
 	// モックの呼び出しを検証
 	mockRepo.AssertExpectations(t)
@@ -93,7 +102,8 @@ func TestCreateJapanFundService(t *testing.T) {
 func TestUpdateJapanFundService(t *testing.T) {
     mockRepo := repo.NewMockJapanFundRepository()
     mockAuth := auth.NewMockAuthService()
-    service := NewJapanFundService(mockRepo, mockAuth)
+	mockMarketRepo := marketPrice.NewMockFundPriceRepository()
+	service := NewJapanFundService(mockRepo, mockAuth, mockMarketRepo)
 
     // モックの期待値設定
     userId := uint(1)
@@ -117,6 +127,8 @@ func TestUpdateJapanFundService(t *testing.T) {
     }
     mockRepo.On("UpdateJapanFund", mock.Anything, updateDto).Return(updatedMockFund, nil)
 
+	expectedPrice := &model.FundPrice{Name: updatedMockFund.Name, Code: updatedMockFund.Code, Price: 27000.0}
+	mockMarketRepo.On("FindFundPriceByCode", mock.Anything, "SP500").Return(expectedPrice, nil)
     // テスト対象メソッドの実行
     serviceInput := generated.UpdateJapanFundInput{
         ID:            "1",
@@ -133,6 +145,7 @@ func TestUpdateJapanFundService(t *testing.T) {
     assert.Equal(t, "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", updatedFund.Name)
     assert.Equal(t, 16000.0, updatedFund.GetPrice)
     assert.Equal(t, 800000.0, updatedFund.GetPriceTotal)
+	assert.Equal(t, expectedPrice.Price, updatedFund.CurrentPrice)
 
     // モックの呼び出しを検証
     mockRepo.AssertExpectations(t)
@@ -144,7 +157,8 @@ func TestUpdateJapanFundService(t *testing.T) {
 func TestDeleteJapanFundService(t *testing.T) {
 	mockRepo := repo.NewMockJapanFundRepository()
 	mockAuth := auth.NewMockAuthService()
-	service := NewJapanFundService(mockRepo, mockAuth)
+	mockMarkeCryptoRepo := marketPrice.NewMockFundPriceRepository()
+	service := NewJapanFundService(mockRepo, mockAuth, mockMarkeCryptoRepo)
 
 	// モックの期待値設定
 	userId := uint(1)

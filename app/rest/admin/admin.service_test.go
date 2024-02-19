@@ -10,29 +10,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockFundPriceRepository is a mock of the FundPriceRepository interface
-type MockFundPriceRepository struct {
-	mock.Mock
-}
-
-func (m *MockFundPriceRepository) FetchFundPriceList(ctx context.Context) ([]model.FundPrice, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]model.FundPrice), args.Error(1)
-}
-
-func (m *MockFundPriceRepository) UpdateFundPrice(ctx context.Context, dto fund.UpdateFundPriceDto) (*model.FundPrice, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.FundPrice), args.Error(1)
-}
-
-func (m *MockFundPriceRepository) CreateFundPrice(ctx context.Context, dto fund.CreateFundPriceDto) (*model.FundPrice, error) {
-	args := m.Called(ctx, dto)
-	return args.Get(0).(*model.FundPrice), args.Error(1)
-}
-
 // Test for FetchFundPrices method
 func TestDefaultFundPriceService_FetchFundPrices(t *testing.T) {
-	mockRepo := new(MockFundPriceRepository)
+	mockRepo := fund.NewMockFundPriceRepository()
 	service := NewFundPriceService(mockRepo)
 
 	expectedPrices := []model.FundPrice{
@@ -49,7 +29,7 @@ func TestDefaultFundPriceService_FetchFundPrices(t *testing.T) {
 
 // Test for UpdateFundPrice method
 func TestDefaultFundPriceService_UpdateFundPrice(t *testing.T) {
-	mockRepo := new(MockFundPriceRepository)
+	mockRepo := fund.NewMockFundPriceRepository()
 	service := NewFundPriceService(mockRepo)
 
 	dto := fund.UpdateFundPriceDto{ID: 1, Price: 105.0}
@@ -65,7 +45,7 @@ func TestDefaultFundPriceService_UpdateFundPrice(t *testing.T) {
 
 // Test for CreateFundPrice method
 func TestDefaultFundPriceService_CreateFundPrice(t *testing.T) {
-	mockRepo := new(MockFundPriceRepository)
+	mockRepo := fund.NewMockFundPriceRepository()
 	service := NewFundPriceService(mockRepo)
 
 	dto := fund.CreateFundPriceDto{Name: "New Fund", Code: "NF789", Price: 250.0}

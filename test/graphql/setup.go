@@ -19,6 +19,7 @@ import (
 	repoMarketPrice "my-us-stock-backend/app/repository/market-price"
 	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
+	repoFundPrice "my-us-stock-backend/app/repository/market-price/fund"
 	repoTotalAsset "my-us-stock-backend/app/repository/total-assets"
 	repoUser "my-us-stock-backend/app/repository/user"
 	"net/http"
@@ -39,6 +40,7 @@ type SetupOptions struct {
     FixedIncomeAssetRepo repoFixedIncome.FixedIncomeRepository
     JapanFundRepo repoJapanFund.JapanFundRepository
     TotalAssetRepo repoTotalAsset.TotalAssetRepository
+    FundPriceRepo repoFundPrice.FundPriceRepository
 }
 
 // SetupGraphQLServer - GraphQLサーバーのセットアップ
@@ -52,6 +54,7 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     var fixedIncomeAssetRepo repoFixedIncome.FixedIncomeRepository
     var japanFundRepo repoJapanFund.JapanFundRepository
     var totalAssetRepo repoTotalAsset.TotalAssetRepository
+    var fundPriceRepo repoFundPrice.FundPriceRepository
 
     // optsがnilでない場合にのみ、各リポジトリを設定
     if opts != nil {
@@ -63,6 +66,7 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
         fixedIncomeAssetRepo = opts.FixedIncomeAssetRepo
         japanFundRepo = opts.JapanFundRepo
         totalAssetRepo = opts.TotalAssetRepo
+        fundPriceRepo = opts.FundPriceRepo
     }
 
     // 各リポジトリがまだnilの場合、デフォルトのリポジトリを使用
@@ -90,6 +94,10 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
 
     if japanFundRepo == nil {
         japanFundRepo = repoJapanFund.NewJapanFundRepository(db)
+    }
+
+    if fundPriceRepo == nil {
+        fundPriceRepo = repoFundPrice.NewFetchFundRepository(db)
     }
 
     if marketPriceRepo == nil {
@@ -136,7 +144,7 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     fixedIncomeAssetService := serviceFixedIncomeAsset.NewAssetService(fixedIncomeAssetRepo, authService)
     fixedIncomeAssetResolver := serviceFixedIncomeAsset.NewResolver(fixedIncomeAssetService)
 
-    japanFundService := serviceJapanFund.NewJapanFundService(japanFundRepo, authService)
+    japanFundService := serviceJapanFund.NewJapanFundService(japanFundRepo, authService, fundPriceRepo)
     japanFundResolver := serviceJapanFund.NewResolver(japanFundService)
 
     totalAssetService := serviceTotalAsset.NewTotalAssetService(authService,totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo)
