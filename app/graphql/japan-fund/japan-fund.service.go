@@ -128,7 +128,6 @@ func getFundMarketPrice(code string) float64 {
 		return 23040.0
 	default:
 		return 18768.0
-	
 	}
 }
 

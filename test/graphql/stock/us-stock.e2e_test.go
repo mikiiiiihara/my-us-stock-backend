@@ -90,13 +90,13 @@ func TestUsStocksE2E(t *testing.T) {
 				"declarationDate": "2023-05-04"
 			  },
 			  {
-				"date": "2023-02-10",
-				"label": "February 10, 23",
+				"date": "2024-02-10",
+				"label": "February 10, 24",
 				"adjDividend": 0.23,
 				"dividend": 0.23,
-				"recordDate": "2023-02-13",
-				"paymentDate": "2023-02-16",
-				"declarationDate": "2023-02-02"
+				"recordDate": "2024-02-13",
+				"paymentDate": "2024-02-16",
+				"declarationDate": "2024-02-02"
 			  },
 			  {
 				"date": "2022-11-04",
