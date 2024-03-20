@@ -8,28 +8,28 @@ import (
 
 // QuoteData は株価データを表す構造体です。
 type QuoteData struct {
-    Symbol               string  `json:"symbol"`
-    Name                 string  `json:"name"`
-    Price                float64 `json:"price"`
-    ChangesPercentage    float64 `json:"changesPercentage"`
-    Change               float64 `json:"change"`
-    DayLow               float64 `json:"dayLow"`
-    DayHigh              float64 `json:"dayHigh"`
-    YearHigh             float64 `json:"yearHigh"`
-    YearLow              float64 `json:"yearLow"`
-    MarketCap            int64   `json:"marketCap"`
-    PriceAvg50           float64 `json:"priceAvg50"`
-    PriceAvg200          float64 `json:"priceAvg200"`
-    Exchange             string  `json:"exchange"`
-    Volume               int     `json:"volume"`
-    AvgVolume            int     `json:"avgVolume"`
-    Open                 float64 `json:"open"`
-    PreviousClose        float64 `json:"previousClose"`
-    Eps                  float64 `json:"eps"`
-    Pe                   float64 `json:"pe"`
-    EarningsAnnouncement string  `json:"earningsAnnouncement"`
-    SharesOutstanding    int64   `json:"sharesOutstanding"`
-    Timestamp            int64   `json:"timestamp"`
+	Symbol               string  `json:"symbol"`
+	Name                 string  `json:"name"`
+	Price                float64 `json:"price"`
+	ChangesPercentage    float64 `json:"changesPercentage"`
+	Change               float64 `json:"change"`
+	DayLow               float64 `json:"dayLow"`
+	DayHigh              float64 `json:"dayHigh"`
+	YearHigh             float64 `json:"yearHigh"`
+	YearLow              float64 `json:"yearLow"`
+	MarketCap            int64   `json:"marketCap"`
+	PriceAvg50           float64 `json:"priceAvg50"`
+	PriceAvg200          float64 `json:"priceAvg200"`
+	Exchange             string  `json:"exchange"`
+	Volume               int     `json:"volume"`
+	AvgVolume            int     `json:"avgVolume"`
+	Open                 float64 `json:"open"`
+	PreviousClose        float64 `json:"previousClose"`
+	Eps                  float64 `json:"eps"`
+	Pe                   float64 `json:"pe"`
+	EarningsAnnouncement string  `json:"earningsAnnouncement"`
+	SharesOutstanding    int64   `json:"sharesOutstanding"`
+	Timestamp            int64   `json:"timestamp"`
 }
 
 // HistoricalData は履歴データを表す構造体です。
@@ -43,20 +43,50 @@ type HistoricalData struct {
 	DeclarationDate string  `json:"declarationDate"`
 }
 
+type Quote struct {
+	High             string `json:"high"`
+	Open             string `json:"open"`
+	Bid              string `json:"bid"`
+	CurrencyPairCode string `json:"currencyPairCode"`
+	Ask              string `json:"ask"`
+	Low              string `json:"low"`
+}
+
 // Response はレスポンスデータを表す構造体です。
 type Response struct {
-	Symbol      string           `json:"symbol"`
-	Historical  []HistoricalData `json:"historical"`
+	Symbol     string           `json:"symbol"`
+	Historical []HistoricalData `json:"historical"`
+}
+
+// Currency はレスポンスデータを表す構造体です。
+type Currency struct {
+	Quotes []Quote `json:"quotes"`
+}
+
+type CryptoData struct {
+	Sell      string `json:"sell"`
+	Buy       string `json:"buy"`
+	Open      string `json:"open"`
+	High      string `json:"high"`
+	Low       string `json:"low"`
+	Last      string `json:"last"`
+	Vol       string `json:"vol"`
+	Timestamp int64  `json:"timestamp"`
+}
+
+type Crypto struct {
+	Success int        `json:"success"`
+	Data    CryptoData `json:"data"`
 }
 
 func quoteOrderHandler(w http.ResponseWriter, r *http.Request) {
-    // 固定のレスポンスデータを設定
-    responseData := []QuoteData{
-		{"AAPL","Apple Inc.",192.53, -0.5424,-1.05,191.725,194.39,199.62,124.17,2994380584000,186.3,179.2902,"NASDAQ", 41936044,53103488,193.9,193.58,6.12,31.46,"2024-01-31T10:59:00.000+0000",15552800000,1703883601},
+	// 固定のレスポンスデータを設定
+	responseData := []QuoteData{
+		{"AAPL", "Apple Inc.", 192.53, -0.5424, -1.05, 191.725, 194.39, 199.62, 124.17, 2994380584000, 186.3, 179.2902, "NASDAQ", 41936044, 53103488, 193.9, 193.58, 6.12, 31.46, "2024-01-31T10:59:00.000+0000", 15552800000, 1703883601},
 	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(responseData)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(responseData)
 }
 
 func historicalPriceHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,9 +105,35 @@ func historicalPriceHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func currencyHandler(w http.ResponseWriter, r *http.Request) {
+	// 固定のレスポンスデータを設定
+	response := Currency{
+		Quotes: []Quote{
+			{"133.74", "133.73", "133.69", "USDJPY", "133.72", "133.69"},
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func cryptoHandler(w http.ResponseWriter, r *http.Request) {
+	response := Crypto{
+		Success: 1,
+		Data:    CryptoData{"5958001", "5958000", "6052000", "6127930", "5900000", "5956517", "335.3697", 1703916551294},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func main() {
 	http.HandleFunc("/api/v3/quote-order/", quoteOrderHandler)
 	http.HandleFunc("/api/v3/historical-price-full/stock_dividend/", historicalPriceHandler)
+	// 外為情報取得
+	http.HandleFunc("/", currencyHandler)
+	// 暗号通貨情報(BTCのみモック化)
+	http.HandleFunc("/btc_jpy/ticker", cryptoHandler)
 
 	log.Println("Server is running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

@@ -13,6 +13,8 @@ services:
     environment: # DB接続先をコンテナ用に上書き
       - DATABASE_URL=postgresql://myuser:mypassword@postgres:5432/mydbname?sslmode=disable&TimeZone=Asia%2FTokyo
       - PORT=8081
+      - CURRENCY_URL=http://my_mock_server:8080
+      - CRYPTO_URL=http://my_mock_server:8080
       - MARKET_PRICE_URL=http://my_mock_server:8080/api
       - MARKET_PRICE_TICKER_TOKEN=xxxxxx
       - MARKET_PRICE_DIVIDEND_MAIN_TOKEN=xxxxxx
