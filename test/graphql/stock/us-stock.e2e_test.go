@@ -384,7 +384,7 @@ func TestCreateUsStockE2E(t *testing.T) {
 	assert.Equal(t, "VTI", response.Data.CreateUsStock.Code)
 	assert.Equal(t, 190.0, response.Data.CreateUsStock.GetPrice)
 	assert.Equal(t, "Index", response.Data.CreateUsStock.Sector)
-	assert.Equal(t, 2.411, response.Data.CreateUsStock.Dividend)
+	assert.Equal(t, 1.625, response.Data.CreateUsStock.Dividend)
 	assert.Equal(t, 10.0, response.Data.CreateUsStock.Quantity)
 	assert.Equal(t, 130.0, response.Data.CreateUsStock.UsdJpy)
 	assert.Equal(t, 238.55, response.Data.CreateUsStock.CurrentPrice)

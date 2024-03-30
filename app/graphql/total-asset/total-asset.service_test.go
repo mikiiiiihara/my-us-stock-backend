@@ -18,6 +18,7 @@ import (
 	marketPrice "my-us-stock-backend/app/repository/market-price"
 	marketCryptoRepo "my-us-stock-backend/app/repository/market-price/crypto"
 	"my-us-stock-backend/app/repository/market-price/currency"
+	"my-us-stock-backend/app/repository/market-price/fund"
 	totalAssetRepo "my-us-stock-backend/app/repository/total-assets"
 )
 
@@ -57,7 +58,8 @@ func TestTotalAssetsService(t *testing.T) {
 	mockCryptoRepo := cryptoRepo.NewMockCryptoRepository()
 	mockFixedIncomeAssetRepo := fixedIncomeAssetRepo.NewMockFixedIncomeAssetRepository()
 	mockMarketCryptoRepo := marketCryptoRepo.NewMockCryptoRepository()
-	service := NewTotalAssetService(mockAuth, mockTotalAssetRepo, mockStockRepo, mockMarketPriceRepo, mockCurrencyRepo, mockJapanFundRepo, mockCryptoRepo, mockFixedIncomeAssetRepo,mockMarketCryptoRepo)
+	mockFundPriceRepo := fund.NewMockFundPriceRepository()
+	service := NewTotalAssetService(mockAuth, mockTotalAssetRepo, mockStockRepo, mockMarketPriceRepo, mockCurrencyRepo, mockJapanFundRepo, mockCryptoRepo, mockFixedIncomeAssetRepo,mockMarketCryptoRepo, mockFundPriceRepo)
 
 	// モックの期待値設定
 	userId := uint(1)
@@ -89,7 +91,8 @@ func TestUpdateTotalAssetService(t *testing.T) {
 	mockCryptoRepo := cryptoRepo.NewMockCryptoRepository()
 	mockFixedIncomeAssetRepo := fixedIncomeAssetRepo.NewMockFixedIncomeAssetRepository()
 	mockMarketCryptoRepo := marketCryptoRepo.NewMockCryptoRepository()
-	service := NewTotalAssetService(mockAuth, mockTotalAssetRepo, mockStockRepo, mockMarketPriceRepo, mockCurrencyRepo, mockJapanFundRepo, mockCryptoRepo, mockFixedIncomeAssetRepo,mockMarketCryptoRepo)
+	mockFundPriceRepo := fund.NewMockFundPriceRepository()
+	service := NewTotalAssetService(mockAuth, mockTotalAssetRepo, mockStockRepo, mockMarketPriceRepo, mockCurrencyRepo, mockJapanFundRepo, mockCryptoRepo, mockFixedIncomeAssetRepo,mockMarketCryptoRepo, mockFundPriceRepo)
 
 	// モックの期待値設定
 	userId := uint(1)
@@ -125,6 +128,9 @@ func TestUpdateTotalAssetService(t *testing.T) {
 		{Code: "Funds", UserId: 99, DividendRate: 3.5, GetPriceTotal: 100000.0, PaymentMonth: pq.Int64Array{6, 12}},
 	}
 	mockFixedIncomeAssetRepo.On("FetchFixedIncomeAssetListById", mock.Anything, userId).Return(mockAssets, nil)
+
+	mockFundPrice := model.FundPrice{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", Code: "SP500", Price: 23523.81}
+	mockFundPriceRepo.On("FindFundPriceByCode", mock.Anything, "SP500").Return(&mockFundPrice, nil)
 
 	// テスト実行
 	updateInput := generated.UpdateTotalAssetInput{ID: "1", CashJpy: 15000, CashUsd: 150}

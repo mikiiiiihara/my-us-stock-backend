@@ -147,7 +147,7 @@ func SetupGraphQLServer(db *gorm.DB, opts *SetupOptions) http.Handler {
     japanFundService := serviceJapanFund.NewJapanFundService(japanFundRepo, authService, fundPriceRepo)
     japanFundResolver := serviceJapanFund.NewResolver(japanFundService)
 
-    totalAssetService := serviceTotalAsset.NewTotalAssetService(authService,totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo)
+    totalAssetService := serviceTotalAsset.NewTotalAssetService(authService,totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo, fundPriceRepo)
     totalAssetResolver := serviceTotalAsset.NewResolver(totalAssetService)
     // Ginのルーターを初期化
     r := gin.Default()

@@ -116,7 +116,7 @@ func SetupGraphQL(r *gin.Engine, db *gorm.DB) {
     japanFundService := japanFund.NewJapanFundService(japanFundRepo, authService, fundPriceRepo)
     japanFundResolver := japanFund.NewResolver(japanFundService)
 
-    totalAssetService := totalAsset.NewTotalAssetService(authService,totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo)
+    totalAssetService := totalAsset.NewTotalAssetService(authService,totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo, fundPriceRepo)
     totalAssetResolver := totalAsset.NewResolver(totalAssetService)
 
     // GraphQLエンドポイントへのルート設定

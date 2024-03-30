@@ -30,6 +30,8 @@ func TestTotalAssetsE2E(t *testing.T) {
 
 	// テスト用データの追加
 	db.Create(&model.TotalAsset{UserId: 1, CashJpy: 10000, CashUsd: 100, Stock: 50000})
+	db.Create(&model.FundPrice{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", Code: "SP500", Price: 23523.81})
+
 
 	// ダミーのアクセストークンを生成
 	token, err := graphql.GenerateTestAccessTokenForUserId(1)
@@ -201,6 +203,7 @@ func TestUpdateTotalAssetE2E(t *testing.T) {
 	db.Create(&model.FixedIncomeAsset{Code: "Funds", UserId: 1, DividendRate: 3.5, GetPriceTotal: 100000.0, PaymentMonth: pq.Int64Array{6, 12}})
     db.Create(&model.JapanFund{Code: "SP500", Name:"ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", GetPrice: 15523.81, GetPriceTotal: 761157.0,UserId: 1})
     db.Create(&model.Crypto{Code: "btc", UserId: 1, Quantity: 0.05, GetPrice: 5047113.0})
+	db.Create(&model.FundPrice{Name: "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）", Code: "SP500", Price: 23523.81})
 
 	// 作成されたレコードのIDを取得
 	createdTotalAssetID := totalAsset.ID
@@ -245,13 +248,13 @@ func TestUpdateTotalAssetE2E(t *testing.T) {
 	err = json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatalf("Failed to parse response body: %v", err)
-	}
+	} 
 	// レスポンスボディの内容の検証
 	assert.Equal(t, createdTotalAssetIDStr, response.Data.UpdateTotalAsset.ID)
 	assert.Equal(t, 15000.0, response.Data.UpdateTotalAsset.CashJpy)
 	assert.Equal(t, 150.0, response.Data.UpdateTotalAsset.CashUsd)
 	assert.Equal(t, 259278.0, response.Data.UpdateTotalAsset.Stock)
-	assert.Equal(t, 1193527.0, response.Data.UpdateTotalAsset.Fund)
+	assert.Equal(t, 1153410.0, response.Data.UpdateTotalAsset.Fund)
 	assert.Equal(t, 297826.0, response.Data.UpdateTotalAsset.Crypto)
 	assert.Equal(t, 100000.0, response.Data.UpdateTotalAsset.FixedIncomeAsset)
 }
