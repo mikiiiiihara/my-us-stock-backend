@@ -53,7 +53,7 @@ func SetupREST(r *gin.Engine, db *gorm.DB) {
     authService := authService.NewAuthService(userRepo, userLogic, responseLogic, jwtLogic, authValidation)
     authController := auth.NewAuthController(authService)
 
-    totalAssetService := totalAssets.NewTotalAssetService(totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo)
+    totalAssetService := totalAssets.NewTotalAssetService(totalAssetRepo, usStockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeAssetRepo, marketCryptoRepo, fundPriceRepo)
     totalAssetController := totalAssets.NewTotalAssetController(totalAssetService)
 
     adminService := admin.NewFundPriceService(fundPriceRepo)

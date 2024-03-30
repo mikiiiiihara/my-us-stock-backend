@@ -2,6 +2,7 @@ package totalassets
 
 import (
 	"context"
+	"log"
 	"math"
 
 	repoCrypto "my-us-stock-backend/app/repository/assets/crypto"
@@ -11,6 +12,7 @@ import (
 	marketPrice "my-us-stock-backend/app/repository/market-price"
 	repoMarketCrypto "my-us-stock-backend/app/repository/market-price/crypto"
 	repoCurrency "my-us-stock-backend/app/repository/market-price/currency"
+	repoFundPrice "my-us-stock-backend/app/repository/market-price/fund"
 	repoTotalAsset "my-us-stock-backend/app/repository/total-assets"
 
 	"github.com/gin-gonic/gin"
@@ -31,11 +33,12 @@ type DefaultTotalAssetService struct {
 	CryptoRepo repoCrypto.CryptoRepository
 	FixedIncomeRepo repoFixedIncome.FixedIncomeRepository
 	MarketCryptoRepo repoMarketCrypto.CryptoRepository
+	FundPriceRepo repoFundPrice.FundPriceRepository
 }
 
 // DefaultTotalAssetService の新しいインスタンスを作成します
-func NewTotalAssetService(totalAssetRepo repoTotalAsset.TotalAssetRepository, stockRepo stock.UsStockRepository, marketPriceRepo marketPrice.MarketPriceRepository, currencyRepo repoCurrency.CurrencyRepository, japanFundRepo repoJapanFund.JapanFundRepository,	cryptoRepo repoCrypto.CryptoRepository,fixedIncomeRepo repoFixedIncome.FixedIncomeRepository, marketCryptoRepo repoMarketCrypto.CryptoRepository) TotalAssetService {
-	return &DefaultTotalAssetService{totalAssetRepo, stockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeRepo, marketCryptoRepo}
+func NewTotalAssetService(totalAssetRepo repoTotalAsset.TotalAssetRepository, stockRepo stock.UsStockRepository, marketPriceRepo marketPrice.MarketPriceRepository, currencyRepo repoCurrency.CurrencyRepository, japanFundRepo repoJapanFund.JapanFundRepository,	cryptoRepo repoCrypto.CryptoRepository,fixedIncomeRepo repoFixedIncome.FixedIncomeRepository, marketCryptoRepo repoMarketCrypto.CryptoRepository, fundPriceRepo repoFundPrice.FundPriceRepository) TotalAssetService {
+	return &DefaultTotalAssetService{totalAssetRepo, stockRepo, marketPriceRepo, currencyRepo, japanFundRepo, cryptoRepo, fixedIncomeRepo, marketCryptoRepo, fundPriceRepo}
 }
 
 // 資産新規登録処理
@@ -75,11 +78,15 @@ func (ts *DefaultTotalAssetService) CreateTodayTotalAsset(ctx context.Context, c
     }
 	// modelFundsが空の場合は計算処理をスキップする
 	if len(modelFunds) != 0 {
-		// 投資信託の評価総額を計算
-		for _, modelFund := range modelFunds {
-			amountOfFund += calculateFundPriceTotal(modelFund.Code,modelFund.GetPrice,modelFund.GetPriceTotal)
+		// 仮想通貨の評価総額を計算
+		fundTotal,err := calculateFundPriceTotal(ctx, ts, modelFunds)
+		if err != nil {
+		log.Fatalf("エラーが発生しました: %v", err)
+        return "Internal Server Error", err
 		}
-	}
+		// 資産総額に加算
+		amountOfFund += fundTotal
+	   }
 
 	// 仮想通貨の評価額を取得
 	var amountOfCrypto = 0.0
